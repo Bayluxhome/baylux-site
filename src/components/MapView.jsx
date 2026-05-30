@@ -18,6 +18,8 @@ export default function MapView({ points = [], center = [41.642, 41.632], zoom =
 
       const map = L.map(elRef.current, { scrollWheelZoom: false }).setView(center, zoom);
       mapRef.current = map;
+      // убираем дефолтный префикс Leaflet (с флагом), оставляем копирайт карт
+      map.attributionControl.setPrefix(false);
       L.tileLayer("https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png", {
         attribution: "© OpenStreetMap, © CARTO", maxZoom: 19,
       }).addTo(map);
@@ -26,7 +28,8 @@ export default function MapView({ points = [], center = [41.642, 41.632], zoom =
       points.forEach((p) => {
         const icon = L.divIcon({ className: "", html: `<div class="price-pin ${p.jk ? "jk" : ""}">${p.label}</div>` });
         const m = L.marker([p.lat, p.lng], { icon });
-        if (p.href) m.bindPopup(`<a href="${p.href}" style="font-weight:600">${p.popup || "Подробнее →"}</a>`);
+        // клик по дому/объекту — сразу переход на страницу (без всплывающего окна)
+        if (p.href) m.on("click", () => { window.location.href = p.href; });
         cluster.addLayer(m);
       });
       map.addLayer(cluster);
