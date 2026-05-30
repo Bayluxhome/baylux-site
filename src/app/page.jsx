@@ -9,10 +9,9 @@ export const revalidate = 300;
 
 export default async function HomePage() {
   const BUILDINGS = await getBuildingsList();
-  const buildingPoints = BUILDINGS.map((b) => ({
-    lat: b.lat, lng: b.lng, jk: b.kind === "complex",
-    label: buildingPriceFrom(b).replace("от ", "").split(" ")[0],
-    href: `/building/${b.slug}`, popup: b.name,
+  const mapBuildings = BUILDINGS.map((b) => ({
+    slug: b.slug, name: b.name, district: b.district, kind: b.kind,
+    lat: b.lat, lng: b.lng, priceFrom: buildingPriceFrom(b), units: b.units,
   }));
   const freshUnits = (await getAllUnits()).slice(0, 6);
 
@@ -71,7 +70,7 @@ export default async function HomePage() {
           <div className="cards">
             {BUILDINGS.map((b) => <BuildingCard key={b.slug} building={b} />)}
           </div>
-          <MapView points={buildingPoints} className="map-home" />
+          <MapView buildings={mapBuildings} className="map-home" />
         </div>
       </section>
 

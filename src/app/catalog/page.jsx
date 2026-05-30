@@ -30,12 +30,15 @@ export default async function CatalogPage({ searchParams }) {
   else if (type) units = units.filter((u) => u.type === type);
   if (district) units = units.filter((u) => u.building.district === district);
 
-  const points = units.map((u) => ({
-    lat: u.building.lat, lng: u.building.lng,
-    label: u.price.replace("от ", "").split(" ")[0],
-    jk: u.building.kind === "complex",
-    href: `/property/${u.slug}`, popup: u.type + " · " + u.price,
-  }));
+  const bmap = new Map();
+  for (const u of units) {
+    const b = u.building;
+    if (!bmap.has(b.slug)) {
+      bmap.set(b.slug, { slug: b.slug, name: b.name, district: b.district, kind: b.kind, lat: b.lat, lng: b.lng, priceFrom: u.price, units: [] });
+    }
+    bmap.get(b.slug).units.push({ slug: u.slug, deal: u.deal, type: u.type, rooms: u.rooms, area: u.area, price: u.price, per: u.per });
+  }
+  const mapBuildings = Array.from(bmap.values());
 
   const qs = (k, v) => {
     const p = new URLSearchParams(sp); if (v) p.set(k, v); else p.delete(k);
@@ -67,7 +70,7 @@ export default async function CatalogPage({ searchParams }) {
           <div className="cards">
             {units.map((u) => <PropertyCard key={u.id} unit={u} />)}
           </div>
-          <MapView points={points} className="map-full" />
+          <MapView buildings={mapBuildings} className="map-full" />
         </div>
       )}
     </div>
