@@ -44,7 +44,8 @@ nav.main{display:flex;gap:2px;font-weight:500;font-size:15px}
 .hicon-sq{padding:0;width:40px;justify-content:center;font-size:17px}
 .hi-ic{font-size:15px}
 .langw{position:relative}
-.lang-cur{font-size:12px;font-weight:700;color:var(--navy);margin-left:1px}
+.hlang{gap:5px;padding:0 11px}
+.lang-cur{font-size:12px;font-weight:700;color:var(--navy)}
 .lang-pop{position:absolute;top:48px;right:0;width:300px;max-width:90vw;background:#fff;border:1px solid var(--line);border-radius:16px;box-shadow:var(--shadow-lg);padding:10px;z-index:1200}
 .lp-h{font-size:13px;font-weight:700;color:var(--ink-soft);text-transform:none;padding:8px 10px 4px}
 .lp-row{display:flex;align-items:center;gap:12px;width:100%;text-align:left;padding:10px 10px;border:none;background:none;border-radius:10px;cursor:pointer;font-family:inherit;color:var(--ink)}

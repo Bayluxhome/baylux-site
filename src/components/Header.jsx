@@ -119,8 +119,8 @@ export default function Header() {
           <button className="hicon hicon-sq" title="Избранное" aria-label="Избранное">♡</button>
 
           <div className="langw" ref={langRef}>
-            <button className="hicon hicon-sq" onClick={(e) => { e.stopPropagation(); setLangOpen((v) => !v); }} title="Язык и валюта" aria-label="Язык и валюта">
-              🌐<span className="lang-cur">{lang}</span>
+            <button className="hicon hlang" onClick={(e) => { e.stopPropagation(); setLangOpen((v) => !v); }} title="Язык и валюта" aria-label="Язык и валюта">
+              <span className="hi-ic">🌐</span><span className="lang-cur">{lang}</span>
             </button>
             {langOpen && (
               <div className="lang-pop">
