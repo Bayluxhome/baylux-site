@@ -48,6 +48,7 @@ export default async function HomePage() {
             </div>
             <div className="field"><label>Цена до, $</label><input name="max" defaultValue="150 000" /></div>
             <button className="btn btn-gold" style={{ padding: "0 26px" }} type="submit">Показать объекты</button>
+            <Link className="btn btn-ghost" href="/catalog" style={{ padding: "0 20px", border: "1px solid var(--navy)", whiteSpace: "nowrap" }}>📍 На карте</Link>
           </form>
           <div className="stat-row">
             <div className="stat"><b>248</b><span>проверенных объектов</span></div>
