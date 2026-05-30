@@ -90,6 +90,9 @@ nav.main{display:flex;gap:2px;font-weight:500;font-size:15px}
 .tabs{display:inline-flex;background:rgba(255,255,255,.12);padding:5px;border-radius:14px;margin-top:30px;gap:4px;flex-wrap:wrap}
 .tab{padding:10px 22px;border-radius:10px;font-weight:600;font-size:15px;cursor:pointer;color:#E4ECF6;border:none;background:none;font-family:inherit}
 .tab.active{background:var(--grad-gold);color:var(--navy)}
+.tab{transition:background .15s,color .15s}
+.tab:hover{background:var(--grad-gold);color:var(--navy)}
+.tabs:hover .tab.active:not(:hover){background:none;color:#E4ECF6}
 .searchbar{margin-top:14px;background:#fff;border-radius:16px;padding:10px;display:flex;gap:8px;box-shadow:var(--shadow-lg);max-width:980px;flex-wrap:wrap}
 .field{flex:1;min-width:150px;padding:8px 14px;border-right:1px solid var(--line)}
 .field:last-of-type{border-right:none}
