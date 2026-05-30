@@ -49,7 +49,10 @@ export default async function HomePage() {
             </div>
             <div className="field"><label>Цена до, $</label><input name="max" defaultValue="150 000" /></div>
             <button className="btn btn-gold" style={{ padding: "0 26px" }} type="submit">Показать объекты</button>
-            <Link className="btn btn-ghost" href="/catalog" style={{ padding: "0 20px", border: "1px solid var(--navy)", whiteSpace: "nowrap" }}>📍 На карте</Link>
+            <Link className="btn btn-ghost" href="/catalog" style={{ padding: "0 20px", border: "1px solid var(--navy)", whiteSpace: "nowrap" }}>
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0Z" /><circle cx="12" cy="10" r="3" /></svg>
+              На карте
+            </Link>
           </form>
           <div className="stat-row">
             <div className="stat"><b>100%</b><span>проверенные объекты</span></div>
