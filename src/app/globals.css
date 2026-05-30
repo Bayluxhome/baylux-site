@@ -150,6 +150,17 @@ nav.main{display:flex;gap:2px;font-weight:500;font-size:15px}
 .my-del{background:none;border:1px solid var(--line);color:#9A4B4B;border-radius:8px;padding:5px 11px;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit}
 .my-del:hover{border-color:#9A4B4B}
 .my-del:disabled{opacity:.5;cursor:default}
+.map-pick{height:300px;border-radius:14px;overflow:hidden;border:1px solid var(--line);margin:6px 0}
+.addform{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:8px}
+.addform label{display:flex;flex-direction:column;gap:6px;font-size:13px;font-weight:600;color:var(--navy)}
+.addform input,.addform select,.addform textarea{border:1px solid var(--line);border-radius:10px;padding:11px 13px;font-size:15px;font-family:inherit;font-weight:400;color:var(--ink);background:#fff;width:100%}
+.addform input:focus,.addform select:focus,.addform textarea:focus{outline:none;border-color:var(--gold)}
+.af-full{grid-column:1 / -1}
+.af-lbl{font-size:13px;font-weight:600;color:var(--navy);margin-bottom:6px}
+.af-hint{font-size:13px;color:var(--ink-soft);margin-top:6px}
+.af-err{color:#9A4B4B;font-size:14px;margin-top:10px}
+.addform-done{padding:24px 0}
+@media(max-width:560px){.addform{grid-template-columns:1fr}}
 
 .card{background:var(--cream);border:1px solid var(--line);border-radius:16px;overflow:hidden;transition:.18s;cursor:pointer;display:block}
 .card:hover{box-shadow:var(--shadow-lg);transform:translateY(-3px)}

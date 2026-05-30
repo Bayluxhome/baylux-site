@@ -146,7 +146,7 @@ export default function Header() {
             <span className="hi-ic">👤</span><span className="hi-tx">Войти</span>
           </Link>
 
-          <LeadButton className="btn btn-gold" type="Сдать / продать" title="Сдать или продать недвижимость">Сдать / продать</LeadButton>
+          <Link className="btn btn-gold" href="/add">Сдать / продать</Link>
         </div>
       </div>
     </header>
