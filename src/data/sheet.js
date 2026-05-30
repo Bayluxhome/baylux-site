@@ -70,7 +70,7 @@ export async function fetchSheet(url) {
         yearBuilt: it.year || "",
         lat: parseFloat(it.lat) || 41.64,
         lng: parseFloat(it.lng) || 41.63,
-        image: it.building_image || it.unit_image || "https://picsum.photos/seed/" + bslug + "/900/600",
+        image: it.building_image || it.unit_image || "/placeholder-baylux.jpg",
         about: it.about || "",
         units: [],
       });

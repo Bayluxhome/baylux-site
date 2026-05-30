@@ -41,7 +41,7 @@ export function unitIsNew(u) {
   return u.isNew === true || /новострой/i.test(u.type || "");
 }
 
-function img(seed) { return `https://picsum.photos/seed/${seed}/900/600`; }
+function img(seed) { return "/placeholder-baylux.jpg"; }
 
 // type: "complex" — ЖК/новостройка с множеством квартир; "house" — частный объект (1 лот)
 export const BUILDINGS = [

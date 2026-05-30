@@ -27,7 +27,7 @@ export default async function BuildingPage({ params }) {
   const b = await findBuilding(params.slug);
   if (!b) notFound();
 
-  const gallery = [0, 1, 2, 3, 4].map((i) => `https://picsum.photos/seed/${b.slug}-${i}/900/600`);
+  const gallery = Array(5).fill(b.image || "/placeholder-baylux.jpg");
   const mapBuildings = [{ slug: b.slug, name: b.name, district: b.district, kind: b.kind, lat: b.lat, lng: b.lng, priceFrom: buildingPriceFrom(b), units: b.units }];
 
   return (
