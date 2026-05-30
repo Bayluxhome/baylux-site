@@ -127,6 +127,8 @@ nav.main{display:flex;gap:2px;font-weight:500;font-size:15px}
 .cards.three{grid-template-columns:repeat(3,1fr)}
 .map-home{height:560px;border-radius:18px;box-shadow:var(--shadow);border:1px solid var(--line);position:sticky;top:88px;align-self:start;overflow:hidden}
 .map-full{height:calc(100vh - 170px);border-radius:16px;box-shadow:var(--shadow);border:1px solid var(--line);position:sticky;top:88px;align-self:start;overflow:hidden}
+/* MapLibre ставит .maplibregl-map{position:relative} на контейнер — перекрываем, чтобы sticky работал */
+.map-home.maplibregl-map,.map-full.maplibregl-map{position:sticky;top:88px}
 
 .card{background:var(--cream);border:1px solid var(--line);border-radius:16px;overflow:hidden;transition:.18s;cursor:pointer;display:block}
 .card:hover{box-shadow:var(--shadow-lg);transform:translateY(-3px)}
