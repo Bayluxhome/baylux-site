@@ -13,10 +13,10 @@ export default function Footer() {
           </div>
           <div>
             <h4>Недвижимость</h4>
-            <Link href="/catalog?deal=sale">Купить</Link>
-            <Link href="/catalog?deal=rent">Снять</Link>
-            <Link href="/catalog?deal=daily">Посуточно</Link>
+            <Link href="/catalog?deal=sale">Продажа</Link>
+            <Link href="/catalog?deal=rent">Аренда</Link>
             <Link href="/catalog?type=new">Новостройки</Link>
+            <Link href="/catalog?deal=daily">Посуточно</Link>
           </div>
           <div>
             <h4>Услуги</h4>

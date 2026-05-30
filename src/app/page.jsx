@@ -25,10 +25,10 @@ export default async function HomePage() {
             и управление объектом под ключ — от местной команды, которая работает на земле, а не из колл-центра.
           </p>
           <div className="tabs">
-            <Link className="tab active" href="/catalog?deal=sale">Купить</Link>
-            <Link className="tab" href="/catalog?deal=rent">Снять</Link>
-            <Link className="tab" href="/catalog?deal=daily">Посуточно</Link>
+            <Link className="tab active" href="/catalog?deal=sale">Продажа</Link>
+            <Link className="tab" href="/catalog?deal=rent">Аренда</Link>
             <Link className="tab" href="/catalog?type=new">Новостройки</Link>
+            <Link className="tab" href="/catalog?deal=daily">Посуточно</Link>
           </div>
           <form className="searchbar" action="/catalog">
             <div className="field">

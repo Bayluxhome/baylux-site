@@ -29,9 +29,21 @@ header.site{position:sticky;top:0;z-index:1100;background:rgba(255,255,255,.95);
 .logo img{height:50px;width:auto}
 nav.main{display:flex;gap:20px;font-weight:500;font-size:15px;color:var(--ink-soft)}
 nav.main a:hover,nav.main a.on{color:var(--navy)}
-.hright{margin-left:auto;display:flex;align-items:center;gap:12px}
-.lang{display:flex;gap:3px;font-size:13px;font-weight:600;color:var(--ink-soft)}
-.lang b{color:var(--navy)}
+.hright{margin-left:auto;display:flex;align-items:center;gap:8px}
+.hicon{display:inline-flex;align-items:center;gap:7px;height:40px;padding:0 12px;border-radius:10px;border:1px solid transparent;background:none;cursor:pointer;color:var(--navy);font-family:inherit;font-weight:600;font-size:14px}
+.hicon:hover{background:var(--cream)}
+.hicon-sq{padding:0;width:40px;justify-content:center;font-size:17px}
+.hi-ic{font-size:15px}
+.langw{position:relative}
+.lang-cur{font-size:12px;font-weight:700;color:var(--navy);margin-left:1px}
+.lang-pop{position:absolute;top:48px;right:0;width:300px;max-width:90vw;background:#fff;border:1px solid var(--line);border-radius:16px;box-shadow:var(--shadow-lg);padding:10px;z-index:1200}
+.lp-h{font-size:13px;font-weight:700;color:var(--ink-soft);text-transform:none;padding:8px 10px 4px}
+.lp-row{display:flex;align-items:center;gap:12px;width:100%;text-align:left;padding:10px 10px;border:none;background:none;border-radius:10px;cursor:pointer;font-family:inherit;color:var(--ink)}
+.lp-row:hover{background:var(--cream)}
+.lp-row.active{background:var(--bg)}
+.lp-row b{display:inline-block;min-width:30px;font-weight:700;color:var(--navy)}
+.lp-row span{font-size:14px}
+.lp-cur{font-size:16px}
 .icon-btn{width:40px;height:40px;border-radius:10px;border:1px solid var(--line);background:#fff;display:grid;place-items:center;cursor:pointer;color:var(--navy)}
 .icon-btn:hover{border-color:var(--gold)}
 
