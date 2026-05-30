@@ -1,18 +1,91 @@
-// Единая точка доступа к данным: Google-таблица (если задан SHEET_CSV_URL), иначе локальные данные.
+// Единая точка данных: Supabase (одобренные объявления) + Google-таблица (ручной ввод) + локальный фолбэк.
 import { BUILDINGS as LOCAL } from "./data";
-import { fetchSheet } from "./sheet";
+import { fetchSheet, slugify } from "./sheet";
+import { supa } from "@/lib/supabase";
+
+const KIND_COMPLEX = /жк|новострой|комплекс|complex/i;
+
+// Строки listings (одна = один лот) → структура домов с units[].
+function groupRows(rows) {
+  const by = new Map();
+  rows.forEach((r) => {
+    const name = r.building_name || "Объект";
+    const slug = slugify(name);
+    if (!by.has(slug)) {
+      by.set(slug, {
+        slug,
+        name,
+        kind: KIND_COMPLEX.test(r.kind || "") ? "complex" : "house",
+        district: r.district || "Батуми",
+        developer: r.developer || "",
+        yearBuilt: r.year || "",
+        lat: Number(r.lat) || 41.64,
+        lng: Number(r.lng) || 41.63,
+        image: (r.photos && r.photos[0]) || "/placeholder-baylux.jpg",
+        about: r.about || "",
+        units: [],
+      });
+    }
+    const b = by.get(slug);
+    if ((!b.image || b.image === "/placeholder-baylux.jpg") && r.photos && r.photos[0]) b.image = r.photos[0];
+    const uslug = slugify(name + "-" + (r.type || "") + "-" + (r.price || b.units.length + 1));
+    b.units.push({
+      id: String(r.id || slug + "-" + b.units.length),
+      slug: uslug,
+      deal: r.deal || "sale",
+      type: r.type || "Квартира",
+      rooms: r.rooms ? parseInt(r.rooms, 10) : 0,
+      area: r.area ? parseInt(r.area, 10) : 0,
+      floor: r.floor || "—",
+      price: r.price || "—",
+      per: r.per || "",
+      unit_image: (r.photos && r.photos[0]) || "",
+    });
+  });
+  return Array.from(by.values()).filter((b) => b.units.length > 0);
+}
+
+async function fetchSupabase() {
+  if (!supa) return [];
+  try {
+    const { data, error } = await supa
+      .from("listings")
+      .select("*")
+      .eq("status", "approved")
+      .order("created_at", { ascending: false });
+    if (error || !data) return [];
+    return groupRows(data);
+  } catch (e) {
+    console.error("Supabase load failed:", e.message);
+    return [];
+  }
+}
+
+// Объединяем дома из разных источников по slug (units складываются).
+function mergeBuildings(...lists) {
+  const map = new Map();
+  for (const list of lists) {
+    for (const b of list) {
+      if (!map.has(b.slug)) map.set(b.slug, { ...b, units: [...b.units] });
+      else map.get(b.slug).units.push(...b.units);
+    }
+  }
+  return Array.from(map.values());
+}
 
 async function getBuildings() {
+  const fromSupa = await fetchSupabase();
+  let fromSheet = [];
   const url = process.env.SHEET_CSV_URL;
   if (url) {
     try {
-      const b = await fetchSheet(url);
-      if (b && b.length) return b;
+      fromSheet = await fetchSheet(url);
     } catch (e) {
-      console.error("Sheet load failed, fallback to local data:", e.message);
+      console.error("Sheet load failed:", e.message);
     }
   }
-  return LOCAL;
+  const merged = mergeBuildings(fromSupa, fromSheet);
+  return merged.length ? merged : LOCAL;
 }
 
 export async function getBuildingsList() {
