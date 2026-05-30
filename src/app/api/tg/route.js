@@ -56,15 +56,16 @@ async function uploadPhoto(fileId) {
 }
 
 const STEPS = {
-  deal: { q: "Шаг 1/9. Тип сделки?", kb: [["Продажа", "Аренда", "Посуточно"]] },
-  type: { q: "Шаг 2/9. Тип объекта?", kb: [["Квартира", "Студия", "Дом"], ["Коммерция", "Офис"], ["Участок", "Гараж"]] },
-  address: { q: "Шаг 3/9. Адрес объекта (улица и номер дома). Например: ул. Шерифа Химшиашвили, 1" },
-  geo: { q: "Шаг 4/9. Пришлите точку на карте, чтобы объект точно встал на карте сайта:\n📎 (скрепка) → Геопозиция → отправить.\nЕсли не получается — напишите «пропустить»." },
-  price: { q: "Шаг 5/9. Цена? Например: $74 000 (продажа) или $650 / мес (аренда)" },
-  area: { q: "Шаг 6/9. Площадь в м²? (число, например 56)" },
-  rooms: { q: "Шаг 7/9. Сколько комнат? (число; студия/коммерция — 0)" },
-  about: { q: "Шаг 8/9. Краткое описание объекта." },
-  photos: { q: "Шаг 9/9. Пришлите фото (по одному, до 8). Когда закончите — /done. Можно без фото — сразу /done." },
+  deal: { q: "Шаг 1/10. Тип сделки?", kb: [["Продажа", "Аренда", "Посуточно"]] },
+  type: { q: "Шаг 2/10. Тип объекта?", kb: [["Квартира", "Студия", "Дом"], ["Коммерция", "Офис"], ["Участок", "Гараж"]] },
+  address: { q: "Шаг 3/10. Адрес объекта (улица и номер дома). Например: ул. Шерифа Химшиашвили, 1" },
+  geo: { q: "Шаг 4/10. Пришлите точку на карте, чтобы объект точно встал на карте сайта:\n📎 (скрепка) → Геопозиция → отправить.\nЕсли не получается — напишите «пропустить»." },
+  price: { q: "Шаг 5/10. Цена? Например: $74 000 (продажа) или $650 / мес (аренда)" },
+  area: { q: "Шаг 6/10. Площадь в м²? (число, например 56)" },
+  rooms: { q: "Шаг 7/10. Сколько комнат? (число; студия/коммерция — 0)" },
+  floor: { q: "Шаг 8/10. Этаж? Например: 10/22 (этаж/всего этажей). Для дома/участка — поставьте «—»." },
+  about: { q: "Шаг 9/10. Краткое описание объекта." },
+  photos: { q: "Шаг 10/10. Пришлите фото (по одному, до 8). Когда закончите — /done. Можно без фото — сразу /done." },
   contact: { q: "Последний шаг. Контакт для связи (телефон или @username)." },
 };
 async function ask(chat, step) { return send(chat, STEPS[step].q, STEPS[step].kb); }
@@ -100,7 +101,8 @@ async function onMessage(msg) {
     }
     case "price": { data.price = text; await saveDraft(uid, "area", data); return ask(chat, "area"); }
     case "area": { data.area = parseInt(text, 10) || 0; await saveDraft(uid, "rooms", data); return ask(chat, "rooms"); }
-    case "rooms": { data.rooms = parseInt(text, 10) || 0; await saveDraft(uid, "about", data); return ask(chat, "about"); }
+    case "rooms": { data.rooms = parseInt(text, 10) || 0; await saveDraft(uid, "floor", data); return ask(chat, "floor"); }
+    case "floor": { data.floor = text; await saveDraft(uid, "about", data); return ask(chat, "about"); }
     case "about": { data.about = text; data.photos = []; await saveDraft(uid, "photos", data); return ask(chat, "photos"); }
     case "photos": {
       if (msg.photo && msg.photo.length) {
@@ -120,7 +122,7 @@ async function onMessage(msg) {
         district: "",
         lat: data.lat || 41.645, lng: data.lng || 41.642,
         deal: data.deal, type: data.type, rooms: data.rooms || 0, area: data.area || 0,
-        floor: "—", price: data.price || "—", per: data.deal === "rent" ? "в месяц" : data.deal === "daily" ? "в сутки" : "",
+        floor: data.floor || "—", price: data.price || "—", per: data.deal === "rent" ? "в месяц" : data.deal === "daily" ? "в сутки" : "",
         about: data.about || "", photos: data.photos || [],
         tg_user_id: uid, tg_username: data.tg_username || "", contact: data.contact,
       };
