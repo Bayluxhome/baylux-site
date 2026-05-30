@@ -20,7 +20,7 @@ export default function Footer() {
           </div>
           <div>
             <h4>Услуги</h4>
-            <a href="#">Управление</a><a href="#">Аренда</a><a href="#">Продажа</a><a href="#">Клининг</a>
+            <a href="/#services">Управление недвижимостью</a><a href="/#services">Клининг</a><a href="/#services">Риелторы</a>
           </div>
           <div>
             <h4>Компания</h4>

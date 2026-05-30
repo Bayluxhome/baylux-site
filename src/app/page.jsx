@@ -52,10 +52,10 @@ export default async function HomePage() {
             <Link className="btn btn-ghost" href="/catalog" style={{ padding: "0 20px", border: "1px solid var(--navy)", whiteSpace: "nowrap" }}>📍 На карте</Link>
           </form>
           <div className="stat-row">
-            <div className="stat"><b>248</b><span>проверенных объектов</span></div>
+            <div className="stat"><b>100%</b><span>проверенные объекты</span></div>
             <div className="stat"><b>0%</b><span>скрытых комиссий</span></div>
-            <div className="stat"><b>4.9★</b><span>оценка клиентов</span></div>
             <div className="stat"><b>24/7</b><span>ответ в WhatsApp</span></div>
+            <div className="stat"><b>3</b><span>языка: RU · EN · GE</span></div>
           </div>
         </div>
       </section>

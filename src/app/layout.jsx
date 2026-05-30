@@ -30,9 +30,6 @@ export default function RootLayout({ children }) {
         />
       </head>
       <body>
-        <div className="note">
-          Baylux · MVP на Next.js · данные временные (локально), далее — CMS · деплой на Vercel
-        </div>
         <Header />
         <main>{children}</main>
         <Footer />
