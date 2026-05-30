@@ -40,6 +40,7 @@ function groupRows(rows) {
       price: r.price || "—",
       per: r.per || "",
       unit_image: (r.photos && r.photos[0]) || "",
+      photos: Array.isArray(r.photos) ? r.photos : [],
     });
   });
   return Array.from(by.values()).filter((b) => b.units.length > 0);

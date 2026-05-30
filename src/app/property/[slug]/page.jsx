@@ -28,7 +28,8 @@ export default async function PropertyPage({ params }) {
   if (!u) notFound();
   const b = u.building;
 
-  const gallery = Array(5).fill(u.img || "/placeholder-baylux.jpg");
+  const photos = (u.photos && u.photos.length) ? u.photos : [u.img || "/placeholder-baylux.jpg"];
+  const gallery = Array.from({ length: 5 }, (_, i) => photos[i % photos.length]);
   const mapBuildings = [{ slug: b.slug, name: b.name, district: b.district, kind: b.kind, lat: b.lat, lng: b.lng, priceFrom: u.price, units: [{ slug: u.slug, deal: u.deal, type: u.type, rooms: u.rooms, area: u.area, price: u.price, per: u.per }] }];
   const ctaMain = u.deal === "daily" ? "Забронировать даты" : u.deal === "rent" ? "Снять — оставить заявку" : "Забронировать просмотр";
   const specs = [

@@ -12,11 +12,6 @@ const SITE = "https://baylux-site.vercel.app";
 const DEAL_MAP = { "продажа": "sale", "аренда": "rent", "посуточно": "daily" };
 const DEAL_RU = { sale: "Продажа", rent: "Аренда", daily: "Посуточно" };
 const COMPLEX_TYPES = /новострой/i;
-const DISTRICT_COORDS = {
-  "старый батуми": [41.645, 41.642], "новый бульвар": [41.652, 41.63],
-  "аэропорт": [41.61, 41.6], "гонио": [41.572, 41.571], "махинджаури": [41.68, 41.67],
-  "чакви": [41.72, 41.69], "центр": [41.643, 41.632], "кахабери": [41.62, 41.65],
-};
 
 // ---- Telegram helpers ----
 async function tg(method, body) {
@@ -31,8 +26,13 @@ function send(chat_id, text, keyboard) {
   else body.reply_markup = { remove_keyboard: true };
   return tg("sendMessage", body);
 }
+function modButtons(status, id) {
+  if (status === "approved") return { inline_keyboard: [[{ text: "🗑 Снять с публикации", callback_data: `un:${id}` }]] };
+  if (status === "rejected") return { inline_keyboard: [[{ text: "↩️ Опубликовать", callback_data: `ap:${id}` }]] };
+  return { inline_keyboard: [[{ text: "✅ Опубликовать", callback_data: `ap:${id}` }, { text: "❌ Отклонить", callback_data: `rj:${id}` }]] };
+}
 
-// ---- состояние диалога в Supabase ----
+// ---- состояние диалога ----
 async function getDraft(uid) {
   const { data } = await supa.from("drafts").select("*").eq("tg_user_id", uid).maybeSingle();
   return data || { tg_user_id: uid, step: null, data: {} };
@@ -40,9 +40,7 @@ async function getDraft(uid) {
 async function saveDraft(uid, step, data) {
   await supa.from("drafts").upsert({ tg_user_id: uid, step, data, updated_at: new Date().toISOString() });
 }
-async function clearDraft(uid) {
-  await supa.from("drafts").delete().eq("tg_user_id", uid);
-}
+async function clearDraft(uid) { await supa.from("drafts").delete().eq("tg_user_id", uid); }
 
 // ---- загрузка фото в storage ----
 async function uploadPhoto(fileId) {
@@ -58,20 +56,19 @@ async function uploadPhoto(fileId) {
 }
 
 const STEPS = {
-  deal: { q: "Шаг 1/8. Тип сделки?", kb: [["Продажа", "Аренда", "Посуточно"]] },
-  type: { q: "Шаг 2/8. Тип объекта?", kb: [["Квартира", "Студия", "Дом"], ["Коммерция", "Офис"], ["Участок", "Гараж"]] },
-  district: { q: "Шаг 3/8. Район (например: Новый бульвар, Старый Батуми, Аэропорт, Гонио)?", kb: [["Новый бульвар", "Старый Батуми"], ["Аэропорт", "Гонио"], ["Центр", "Махинджаури"]] },
-  price: { q: "Шаг 4/8. Цена? (например: $74 000 — для продажи, или $650 / мес — для аренды)" },
-  area: { q: "Шаг 5/8. Площадь в м²? (число, например 56)" },
-  rooms: { q: "Шаг 6/8. Сколько комнат? (число; для студии/коммерции — 0)" },
-  about: { q: "Шаг 7/8. Краткое описание объекта." },
-  photos: { q: "Шаг 8/8. Пришлите фото объекта (по одному, до 8 шт). Когда закончите — отправьте /done. Можно и без фото — тогда сразу /done." },
-  contact: { q: "Последний шаг. Ваш контакт для связи (телефон или @username)." },
+  deal: { q: "Шаг 1/9. Тип сделки?", kb: [["Продажа", "Аренда", "Посуточно"]] },
+  type: { q: "Шаг 2/9. Тип объекта?", kb: [["Квартира", "Студия", "Дом"], ["Коммерция", "Офис"], ["Участок", "Гараж"]] },
+  address: { q: "Шаг 3/9. Адрес объекта (улица и номер дома). Например: ул. Шерифа Химшиашвили, 1" },
+  geo: { q: "Шаг 4/9. Пришлите точку на карте, чтобы объект точно встал на карте сайта:\n📎 (скрепка) → Геопозиция → отправить.\nЕсли не получается — напишите «пропустить»." },
+  price: { q: "Шаг 5/9. Цена? Например: $74 000 (продажа) или $650 / мес (аренда)" },
+  area: { q: "Шаг 6/9. Площадь в м²? (число, например 56)" },
+  rooms: { q: "Шаг 7/9. Сколько комнат? (число; студия/коммерция — 0)" },
+  about: { q: "Шаг 8/9. Краткое описание объекта." },
+  photos: { q: "Шаг 9/9. Пришлите фото (по одному, до 8). Когда закончите — /done. Можно без фото — сразу /done." },
+  contact: { q: "Последний шаг. Контакт для связи (телефон или @username)." },
 };
-
 async function ask(chat, step) { return send(chat, STEPS[step].q, STEPS[step].kb); }
 
-// ---- обработка сообщения пользователя ----
 async function onMessage(msg) {
   const chat = msg.chat.id;
   const uid = msg.from.id;
@@ -79,7 +76,7 @@ async function onMessage(msg) {
 
   if (text === "/start" || text === "/add" || text === "/добавить") {
     await saveDraft(uid, "deal", { tg_user_id: uid, tg_username: msg.from.username || "" });
-    await send(chat, "👋 Добавим ваш объект в Baylux. Отвечайте по шагам — это пара минут. /cancel — отмена.");
+    await send(chat, "👋 Добавим ваш объект в Baylux. Отвечайте по шагам — пара минут. /cancel — отмена.");
     return ask(chat, "deal");
   }
   if (text === "/cancel" || text === "/отмена") { await clearDraft(uid); return send(chat, "Отменено. /start — начать заново."); }
@@ -94,31 +91,34 @@ async function onMessage(msg) {
       if (!deal) return ask(chat, "deal");
       data.deal = deal; await saveDraft(uid, "type", data); return ask(chat, "type");
     }
-    case "type": { data.type = text; await saveDraft(uid, "district", data); return ask(chat, "district"); }
-    case "district": { data.district = text; await saveDraft(uid, "price", data); return ask(chat, "price"); }
+    case "type": { data.type = text; await saveDraft(uid, "address", data); return ask(chat, "address"); }
+    case "address": { data.address = text; await saveDraft(uid, "geo", data); return ask(chat, "geo"); }
+    case "geo": {
+      if (msg.location) { data.lat = msg.location.latitude; data.lng = msg.location.longitude; }
+      // если текст/«пропустить» — оставляем без координат (центр Батуми по умолчанию)
+      await saveDraft(uid, "price", data); return ask(chat, "price");
+    }
     case "price": { data.price = text; await saveDraft(uid, "area", data); return ask(chat, "area"); }
     case "area": { data.area = parseInt(text, 10) || 0; await saveDraft(uid, "rooms", data); return ask(chat, "rooms"); }
     case "rooms": { data.rooms = parseInt(text, 10) || 0; await saveDraft(uid, "about", data); return ask(chat, "about"); }
     case "about": { data.about = text; data.photos = []; await saveDraft(uid, "photos", data); return ask(chat, "photos"); }
     case "photos": {
       if (msg.photo && msg.photo.length) {
-        const fileId = msg.photo[msg.photo.length - 1].file_id;
-        const url = await uploadPhoto(fileId);
-        if (url) { data.photos = (data.photos || []).concat(url); await saveDraft(uid, "photos", data); return send(chat, `📷 Фото добавлено (${data.photos.length}). Ещё фото или /done.`); }
+        const url = await uploadPhoto(msg.photo[msg.photo.length - 1].file_id);
+        if (url) { data.photos = (data.photos || []).concat(url); await saveDraft(uid, "photos", data); return send(chat, `📷 Фото добавлено (${data.photos.length}). Ещё или /done.`); }
         return send(chat, "Не удалось загрузить фото, попробуйте другое или /done.");
       }
       if (text === "/done" || text === "/готово") { await saveDraft(uid, "contact", data); return ask(chat, "contact"); }
-      return send(chat, "Пришлите фото или отправьте /done.");
+      return send(chat, "Пришлите фото или /done.");
     }
     case "contact": {
       data.contact = text;
-      const coords = DISTRICT_COORDS[(data.district || "").toLowerCase()] || [41.645, 41.642];
       const row = {
         status: "pending",
-        building_name: data.type ? `${data.type} — ${data.district || "Батуми"}` : "Объект",
+        building_name: data.address || (data.type ? `${data.type}, Батуми` : "Объект"),
         kind: COMPLEX_TYPES.test(data.type || "") ? "complex" : "house",
-        district: data.district || "Батуми",
-        lat: coords[0], lng: coords[1],
+        district: "",
+        lat: data.lat || 41.645, lng: data.lng || 41.642,
         deal: data.deal, type: data.type, rooms: data.rooms || 0, area: data.area || 0,
         floor: "—", price: data.price || "—", per: data.deal === "rent" ? "в месяц" : data.deal === "daily" ? "в сутки" : "",
         about: data.about || "", photos: data.photos || [],
@@ -127,35 +127,36 @@ async function onMessage(msg) {
       const { data: ins, error } = await supa.from("listings").insert(row).select("id").single();
       await clearDraft(uid);
       if (error) return send(chat, "Ошибка сохранения, попробуйте позже. /start");
-      await send(chat, "✅ Спасибо! Объявление отправлено на модерацию. Мы опубликуем его после проверки и сообщим вам.");
-      // уведомление CEO с кнопками
-      const summary = `🆕 <b>Новое объявление</b>\n${DEAL_RU[row.deal]} · ${row.type} · ${row.district}\n💰 ${row.price}\n📐 ${row.area} м² · 🛏 ${row.rooms} комн.\n📷 ${row.photos.length} фото\n📞 ${row.contact}\n\n${row.about}`;
-      await tg("sendMessage", { chat_id: ADMIN, text: summary, parse_mode: "HTML", reply_markup: { inline_keyboard: [[{ text: "✅ Опубликовать", callback_data: `ap:${ins.id}` }, { text: "❌ Отклонить", callback_data: `rj:${ins.id}` }]] } });
+      await send(chat, "✅ Спасибо! Объявление отправлено на модерацию. Опубликуем после проверки и сообщим вам.");
+      // CEO: сначала фото, затем текст с кнопками
+      if (row.photos.length) {
+        await tg("sendMediaGroup", { chat_id: ADMIN, media: row.photos.slice(0, 10).map((u) => ({ type: "photo", media: u })) });
+      }
+      const geo = data.lat ? `\n📍 точка на карте: да` : `\n⚠️ точка на карте не указана`;
+      const summary = `🆕 <b>Новое объявление</b>\n${DEAL_RU[row.deal]} · ${row.type}\n🏠 ${row.building_name}\n💰 ${row.price}\n📐 ${row.area} м² · 🛏 ${row.rooms} комн.\n📷 ${row.photos.length} фото${geo}\n📞 ${row.contact}\n\n${row.about}`;
+      await tg("sendMessage", { chat_id: ADMIN, text: summary, parse_mode: "HTML", reply_markup: modButtons("pending", ins.id) });
       return;
     }
     default: return send(chat, "/start — добавить объект.");
   }
 }
 
-// ---- модерация (кнопки CEO) ----
 async function onCallback(cb) {
   const [action, id] = (cb.data || "").split(":");
   if (!id) return;
-  const status = action === "ap" ? "approved" : "rejected";
-  const { data: row } = await supa.from("listings").update({ status }).eq("id", id).select("tg_user_id,type,district").single();
-  await tg("answerCallbackQuery", { callback_query_id: cb.id, text: status === "approved" ? "Опубликовано" : "Отклонено" });
-  const tag = status === "approved" ? "✅ ОПУБЛИКОВАНО" : "❌ ОТКЛОНЕНО";
-  await tg("editMessageText", { chat_id: cb.message.chat.id, message_id: cb.message.message_id, text: cb.message.text + `\n\n${tag}`, parse_mode: "HTML" });
-  if (row && row.tg_user_id) {
-    const note = status === "approved" ? `🎉 Ваш объект (${row.type} · ${row.district}) опубликован на ${SITE}` : `Ваш объект (${row.type} · ${row.district}) не прошёл модерацию.`;
-    await tg("sendMessage", { chat_id: row.tg_user_id, text: note });
+  const status = action === "ap" ? "approved" : "rejected"; // un/rj → rejected
+  const { data: row } = await supa.from("listings").update({ status }).eq("id", id).select("tg_user_id,type,building_name").single();
+  await tg("answerCallbackQuery", { callback_query_id: cb.id, text: status === "approved" ? "Опубликовано" : "Снято с публикации" });
+  const tag = status === "approved" ? "✅ ОПУБЛИКОВАНО" : "❌ СНЯТО С ПУБЛИКАЦИИ";
+  const base = (cb.message.text || "").replace(/\n\n(✅ ОПУБЛИКОВАНО|❌ СНЯТО С ПУБЛИКАЦИИ).*$/s, "");
+  await tg("editMessageText", { chat_id: cb.message.chat.id, message_id: cb.message.message_id, text: base + `\n\n${tag}`, parse_mode: "HTML", reply_markup: modButtons(status, id) });
+  if (row && row.tg_user_id && action === "ap") {
+    await tg("sendMessage", { chat_id: row.tg_user_id, text: `🎉 Ваш объект (${row.type} · ${row.building_name}) опубликован: ${SITE}` });
   }
 }
 
-// ---- роуты ----
 export async function GET(req) {
-  const setup = new URL(req.url).searchParams.get("setup");
-  if (setup === "1") {
+  if (new URL(req.url).searchParams.get("setup") === "1") {
     const r = await tg("setWebhook", { url: `${SITE}/api/tg`, secret_token: SECRET, allowed_updates: ["message", "callback_query"] });
     return Response.json(r);
   }

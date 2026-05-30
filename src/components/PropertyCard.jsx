@@ -13,7 +13,7 @@ export default function PropertyCard({ unit }) {
       <div className="body">
         <div className="price">{unit.price} <span className="perm">{unit.per}</span></div>
         <div className="ctitle">{unit.type}{unit.rooms ? `, ${unit.rooms} комн.` : ""}, {unit.area} м²</div>
-        <div className="cdistrict">📍 Батуми · {b.district} · {b.name}</div>
+        <div className="cdistrict">📍 Батуми{b.district ? ` · ${b.district}` : ""} · {b.name}</div>
         <div className="meta">
           {unit.rooms ? <span>🛏 {unit.rooms} комн.</span> : null}
           <span>📐 {unit.area} м²</span><span>🏢 {unit.floor}</span>

@@ -12,7 +12,7 @@ export default function BuildingCard({ building }) {
       <div className="body">
         <div className="price">от {buildingPriceFrom(building)}</div>
         <div className="ctitle">{building.name}</div>
-        <div className="cdistrict">📍 Батуми · {building.district}{building.developer ? ` · ${building.developer}` : ""}</div>
+        <div className="cdistrict">📍 Батуми{building.district ? ` · ${building.district}` : ""}{building.developer ? ` · ${building.developer}` : ""}</div>
         <span className="unit-tag">{building.units.length} объект(ов) · {buildingDealsSummary(building)}</span>
       </div>
     </Link>
