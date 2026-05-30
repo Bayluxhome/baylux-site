@@ -37,6 +37,9 @@ function send(chat_id, text, keyboard) {
   else body.reply_markup = { remove_keyboard: true };
   return tg("sendMessage", body);
 }
+function sendContact(chat) {
+  return tg("sendMessage", { chat_id: chat, text: STEPS.contact.q, reply_markup: { keyboard: [[{ text: "📱 Поделиться номером", request_contact: true }]], resize_keyboard: true, one_time_keyboard: true } });
+}
 function modButtons(status, id) {
   if (status === "approved") return { inline_keyboard: [[{ text: "🗑 Снять с публикации", callback_data: `un:${id}` }]] };
   if (status === "rejected") return { inline_keyboard: [[{ text: "↩️ Опубликовать", callback_data: `ap:${id}` }]] };
@@ -77,7 +80,7 @@ const STEPS = {
   floor: { q: "Шаг 8/10. Этаж? Например: 10/22 (этаж/всего этажей). Для дома/участка — поставьте «—»." },
   about: { q: "Шаг 9/10. Краткое описание объекта." },
   photos: { q: "Шаг 10/10. Пришлите фото (по одному, до 8). Когда закончите — /done. Можно без фото — сразу /done." },
-  contact: { q: "Последний шаг. Контакт для связи (телефон или @username)." },
+  contact: { q: "Последний шаг. Нажмите кнопку «📱 Поделиться номером» ниже — номер подтвердится автоматически. (Или впишите контакт текстом.)" },
 };
 async function ask(chat, step) { return send(chat, STEPS[step].q, STEPS[step].kb); }
 
@@ -121,11 +124,18 @@ async function onMessage(msg) {
         if (url) { data.photos = (data.photos || []).concat(url); await saveDraft(uid, "photos", data); return send(chat, `📷 Фото добавлено (${data.photos.length}). Ещё или /done.`); }
         return send(chat, "Не удалось загрузить фото, попробуйте другое или /done.");
       }
-      if (text === "/done" || text === "/готово") { await saveDraft(uid, "contact", data); return ask(chat, "contact"); }
+      if (text === "/done" || text === "/готово") { await saveDraft(uid, "contact", data); return sendContact(chat); }
       return send(chat, "Пришлите фото или /done.");
     }
     case "contact": {
-      data.contact = text;
+      let verified = false;
+      if (msg.contact && msg.contact.phone_number) {
+        let ph = msg.contact.phone_number; if (!ph.startsWith("+")) ph = "+" + ph;
+        data.phone = ph; data.contact = ph; verified = true;
+      } else {
+        data.contact = text;
+        if (/^\+?\d[\d\s()-]{6,}$/.test(text)) data.phone = text.replace(/[\s()-]/g, "");
+      }
       const row = {
         status: "pending",
         building_name: data.address || (data.type ? `${data.type}, Батуми` : "Объект"),
@@ -135,9 +145,11 @@ async function onMessage(msg) {
         deal: data.deal, type: data.type, rooms: data.rooms || 0, area: data.area || 0,
         floor: data.floor || "—", price: data.price || "—", per: data.deal === "rent" ? "в месяц" : data.deal === "daily" ? "в сутки" : "",
         about: data.about || "", photos: data.photos || [],
-        tg_user_id: uid, tg_username: data.tg_username || "", contact: data.contact,
+        tg_user_id: uid, tg_username: data.tg_username || "", contact: data.contact, phone: data.phone || "",
       };
       const { data: ins, error } = await supa.from("listings").insert(row).select("id").single();
+      // привязка аккаунта к подтверждённому номеру (один номер — один аккаунт)
+      if (uid) await supa.from("users").upsert({ tg_user_id: uid, phone: data.phone || null, username: data.tg_username || "" }, { onConflict: "tg_user_id" });
       await clearDraft(uid);
       if (error) return send(chat, "Ошибка сохранения, попробуйте позже. /start");
       await send(chat, "✅ Спасибо! Объявление отправлено на модерацию. Опубликуем после проверки и сообщим вам.");
@@ -146,7 +158,7 @@ async function onMessage(msg) {
         await tg("sendMediaGroup", { chat_id: ADMIN, media: row.photos.slice(0, 10).map((u) => ({ type: "photo", media: u })) });
       }
       const geo = data.lat ? `\n📍 точка на карте: да` : `\n⚠️ точка на карте не указана`;
-      const summary = `🆕 <b>Новое объявление</b>\n${DEAL_RU[row.deal]} · ${row.type}\n🏠 ${row.building_name}\n💰 ${row.price}\n📐 ${row.area} м² · 🛏 ${row.rooms} комн.\n📷 ${row.photos.length} фото${geo}\n📞 ${row.contact}\n\n${row.about}`;
+      const summary = `🆕 <b>Новое объявление</b>\n${DEAL_RU[row.deal]} · ${row.type}\n🏠 ${row.building_name}\n💰 ${row.price}\n📐 ${row.area} м² · 🛏 ${row.rooms} комн.\n📷 ${row.photos.length} фото${geo}\n📞 ${row.contact}${verified ? " ✅ подтверждён" : ""}\n\n${row.about}`;
       await tg("sendMessage", { chat_id: ADMIN, text: summary, parse_mode: "HTML", reply_markup: modButtons("pending", ins.id) });
       return;
     }
