@@ -25,12 +25,15 @@ export default function MyListings({ items }) {
     <div className="my-list">
       {list.map((r) => (
         <div className="my-item" key={r.id}>
-          <div className="my-main">
-            <b>{r.title}</b>
-            <span>{r.sub}</span>
-            <div className="my-actions">
-              {r.slug ? <a className="my-link" href={"/property/" + r.slug}>Посмотреть на сайте →</a> : <span className="my-note">на сайте не виден</span>}
-              <button className="my-del" onClick={() => del(r.id)} disabled={busy === r.id}>{busy === r.id ? "Удаляю…" : "🗑 Удалить"}</button>
+          <div className="my-left">
+            <img className="my-thumb" src={r.photo} alt="" />
+            <div className="my-main">
+              <b>{r.title}</b>
+              <span>{r.sub}</span>
+              <div className="my-actions">
+                {r.slug ? <a className="my-link" href={"/property/" + r.slug}>Посмотреть на сайте →</a> : <span className="my-note">на сайте не виден</span>}
+                <button className="my-del" onClick={() => del(r.id)} disabled={busy === r.id}>{busy === r.id ? "Удаляю…" : "🗑 Удалить"}</button>
+              </div>
             </div>
           </div>
           <span className={"my-status st-" + r.status}>{STATUS[r.status] || r.status}</span>

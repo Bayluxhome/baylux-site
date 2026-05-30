@@ -45,6 +45,7 @@ export default async function MyPage() {
     title: `${DEAL_LABEL[r.deal] || r.deal} · ${r.type}`,
     sub: `${r.building_name} · ${r.price}${r.area ? ` · ${r.area} м²` : ""}`,
     status: r.status,
+    photo: (Array.isArray(r.photos) && r.photos[0]) || "/placeholder-baylux.jpg",
     slug: r.status === "approved" ? slugify(`${r.building_name}-${r.type || ""}-${r.price || ""}`) : null,
   }));
 
