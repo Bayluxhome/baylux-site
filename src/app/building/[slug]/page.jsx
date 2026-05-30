@@ -87,7 +87,7 @@ export default async function BuildingPage({ params }) {
             <LeadButton className="btn btn-ghost" type="Управление" object={b.name} title="Отдать квартиру в управление">Сдать квартиру здесь в управление</LeadButton>
             <div className="agent">
               <div className="av" />
-              <div><div style={{ fontWeight: 700, color: "var(--navy)" }}>Команда Baylux</div><div style={{ fontSize: 13, color: "var(--ink-soft)" }}>Ответим за 5 минут · RU / EN / KA</div></div>
+              <div><div style={{ fontWeight: 700, color: "var(--navy)" }}>Команда Baylux</div><div style={{ fontSize: 13, color: "var(--ink-soft)" }}>Ответим за 5 минут · RU / EN / GE</div></div>
             </div>
           </div>
         </aside>

@@ -125,8 +125,8 @@ nav.main{display:flex;gap:2px;font-weight:500;font-size:15px}
 .split{display:grid;grid-template-columns:43fr 57fr;gap:22px;align-items:start}
 .cards{display:grid;grid-template-columns:1fr 1fr;gap:18px}
 .cards.three{grid-template-columns:repeat(3,1fr)}
-.map-home{height:560px;border-radius:18px;box-shadow:var(--shadow);border:1px solid var(--line);position:sticky;top:88px;overflow:hidden}
-.map-full{height:calc(100vh - 170px);border-radius:16px;box-shadow:var(--shadow);border:1px solid var(--line);position:sticky;top:88px;overflow:hidden}
+.map-home{height:560px;border-radius:18px;box-shadow:var(--shadow);border:1px solid var(--line);position:sticky;top:88px;align-self:start;overflow:hidden}
+.map-full{height:calc(100vh - 170px);border-radius:16px;box-shadow:var(--shadow);border:1px solid var(--line);position:sticky;top:88px;align-self:start;overflow:hidden}
 
 .card{background:var(--cream);border:1px solid var(--line);border-radius:16px;overflow:hidden;transition:.18s;cursor:pointer;display:block}
 .card:hover{box-shadow:var(--shadow-lg);transform:translateY(-3px)}

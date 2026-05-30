@@ -86,7 +86,7 @@ export default async function PropertyPage({ params }) {
             <Link href={`/building/${b.slug}`} className="btn btn-ghost" style={{ width: "100%", marginTop: 10 }}>Все объекты в «{b.name}»</Link>
             <div className="agent">
               <div className="av" />
-              <div><div style={{ fontWeight: 700, color: "var(--navy)" }}>Команда Baylux</div><div style={{ fontSize: 13, color: "var(--ink-soft)" }}>Ответим за 5 минут · RU / EN / KA</div></div>
+              <div><div style={{ fontWeight: 700, color: "var(--navy)" }}>Команда Baylux</div><div style={{ fontSize: 13, color: "var(--ink-soft)" }}>Ответим за 5 минут · RU / EN / GE</div></div>
             </div>
           </div>
         </aside>
