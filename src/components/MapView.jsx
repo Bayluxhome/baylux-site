@@ -29,6 +29,8 @@ export default function MapView({ buildings = [], center = [41.642, 41.632], zoo
         center: [center[1], center[0]],
         zoom,
         attributionControl: { compact: true },
+        // на встроенных картах: один палец листает страницу, два — двигают карту
+        cooperativeGestures: className !== "map-screen",
       });
       mapRef.current = map;
       map.addControl(new maplibregl.NavigationControl({ showCompass: false }), "top-left");

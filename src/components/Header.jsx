@@ -56,6 +56,7 @@ export default function Header() {
   const [lang, setLang] = useState("RU");
   const [curr, setCurr] = useState("USD");
   const [loginOpen, setLoginOpen] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
   const locRef = useRef(null);
   const langRef = useRef(null);
   const loginRef = useRef(null);
@@ -148,7 +149,21 @@ export default function Header() {
 
           <Link className="btn btn-gold" href="/add">Сдать / продать</Link>
         </div>
+
+        <button className="burger" aria-label="Меню" onClick={() => setMenuOpen(true)}>☰</button>
       </div>
+
+      {menuOpen && (
+        <div className="mobile-drawer" onClick={(e) => { if (e.target.classList.contains("mobile-drawer")) setMenuOpen(false); }}>
+          <div className="md-panel">
+            <button className="md-close" onClick={() => setMenuOpen(false)} aria-label="Закрыть">✕</button>
+            {NAV.map((it) => <Link key={it.label} href={it.href} className="md-item" onClick={() => setMenuOpen(false)}>{it.label}</Link>)}
+            <Link href="/catalog" className="md-item" onClick={() => setMenuOpen(false)}>🔍 Поиск по каталогу</Link>
+            <Link href="/my" className="md-item" onClick={() => setMenuOpen(false)}>👤 Войти / Кабинет</Link>
+            <Link href="/add" className="md-item md-sell" onClick={() => setMenuOpen(false)}>Сдать / продать</Link>
+          </div>
+        </div>
+      )}
     </header>
   );
 }
