@@ -141,6 +141,13 @@ nav.main{display:flex;gap:2px;font-weight:500;font-size:15px}
 .st-pending{background:#FBEFC9;color:#8A6D1B}
 .st-approved{background:rgba(45,160,90,.14);color:#268048}
 .st-rejected{background:#F1E0E0;color:#9A4B4B}
+.my-item{align-items:flex-start}
+.my-actions{display:flex;gap:14px;align-items:center;margin-top:10px;flex-wrap:wrap}
+.my-link{color:var(--gold-dk);font-weight:600;font-size:13px}
+.my-note{color:var(--ink-soft);font-size:12px}
+.my-del{background:none;border:1px solid var(--line);color:#9A4B4B;border-radius:8px;padding:5px 11px;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit}
+.my-del:hover{border-color:#9A4B4B}
+.my-del:disabled{opacity:.5;cursor:default}
 
 .card{background:var(--cream);border:1px solid var(--line);border-radius:16px;overflow:hidden;transition:.18s;cursor:pointer;display:block}
 .card:hover{box-shadow:var(--shadow-lg);transform:translateY(-3px)}

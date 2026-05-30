@@ -3,8 +3,10 @@ import { cookies } from "next/headers";
 import { verifySession } from "@/lib/session";
 import { supa } from "@/lib/supabase";
 import { DEAL_LABEL } from "@/data/data";
+import { slugify } from "@/data/sheet";
 import TelegramLogin from "@/components/TelegramLogin";
 import BotLogin from "@/components/BotLogin";
+import MyListings from "@/components/MyListings";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Личный кабинет" };
@@ -38,6 +40,14 @@ export default async function MyPage() {
     rows = data || [];
   }
 
+  const items = rows.map((r) => ({
+    id: r.id,
+    title: `${DEAL_LABEL[r.deal] || r.deal} · ${r.type}`,
+    sub: `${r.building_name} · ${r.price}${r.area ? ` · ${r.area} м²` : ""}`,
+    status: r.status,
+    slug: r.status === "approved" ? slugify(`${r.building_name}-${r.type || ""}-${r.price || ""}`) : null,
+  }));
+
   return (
     <div className="wrap" style={{ padding: "30px 0 50px" }}>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 12, flexWrap: "wrap" }}>
@@ -47,21 +57,7 @@ export default async function MyPage() {
       <p style={{ color: "var(--ink-soft)", margin: "6px 0 20px" }}>
         {session.name ? session.name + ", в" : "В"}аши объекты ({rows.length}). Добавить новый — в боте <b>@baylux_leads_bot</b> (/start).
       </p>
-      {rows.length === 0 ? (
-        <p style={{ color: "var(--ink-soft)" }}>Пока нет объявлений. Откройте бота и отправьте /start.</p>
-      ) : (
-        <div className="my-list">
-          {rows.map((r) => (
-            <div className="my-item" key={r.id}>
-              <div className="my-main">
-                <b>{DEAL_LABEL[r.deal] || r.deal} · {r.type}</b>
-                <span>{r.building_name} · {r.price}{r.area ? ` · ${r.area} м²` : ""}</span>
-              </div>
-              <span className={"my-status st-" + r.status}>{STATUS[r.status] || r.status}</span>
-            </div>
-          ))}
-        </div>
-      )}
+      <MyListings items={items} />
     </div>
   );
 }
