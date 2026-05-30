@@ -132,6 +132,15 @@ nav.main{display:flex;gap:2px;font-weight:500;font-size:15px}
 .mapscreen-bar{display:flex;align-items:center;gap:14px;padding:12px 24px;border-bottom:1px solid var(--line);background:#fff;flex-wrap:wrap}
 .ms-count{font-weight:600;color:var(--navy);font-size:15px}
 .map-screen{position:relative;width:100%;height:calc(100vh - 72px - 58px);min-height:440px}
+.my-list{display:flex;flex-direction:column;gap:10px}
+.my-item{display:flex;justify-content:space-between;align-items:center;gap:12px;background:#fff;border:1px solid var(--line);border-radius:12px;padding:14px 16px}
+.my-main{display:flex;flex-direction:column;gap:3px}
+.my-main b{color:var(--navy)}
+.my-main span{font-size:13px;color:var(--ink-soft)}
+.my-status{flex:none;font-size:12px;font-weight:700;padding:5px 10px;border-radius:8px;white-space:nowrap}
+.st-pending{background:#FBEFC9;color:#8A6D1B}
+.st-approved{background:rgba(45,160,90,.14);color:#268048}
+.st-rejected{background:#F1E0E0;color:#9A4B4B}
 
 .card{background:var(--cream);border:1px solid var(--line);border-radius:16px;overflow:hidden;transition:.18s;cursor:pointer;display:block}
 .card:hover{box-shadow:var(--shadow-lg);transform:translateY(-3px)}

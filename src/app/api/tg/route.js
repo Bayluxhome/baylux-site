@@ -171,6 +171,11 @@ async function onCallback(cb) {
 export async function GET(req) {
   if (new URL(req.url).searchParams.get("setup") === "1") {
     const r = await tg("setWebhook", { url: `${SITE}/api/tg`, secret_token: SECRET, allowed_updates: ["message", "callback_query"] });
+    await tg("setMyCommands", { commands: [
+      { command: "start", description: "➕ Добавить объявление" },
+      { command: "cancel", description: "Отменить заполнение" },
+    ] });
+    await tg("setChatMenuButton", { menu_button: { type: "commands" } });
     return Response.json(r);
   }
   return Response.json({ ok: true, bot: "baylux" });
