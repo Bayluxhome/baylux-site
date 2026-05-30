@@ -1,14 +1,18 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import MapView from "@/components/MapView";
-import { BUILDINGS, getBuilding, DEAL_LABEL } from "@/data/data";
+import { DEAL_LABEL } from "@/data/data";
+import { getBuildingsList, findBuilding } from "@/data/source";
 
-export function generateStaticParams() {
-  return BUILDINGS.map((b) => ({ slug: b.slug }));
+export const revalidate = 300;
+
+export async function generateStaticParams() {
+  const bs = await getBuildingsList();
+  return bs.map((b) => ({ slug: b.slug }));
 }
 
-export function generateMetadata({ params }) {
-  const b = getBuilding(params.slug);
+export async function generateMetadata({ params }) {
+  const b = await findBuilding(params.slug);
   if (!b) return { title: "Объект не найден" };
   return {
     title: `${b.name} — ${b.district}, Батуми`,
@@ -16,8 +20,8 @@ export function generateMetadata({ params }) {
   };
 }
 
-export default function BuildingPage({ params }) {
-  const b = getBuilding(params.slug);
+export default async function BuildingPage({ params }) {
+  const b = await findBuilding(params.slug);
   if (!b) notFound();
 
   const gallery = [0, 1, 2, 3, 4].map((i) => `https://picsum.photos/seed/${b.slug}-${i}/900/600`);

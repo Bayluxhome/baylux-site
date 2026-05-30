@@ -1,14 +1,18 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import MapView from "@/components/MapView";
-import { BUILDINGS, getUnit, DEAL_LABEL } from "@/data/data";
+import { DEAL_LABEL } from "@/data/data";
+import { getBuildingsList, findUnit } from "@/data/source";
 
-export function generateStaticParams() {
-  return BUILDINGS.flatMap((b) => b.units.map((u) => ({ slug: u.slug })));
+export const revalidate = 300;
+
+export async function generateStaticParams() {
+  const bs = await getBuildingsList();
+  return bs.flatMap((b) => b.units.map((u) => ({ slug: u.slug })));
 }
 
-export function generateMetadata({ params }) {
-  const u = getUnit(params.slug);
+export async function generateMetadata({ params }) {
+  const u = await findUnit(params.slug);
   if (!u) return { title: "Объект не найден" };
   return {
     title: `${u.type}, ${u.area} м² — ${u.building.district}, Батуми · ${u.price}`,
@@ -16,8 +20,8 @@ export function generateMetadata({ params }) {
   };
 }
 
-export default function PropertyPage({ params }) {
-  const u = getUnit(params.slug);
+export default async function PropertyPage({ params }) {
+  const u = await findUnit(params.slug);
   if (!u) notFound();
   const b = u.building;
 

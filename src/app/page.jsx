@@ -2,15 +2,19 @@ import Link from "next/link";
 import MapView from "@/components/MapView";
 import BuildingCard from "@/components/BuildingCard";
 import PropertyCard from "@/components/PropertyCard";
-import { BUILDINGS, allUnits, buildingPriceFrom } from "@/data/data";
+import { buildingPriceFrom } from "@/data/data";
+import { getBuildingsList, getAllUnits } from "@/data/source";
 
-export default function HomePage() {
+export const revalidate = 300;
+
+export default async function HomePage() {
+  const BUILDINGS = await getBuildingsList();
   const buildingPoints = BUILDINGS.map((b) => ({
     lat: b.lat, lng: b.lng, jk: b.kind === "complex",
     label: buildingPriceFrom(b).replace("от ", "").split(" ")[0],
     href: `/building/${b.slug}`, popup: b.name,
   }));
-  const freshUnits = allUnits().slice(0, 6);
+  const freshUnits = (await getAllUnits()).slice(0, 6);
 
   return (
     <>

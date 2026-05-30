@@ -1,7 +1,10 @@
 import Link from "next/link";
 import MapView from "@/components/MapView";
 import PropertyCard from "@/components/PropertyCard";
-import { allUnits, DEAL_LABEL } from "@/data/data";
+import { DEAL_LABEL } from "@/data/data";
+import { getAllUnits } from "@/data/source";
+
+export const revalidate = 300;
 
 export const metadata = {
   title: "Каталог недвижимости в Батуми",
@@ -15,13 +18,13 @@ const DEAL_CHIPS = [
   { key: "daily", label: "Посуточно" },
 ];
 
-export default function CatalogPage({ searchParams }) {
+export default async function CatalogPage({ searchParams }) {
   const sp = searchParams || {};
   const deal = sp.deal || "";
   const type = sp.type || "";
   const district = sp.district || "";
 
-  let units = allUnits();
+  let units = await getAllUnits();
   if (deal) units = units.filter((u) => u.deal === deal);
   if (type === "new") units = units.filter((u) => u.type === "Новостройка");
   else if (type) units = units.filter((u) => u.type === type);

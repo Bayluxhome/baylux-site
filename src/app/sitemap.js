@@ -1,9 +1,10 @@
-import { BUILDINGS } from "@/data/data";
+import { getBuildingsList } from "@/data/source";
 
 const BASE = "https://bayluxhome.com";
 
-export default function sitemap() {
+export default async function sitemap() {
   const now = new Date();
+  const BUILDINGS = await getBuildingsList();
   const urls = [
     { url: BASE, lastModified: now, priority: 1 },
     { url: `${BASE}/catalog`, lastModified: now, priority: 0.9 },
