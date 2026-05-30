@@ -1,18 +1,11 @@
 "use client";
 import { useEffect, useRef } from "react";
-import "leaflet/dist/leaflet.css";
-import "leaflet.markercluster/dist/MarkerCluster.css";
-import "leaflet.markercluster/dist/MarkerCluster.Default.css";
+import "maplibre-gl/dist/maplibre-gl.css";
 
 const DEAL = { sale: "Продажа", rent: "Аренда", daily: "Посуточно" };
 const DEALCLASS = { sale: "b-sale", rent: "b-rent", daily: "b-daily" };
-
-function shortPrice(s) {
-  return String(s || "").replace("от ", "").split(" ")[0] || "•";
-}
-function esc(s) {
-  return String(s || "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
-}
+const shortPrice = (s) => String(s || "").replace("от ", "").split(" ")[0] || "•";
+const esc = (s) => String(s || "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
 
 // buildings: [{ slug, name, district, kind, lat, lng, priceFrom, units:[{slug,deal,type,rooms,area,price,per}] }]
 export default function MapView({ buildings = [], center = [41.642, 41.632], zoom = 13, className = "map-home" }) {
@@ -22,71 +15,97 @@ export default function MapView({ buildings = [], center = [41.642, 41.632], zoo
   useEffect(() => {
     let cancelled = false;
     (async () => {
-      const L = (await import("leaflet")).default;
-      await import("leaflet.markercluster");
+      const maplibregl = (await import("maplibre-gl")).default;
       if (cancelled || !elRef.current || mapRef.current) return;
 
-      const map = L.map(elRef.current, { scrollWheelZoom: false }).setView(center, zoom);
-      mapRef.current = map;
-      map.attributionControl.setPrefix(false);
-      L.tileLayer("https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png", {
-        attribution: "© OpenStreetMap, © CARTO", maxZoom: 19,
-      }).addTo(map);
+      const key = process.env.NEXT_PUBLIC_MAPTILER_KEY;
+      const style = key
+        ? `https://api.maptiler.com/maps/streets-v2/style.json?key=${key}`
+        : "https://demotiles.maplibre.org/style.json";
 
-      // карточка-панель поверх карты
+      const map = new maplibregl.Map({
+        container: elRef.current,
+        style,
+        center: [center[1], center[0]],
+        zoom,
+        attributionControl: { compact: true },
+      });
+      mapRef.current = map;
+      map.addControl(new maplibregl.NavigationControl({ showCompass: false }), "top-left");
+
       const card = document.createElement("div");
       card.className = "map-card";
       card.style.display = "none";
       elRef.current.appendChild(card);
-
-      let activePin = null;
-      function clearActive() {
-        if (activePin) { activePin.classList.remove("active"); activePin = null; }
+      let activeEl = null;
+      function closeCard() {
+        card.style.display = "none";
+        if (activeEl) { activeEl.classList.remove("active"); activeEl = null; }
+        if (map.getSource("baylux-sel")) map.getSource("baylux-sel").setData({ type: "FeatureCollection", features: [] });
       }
-      function closeCard() { card.style.display = "none"; clearActive(); }
-      card.addEventListener("click", (e) => { if (e.target.dataset.close) closeCard(); });
+      card.addEventListener("click", (e) => { if (e.target.dataset && e.target.dataset.close) closeCard(); });
 
-      const cluster = L.markerClusterGroup({ showCoverageOnHover: false, maxClusterRadius: 46 });
-      const markers = {};
-      buildings.forEach((b) => {
-        const icon = L.divIcon({ className: "", html: `<div class="price-pin jk" data-b="${b.slug}">${esc(shortPrice(b.priceFrom))}</div>` });
-        const m = L.marker([b.lat, b.lng], { icon });
-        m.on("click", () => {
-          // подсветка дома
-          clearActive();
-          const pin = m._icon && m._icon.querySelector(".price-pin");
-          if (pin) { pin.classList.add("active"); activePin = pin; }
-          // приближаем к дому
-          map.setView([b.lat, b.lng], Math.max(map.getZoom(), 15), { animate: true });
-          // список квартир в доме
-          const rows = b.units.map((u) =>
-            `<a class="mc-unit" href="/property/${u.slug}">
-               <span class="mc-badge ${DEALCLASS[u.deal] || "b-sale"}">${DEAL[u.deal] || ""}</span>
-               <span class="mc-u-main">${esc(u.type)}${u.rooms ? ", " + u.rooms + " комн." : ""} · ${u.area} м²</span>
-               <span class="mc-u-price">${esc(u.price)}</span>
-             </a>`).join("");
-          card.innerHTML =
-            `<div class="mc-head">
-               <div>
-                 <div class="mc-title">${esc(b.name)}</div>
-                 <div class="mc-sub">📍 ${esc(b.district)} · ${b.units.length} объект(ов)</div>
-               </div>
-               <button class="mc-close" data-close="1" aria-label="Закрыть">✕</button>
-             </div>
-             <div class="mc-list">${rows}</div>
-             <a class="mc-all" href="/building/${b.slug}">Открыть дом — все объекты →</a>`;
-          card.style.display = "block";
+      map.on("load", () => {
+        // слой подсветки выбранного здания
+        map.addSource("baylux-sel", { type: "geojson", data: { type: "FeatureCollection", features: [] } });
+        map.addLayer({ id: "baylux-sel-fill", type: "fill", source: "baylux-sel",
+          paint: { "fill-color": "#01274B", "fill-opacity": 0.55 } });
+        map.addLayer({ id: "baylux-sel-line", type: "line", source: "baylux-sel",
+          paint: { "line-color": "#01274B", "line-width": 2 } });
+
+        buildings.forEach((b) => {
+          const el = document.createElement("div");
+          el.className = "price-pin jk";
+          el.textContent = shortPrice(b.priceFrom);
+          new maplibregl.Marker({ element: el, anchor: "center" }).setLngLat([b.lng, b.lat]).addTo(map);
+          el.addEventListener("click", (ev) => {
+            ev.stopPropagation();
+            selectBuilding(b, el);
+          });
         });
-        markers[b.slug] = m;
-        cluster.addLayer(m);
-      });
-      map.addLayer(cluster);
-      // клик по пустой карте — закрыть карточку
-      map.on("click", () => closeCard());
 
-      if (buildings.length > 1) {
-        try { map.fitBounds(cluster.getBounds().pad(0.2)); } catch (e) {}
+        if (buildings.length > 1) {
+          const b = new maplibregl.LngLatBounds();
+          buildings.forEach((x) => b.extend([x.lng, x.lat]));
+          map.fitBounds(b, { padding: 60, maxZoom: 15, duration: 0 });
+        }
+      });
+
+      function highlightAt(lng, lat) {
+        const pt = map.project([lng, lat]);
+        const feats = map.queryRenderedFeatures(pt) || [];
+        const bld = feats.find((f) => f.sourceLayer === "building" && f.geometry);
+        if (bld && map.getSource("baylux-sel")) {
+          map.getSource("baylux-sel").setData({ type: "Feature", geometry: bld.geometry, properties: {} });
+        }
       }
+
+      function selectBuilding(b, el) {
+        if (activeEl) activeEl.classList.remove("active");
+        el.classList.add("active"); activeEl = el;
+        map.flyTo({ center: [b.lng, b.lat], zoom: Math.max(map.getZoom(), 16.5) });
+        map.once("idle", () => highlightAt(b.lng, b.lat));
+
+        const rows = b.units.map((u) =>
+          `<a class="mc-unit" href="/property/${u.slug}">
+             <span class="mc-badge ${DEALCLASS[u.deal] || "b-sale"}">${DEAL[u.deal] || ""}</span>
+             <span class="mc-u-main">${esc(u.type)}${u.rooms ? ", " + u.rooms + " комн." : ""} · ${u.area} м²</span>
+             <span class="mc-u-price">${esc(u.price)}</span>
+           </a>`).join("");
+        card.innerHTML =
+          `<div class="mc-head">
+             <div>
+               <div class="mc-title">${esc(b.name)}</div>
+               <div class="mc-sub">📍 ${esc(b.district)} · ${b.units.length} объект(ов)</div>
+             </div>
+             <button class="mc-close" data-close="1" aria-label="Закрыть">✕</button>
+           </div>
+           <div class="mc-list">${rows}</div>
+           <a class="mc-all" href="/building/${b.slug}">Открыть дом — все объекты →</a>`;
+        card.style.display = "block";
+      }
+
+      map.on("click", () => closeCard());
     })();
 
     return () => {

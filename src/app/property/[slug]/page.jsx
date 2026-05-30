@@ -28,7 +28,7 @@ export default async function PropertyPage({ params }) {
   const b = u.building;
 
   const gallery = [0, 1, 2, 3, 4].map((i) => `https://picsum.photos/seed/${u.slug}-${i}/900/600`);
-  const point = [{ lat: b.lat, lng: b.lng, jk: b.kind === "complex", label: u.price.split(" ")[0], popup: u.type }];
+  const mapBuildings = [{ slug: b.slug, name: b.name, district: b.district, kind: b.kind, lat: b.lat, lng: b.lng, priceFrom: u.price, units: [{ slug: u.slug, deal: u.deal, type: u.type, rooms: u.rooms, area: u.area, price: u.price, per: u.per }] }];
   const ctaMain = u.deal === "daily" ? "Забронировать даты" : u.deal === "rent" ? "Снять — оставить заявку" : "Забронировать просмотр";
   const specs = [
     ["Тип", u.type], ["Площадь", u.area + " м²"], ["Комнат", u.rooms || "—"],
@@ -72,7 +72,7 @@ export default async function PropertyPage({ params }) {
             <h3>Почему через Baylux</h3>
             <p>Объект проверен нашей командой: документы, реальные фото, честная цена. Поможем с просмотром и сделкой, а при желании возьмём квартиру в управление, чтобы она приносила доход.</p>
           </div>
-          <div className="map-sm"><MapView points={point} className="map-sm" center={[b.lat, b.lng]} zoom={15} /></div>
+          <div className="map-sm"><MapView buildings={mapBuildings} className="map-sm" center={[b.lat, b.lng]} zoom={15} /></div>
         </div>
 
         <aside>

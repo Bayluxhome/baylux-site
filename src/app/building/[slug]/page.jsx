@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import MapView from "@/components/MapView";
-import { DEAL_LABEL } from "@/data/data";
+import { DEAL_LABEL, buildingPriceFrom } from "@/data/data";
 import { getBuildingsList, findBuilding } from "@/data/source";
 import LeadButton from "@/components/LeadButton";
 import { waLink } from "@/config";
@@ -27,7 +27,7 @@ export default async function BuildingPage({ params }) {
   if (!b) notFound();
 
   const gallery = [0, 1, 2, 3, 4].map((i) => `https://picsum.photos/seed/${b.slug}-${i}/900/600`);
-  const point = [{ lat: b.lat, lng: b.lng, jk: b.kind === "complex", label: b.name.replace("ЖК ", ""), popup: b.name }];
+  const mapBuildings = [{ slug: b.slug, name: b.name, district: b.district, kind: b.kind, lat: b.lat, lng: b.lng, priceFrom: buildingPriceFrom(b), units: b.units }];
 
   return (
     <div className="wrap">
@@ -74,7 +74,7 @@ export default async function BuildingPage({ params }) {
             ))}
           </div>
 
-          <div className="map-sm"><MapView points={point} className="map-sm" center={[b.lat, b.lng]} zoom={15} /></div>
+          <div className="map-sm"><MapView buildings={mapBuildings} className="map-sm" center={[b.lat, b.lng]} zoom={15} /></div>
         </div>
 
         <aside>
