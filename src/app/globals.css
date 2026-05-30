@@ -160,6 +160,15 @@ nav.main{display:flex;gap:2px;font-weight:500;font-size:15px}
 .af-hint{font-size:13px;color:var(--ink-soft);margin-top:6px}
 .af-err{color:#9A4B4B;font-size:14px;margin-top:10px}
 .addform-done{padding:24px 0}
+.cms{max-width:760px;padding:36px 0 56px}
+.cms h1{color:var(--navy);font-size:32px;margin-bottom:8px}
+.cms h2{color:var(--navy);font-size:21px;margin:26px 0 8px}
+.cms p{color:var(--ink);line-height:1.65;margin:8px 0}
+.cms ul{margin:8px 0 8px 18px;color:var(--ink);line-height:1.7}
+.cms a.cms-link{color:var(--gold-dk);font-weight:600}
+.cms .muted{color:var(--ink-soft);font-size:14px}
+.contact-row{display:flex;flex-direction:column;gap:12px;margin:18px 0}
+.contact-row a{display:inline-flex;align-items:center;gap:10px;font-weight:600;color:var(--navy);font-size:16px}
 @media(max-width:560px){.addform{grid-template-columns:1fr}}
 
 .card{background:var(--cream);border:1px solid var(--line);border-radius:16px;overflow:hidden;transition:.18s;cursor:pointer;display:block}

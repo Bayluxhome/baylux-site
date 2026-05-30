@@ -24,7 +24,7 @@ export default function Footer() {
           </div>
           <div>
             <h4>Компания</h4>
-            <a href="#">О нас</a><a href="#">Контакты</a><a href="#">Условия</a><a href="#">Конфиденциальность</a>
+            <Link href="/about">О компании</Link><Link href="/contacts">Контакты</Link><Link href="/terms">Условия</Link><Link href="/privacy">Конфиденциальность</Link>
           </div>
         </div>
         <div className="fbar"><span>© Baylux 2026 · Батуми, Грузия</span><span>WhatsApp · Instagram · Telegram</span></div>

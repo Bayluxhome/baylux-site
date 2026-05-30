@@ -33,6 +33,7 @@ export default function AddListingForm() {
   async function submit(e) {
     e.preventDefault();
     if (!f.address.trim()) { alert("Укажите адрес объекта."); return; }
+    if (!f.contact.trim()) { alert("Укажите контакт для связи (телефон или @username)."); return; }
     setState("loading");
     try {
       const urls = [];
@@ -90,8 +91,8 @@ export default function AddListingForm() {
       <label className="af-full">Описание
         <textarea value={f.about} onChange={(e) => upd("about", e.target.value)} rows={3} placeholder="Кратко об объекте" />
       </label>
-      <label className="af-full">Контакт (необязательно)
-        <input value={f.contact} onChange={(e) => upd("contact", e.target.value)} placeholder="телефон или @username" />
+      <label className="af-full">Контакт для связи (обязательно)
+        <input value={f.contact} onChange={(e) => upd("contact", e.target.value)} placeholder="телефон или @username" required />
       </label>
       <div className="af-full">
         <div className="af-lbl">Фото (до 10, сжимаются автоматически)</div>
