@@ -4,22 +4,28 @@ import { useState } from "react";
 
 // Названия = подпункты верхнего меню. Ссылки = фильтры каталога.
 const CATS = [
-  ["Жилые комплексы", "/catalog?type=new", "🏢"],
-  ["Коттеджи", "/catalog?deal=sale&type=Дом", "🏡"],
+  // Продажа
   ["Продажа квартир", "/catalog?deal=sale&type=Квартира", "🛋️"],
-  ["Аренда квартир", "/catalog?deal=rent&type=Квартира", "🛋️"],
   ["Продажа домов", "/catalog?deal=sale&type=Дом", "🏠"],
-  ["Аренда домов", "/catalog?deal=rent&type=Дом", "🏠"],
   ["Продажа коммерческой недвижимости", "/catalog?deal=sale&type=Коммерция", "🏬"],
-  ["Аренда коммерческой недвижимости", "/catalog?deal=rent&type=Коммерция", "🏬"],
   ["Продажа офисов", "/catalog?deal=sale&type=Офис", "🏢"],
-  ["Аренда офисов", "/catalog?deal=rent&type=Офис", "🏢"],
   ["Продажа складов", "/catalog?deal=sale&type=Склад", "📦"],
-  ["Аренда складов", "/catalog?deal=rent&type=Склад", "📦"],
   ["Продажа участков", "/catalog?deal=sale&type=Участок", "🌳"],
-  ["Гаражи и паркинги", "/catalog?deal=sale&type=Гараж", "🚗"],
+  ["Продажа гаражей и паркингов", "/catalog?deal=sale&type=Гараж", "🚗"],
+  // Аренда
+  ["Аренда квартир", "/catalog?deal=rent&type=Квартира", "🛏️"],
+  ["Аренда домов", "/catalog?deal=rent&type=Дом", "🏡"],
+  ["Аренда коммерческой недвижимости", "/catalog?deal=rent&type=Коммерция", "🏪"],
+  ["Аренда офисов", "/catalog?deal=rent&type=Офис", "💼"],
+  ["Аренда складов", "/catalog?deal=rent&type=Склад", "🚛"],
+  ["Аренда гаражей и паркингов", "/catalog?deal=rent&type=Гараж", "🅿️"],
+  // Новостройки
+  ["Жилые комплексы", "/catalog?type=new", "🏙️"],
+  ["Коттеджи", "/catalog?deal=sale&type=Дом", "🏘️"],
+  // Посуточно
   ["Посуточно — квартиры", "/catalog?deal=daily&type=Квартира", "🏖️"],
-  ["Посуточно — дома", "/catalog?deal=daily&type=Дом", "🏖️"],
+  ["Посуточно — дома", "/catalog?deal=daily&type=Дом", "🏝️"],
+  // Услуги
   ["Управление недвижимостью", "/#services", "🔑"],
   ["Клининг", "/#services", "🧹"],
   ["Риелторы", "/#services", "🤝"],
