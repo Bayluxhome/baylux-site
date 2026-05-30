@@ -38,7 +38,7 @@ function send(chat_id, text, keyboard) {
   return tg("sendMessage", body);
 }
 function sendContact(chat) {
-  return tg("sendMessage", { chat_id: chat, text: STEPS.contact.q, reply_markup: { keyboard: [[{ text: "📱 Поделиться номером", request_contact: true }]], resize_keyboard: true, one_time_keyboard: true } });
+  return tg("sendMessage", { chat_id: chat, text: STEPS.contact.q, reply_markup: { keyboard: [[{ text: "📱 Поделиться номером", request_contact: true }], [{ text: "⬅️ Назад" }, { text: "✖️ Отмена" }]], resize_keyboard: true, one_time_keyboard: true } });
 }
 function modButtons(status, id) {
   if (status === "approved") return { inline_keyboard: [[{ text: "🗑 Снять с публикации", callback_data: `un:${id}` }]] };
@@ -69,6 +69,17 @@ async function uploadPhoto(fileId) {
   return supa.storage.from("listing-photos").getPublicUrl(name).data.publicUrl;
 }
 
+const MAIN_MENU = [["➕ Добавить объявление"], ["📋 Мои объявления", "🌐 Сайт"]];
+const STEP_ORDER = ["deal", "type", "address", "geo", "price", "area", "rooms", "floor", "about", "photos", "contact"];
+function showMenu(chat, greet) { return send(chat, greet || "Главное меню Baylux:", MAIN_MENU); }
+async function showMyListings(chat, uid) {
+  const STAT = { pending: "⏳ на модерации", approved: "✅ опубликовано", rejected: "🚫 снято" };
+  const { data } = await supa.from("listings").select("*").eq("tg_user_id", uid).order("created_at", { ascending: false });
+  if (!data || !data.length) return send(chat, "У вас пока нет объявлений. Нажмите «➕ Добавить объявление».", MAIN_MENU);
+  const lines = data.slice(0, 20).map((r, i) => `${i + 1}. ${DEAL_RU[r.deal] || r.deal} · ${r.type} · ${r.price} — ${STAT[r.status] || r.status}`).join("\n");
+  return send(chat, "📋 Ваши объявления:\n\n" + lines + "\n\nВход и детали на сайте: " + SITE + "/my", MAIN_MENU);
+}
+
 const STEPS = {
   deal: { q: "Шаг 1/10. Тип сделки?", kb: [["Продажа", "Аренда", "Посуточно"]] },
   type: { q: "Шаг 2/10. Тип объекта?", kb: [["Квартира", "Студия", "Дом"], ["Коммерция", "Офис"], ["Участок", "Гараж"]] },
@@ -82,23 +93,36 @@ const STEPS = {
   photos: { q: "Шаг 10/10. Пришлите фото (по одному, до 8). Когда закончите — /done. Можно без фото — сразу /done." },
   contact: { q: "Последний шаг. Нажмите кнопку «📱 Поделиться номером» ниже — номер подтвердится автоматически. (Или впишите контакт текстом.)" },
 };
-async function ask(chat, step) { return send(chat, STEPS[step].q, STEPS[step].kb); }
+async function ask(chat, step) {
+  const kb = [...(STEPS[step].kb || []), ["⬅️ Назад", "✖️ Отмена"]];
+  return send(chat, STEPS[step].q, kb);
+}
 
 async function onMessage(msg) {
   const chat = msg.chat.id;
   const uid = msg.from.id;
   const text = (msg.text || "").trim();
 
-  if (text === "/start" || text === "/add" || text === "/добавить") {
+  if (text === "/start" || text === "/menu") { await clearDraft(uid); return showMenu(chat, "👋 Baylux — кабинет владельца объектов. Выберите действие:"); }
+  if (text === "/cancel" || text === "/отмена" || text === "✖️ Отмена") { await clearDraft(uid); return showMenu(chat, "Отменено. Выберите действие:"); }
+  if (text === "/add" || text === "/добавить" || text === "➕ Добавить объявление") {
     await saveDraft(uid, "deal", { tg_user_id: uid, tg_username: msg.from.username || "" });
-    await send(chat, "👋 Добавим ваш объект в Baylux. Отвечайте по шагам — пара минут. /cancel — отмена.");
     return ask(chat, "deal");
   }
-  if (text === "/cancel" || text === "/отмена") { await clearDraft(uid); return send(chat, "Отменено. /start — начать заново."); }
+  if (text === "/my" || text === "📋 Мои объявления") return showMyListings(chat, uid);
+  if (text === "🌐 Сайт" || text === "/site") return send(chat, "🌐 " + SITE + "/my — ваши объявления и вход на сайт.", MAIN_MENU);
 
   const d = await getDraft(uid);
-  if (!d.step) return send(chat, "Чтобы добавить объект, отправьте /start");
+  if (!d.step) return showMenu(chat, "Выберите действие:");
   const data = d.data || {};
+
+  if (text === "⬅️ Назад" || text === "/back") {
+    const idx = STEP_ORDER.indexOf(d.step);
+    if (idx <= 0) { await clearDraft(uid); return showMenu(chat, "Главное меню:"); }
+    const prev = STEP_ORDER[idx - 1];
+    await saveDraft(uid, prev, data);
+    return prev === "contact" ? sendContact(chat) : ask(chat, prev);
+  }
 
   switch (d.step) {
     case "deal": {
@@ -184,8 +208,10 @@ export async function GET(req) {
   if (new URL(req.url).searchParams.get("setup") === "1") {
     const r = await tg("setWebhook", { url: `${SITE}/api/tg`, secret_token: SECRET, allowed_updates: ["message", "callback_query"] });
     await tg("setMyCommands", { commands: [
-      { command: "start", description: "➕ Добавить объявление" },
-      { command: "cancel", description: "Отменить заполнение" },
+      { command: "start", description: "🏠 Меню" },
+      { command: "add", description: "➕ Добавить объявление" },
+      { command: "my", description: "📋 Мои объявления" },
+      { command: "cancel", description: "Отмена" },
     ] });
     await tg("setChatMenuButton", { menu_button: { type: "commands" } });
     return Response.json(r);
