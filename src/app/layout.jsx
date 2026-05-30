@@ -1,0 +1,41 @@
+import "./globals.css";
+import Header from "@/components/Header";
+import Footer from "@/components/Footer";
+
+export const metadata = {
+  metadataBase: new URL("https://bayluxhome.com"),
+  title: {
+    default: "Baylux — недвижимость в Батуми: купить, снять, доверить управление",
+    template: "%s — Baylux",
+  },
+  description:
+    "Проверенные квартиры, дома и апартаменты в Батуми. Покупка, аренда, посуточно и управление недвижимостью под ключ от местной команды Baylux.",
+  openGraph: {
+    title: "Baylux — недвижимость в Батуми",
+    description: "Купить, снять или доверить управление недвижимостью у моря.",
+    type: "website",
+    locale: "ru_RU",
+  },
+};
+
+export default function RootLayout({ children }) {
+  return (
+    <html lang="ru">
+      <head>
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link
+          href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Montserrat:wght@600;700;800&display=swap"
+          rel="stylesheet"
+        />
+      </head>
+      <body>
+        <div className="note">
+          Baylux · MVP на Next.js · данные временные (локально), далее — CMS · деплой на Vercel
+        </div>
+        <Header />
+        <main>{children}</main>
+        <Footer />
+      </body>
+    </html>
+  );
+}
