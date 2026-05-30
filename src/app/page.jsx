@@ -1,5 +1,6 @@
 import Link from "next/link";
 import MapView from "@/components/MapView";
+import CategoryGrid from "@/components/CategoryGrid";
 import BuildingCard from "@/components/BuildingCard";
 import PropertyCard from "@/components/PropertyCard";
 import { buildingPriceFrom } from "@/data/data";
@@ -58,6 +59,8 @@ export default async function HomePage() {
           </div>
         </div>
       </section>
+
+      <CategoryGrid />
 
       <section className="explore wrap">
         <div className="sec-head">
