@@ -19,10 +19,10 @@ export default async function HomePage() {
     <>
       <section className="hero">
         <div className="wrap hero-inner">
-          <h1>Недвижимость в <span className="accent">Батуми</span> —<br />купить, снять или доверить управление</h1>
+          <h1>Недвижимость в <span className="accent">Батуми</span> —<br />купить или снять у моря</h1>
           <p>
-            Проверенные квартиры, дома и апартаменты у моря. Подбор под задачу, безопасная сделка
-            и управление объектом под ключ — от местной команды, которая работает на земле, а не из колл-центра.
+            Проверенные квартиры, дома и апартаменты — без дублей и фейков. Прозрачные цены,
+            честные условия и помощь местной команды на каждом шаге сделки.
           </p>
           <div className="tabs">
             <Link className="tab active" href="/catalog?deal=sale">Продажа</Link>
@@ -51,7 +51,7 @@ export default async function HomePage() {
           </form>
           <div className="stat-row">
             <div className="stat"><b>248</b><span>проверенных объектов</span></div>
-            <div className="stat"><b>40+</b><span>квартир в управлении</span></div>
+            <div className="stat"><b>0%</b><span>скрытых комиссий</span></div>
             <div className="stat"><b>4.9★</b><span>оценка клиентов</span></div>
             <div className="stat"><b>24/7</b><span>ответ в WhatsApp</span></div>
           </div>
