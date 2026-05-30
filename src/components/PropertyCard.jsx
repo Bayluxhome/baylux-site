@@ -4,10 +4,22 @@ import { DEAL_LABEL, DEAL_CLASS } from "@/data/data";
 
 export default function PropertyCard({ unit }) {
   const b = unit.building;
+  const photos = unit.photos && unit.photos.length > 1 ? unit.photos : null;
+  const alt = `${unit.type}, ${unit.area} м² — ${b.name}`;
   return (
     <Link className="card" href={`/property/${unit.slug}`}>
       <div className="ph">
-        <Image src={unit.img} alt={`${unit.type}, ${unit.area} м² — ${b.name}`} fill sizes="(max-width:560px) 100vw, 360px" style={{ objectFit: "cover" }} />
+        {photos ? (
+          <div className="ph-strip">
+            {photos.map((p, i) => (
+              <div className="ph-slide" key={i}>
+                <Image src={p} alt={alt} fill sizes="(max-width:560px) 100vw, 360px" style={{ objectFit: "cover" }} />
+              </div>
+            ))}
+          </div>
+        ) : (
+          <Image src={unit.img} alt={alt} fill sizes="(max-width:560px) 100vw, 360px" style={{ objectFit: "cover" }} />
+        )}
         <span className={"badge " + DEAL_CLASS[unit.deal]}>{DEAL_LABEL[unit.deal]}</span>
       </div>
       <div className="body">

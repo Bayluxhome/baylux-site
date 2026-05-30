@@ -13,6 +13,17 @@ const DEAL_MAP = { "продажа": "sale", "аренда": "rent", "посут
 const DEAL_RU = { sale: "Продажа", rent: "Аренда", daily: "Посуточно" };
 const COMPLEX_TYPES = /новострой/i;
 
+// Цена: добавляем $ если валюта не указана, не задваиваем, разбиваем тысячи.
+function normPrice(raw) {
+  let s = (raw || "").trim();
+  if (!s) return "—";
+  s = s.replace(/\d{4,}/, (m) => m.replace(/\B(?=(\d{3})+(?!\d))/g, " ")); // 60000 -> 60 000
+  const hasCur = /[$₾€]|usd|gel|lari|лар|евро|eur/i.test(s);
+  if (!hasCur) s = "$" + s;
+  s = s.replace(/\$\s*\$+/g, "$");
+  return s;
+}
+
 // ---- Telegram helpers ----
 async function tg(method, body) {
   const r = await fetch(`${API}/${method}`, {
@@ -99,7 +110,7 @@ async function onMessage(msg) {
       // если текст/«пропустить» — оставляем без координат (центр Батуми по умолчанию)
       await saveDraft(uid, "price", data); return ask(chat, "price");
     }
-    case "price": { data.price = text; await saveDraft(uid, "area", data); return ask(chat, "area"); }
+    case "price": { data.price = normPrice(text); await saveDraft(uid, "area", data); return ask(chat, "area"); }
     case "area": { data.area = parseInt(text, 10) || 0; await saveDraft(uid, "rooms", data); return ask(chat, "rooms"); }
     case "rooms": { data.rooms = parseInt(text, 10) || 0; await saveDraft(uid, "floor", data); return ask(chat, "floor"); }
     case "floor": { data.floor = text; await saveDraft(uid, "about", data); return ask(chat, "about"); }
