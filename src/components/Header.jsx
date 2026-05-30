@@ -48,15 +48,15 @@ export default function Header() {
         </div>
 
         <nav className="main">
-          <Link href="/catalog?deal=sale">Купить</Link>
-          <Link href="/catalog?deal=rent">Снять</Link>
-          <Link href="/catalog?deal=daily">Посуточно</Link>
           <Link href="/catalog?type=new">Новостройки</Link>
+          <Link href="/catalog?deal=sale">Продажа</Link>
+          <Link href="/catalog?deal=rent">Аренда</Link>
+          <Link href="/catalog?deal=daily">Посуточно</Link>
           <Link href="/#services">Услуги</Link>
         </nav>
 
         <div className="hright">
-          <div className="lang"><b>RU</b>·<a href="#">EN</a>·<a href="#">KA</a></div>
+          <div className="lang"><b>RU</b>·<a href="#">EN</a>·<a href="#">GE</a></div>
           <div className="icon-btn" title="Избранное">♡</div>
           <LeadButton className="btn btn-gold" type="Сдать / продать" title="Сдать или продать недвижимость">Сдать / продать</LeadButton>
         </div>
