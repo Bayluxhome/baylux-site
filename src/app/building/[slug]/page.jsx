@@ -3,6 +3,8 @@ import { notFound } from "next/navigation";
 import MapView from "@/components/MapView";
 import { DEAL_LABEL } from "@/data/data";
 import { getBuildingsList, findBuilding } from "@/data/source";
+import LeadButton from "@/components/LeadButton";
+import { waLink } from "@/config";
 
 export const revalidate = 300;
 
@@ -79,9 +81,9 @@ export default async function BuildingPage({ params }) {
           <div className="cta-card">
             <div style={{ fontWeight: 700, color: "var(--navy)", fontSize: 18 }}>Интересует объект в «{b.name}»?</div>
             <p style={{ color: "var(--ink-soft)", fontSize: 14, margin: "8px 0 4px" }}>Подберём квартиру под бюджет и задачу, организуем просмотр.</p>
-            <button className="btn btn-gold">Оставить заявку</button>
-            <button className="btn btn-wa">Написать в WhatsApp</button>
-            <button className="btn btn-ghost">Сдать квартиру здесь в управление</button>
+            <LeadButton className="btn btn-gold" type="Заявка по ЖК" object={b.name} title={`Заявка — ${b.name}`}>Оставить заявку</LeadButton>
+            <a className="btn btn-wa" href={waLink(`Здравствуйте! Интересует ${b.name} в Батуми.`)} target="_blank" rel="noopener">Написать в WhatsApp</a>
+            <LeadButton className="btn btn-ghost" type="Управление" object={b.name} title="Отдать квартиру в управление">Сдать квартиру здесь в управление</LeadButton>
             <div className="agent">
               <div className="av" />
               <div><div style={{ fontWeight: 700, color: "var(--navy)" }}>Команда Baylux</div><div style={{ fontSize: 13, color: "var(--ink-soft)" }}>Ответим за 5 минут · RU / EN / KA</div></div>

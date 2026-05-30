@@ -1,6 +1,7 @@
 import "./globals.css";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
+import LeadModal from "@/components/LeadModal";
 
 export const metadata = {
   metadataBase: new URL("https://bayluxhome.com"),
@@ -35,6 +36,7 @@ export default function RootLayout({ children }) {
         <Header />
         <main>{children}</main>
         <Footer />
+        <LeadModal />
       </body>
     </html>
   );

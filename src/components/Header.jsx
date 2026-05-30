@@ -2,6 +2,7 @@
 import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import { GE_CITIES } from "@/data/data";
+import LeadButton from "@/components/LeadButton";
 
 export default function Header() {
   const [open, setOpen] = useState(false);
@@ -57,7 +58,7 @@ export default function Header() {
         <div className="hright">
           <div className="lang"><b>RU</b>·<a href="#">EN</a>·<a href="#">KA</a></div>
           <div className="icon-btn" title="Избранное">♡</div>
-          <button className="btn btn-gold">Сдать / продать</button>
+          <LeadButton className="btn btn-gold" type="Сдать / продать" title="Сдать или продать недвижимость">Сдать / продать</LeadButton>
         </div>
       </div>
     </header>

@@ -3,6 +3,8 @@ import { notFound } from "next/navigation";
 import MapView from "@/components/MapView";
 import { DEAL_LABEL } from "@/data/data";
 import { getBuildingsList, findUnit } from "@/data/source";
+import LeadButton from "@/components/LeadButton";
+import { waLink } from "@/config";
 
 export const revalidate = 300;
 
@@ -77,9 +79,9 @@ export default async function PropertyPage({ params }) {
           <div className="cta-card">
             <div className="price">{u.price}</div>
             <div className="perm" style={{ marginBottom: 6 }}>{u.per}</div>
-            <button className="btn btn-gold">{ctaMain}</button>
-            <button className="btn btn-wa">Написать в WhatsApp</button>
-            <button className="btn btn-ghost">Отдать похожую в управление</button>
+            <LeadButton className="btn btn-gold" type={DEAL_LABEL[u.deal]} object={`${u.type}, ${u.area} м² — ${b.name}`} title={ctaMain}>{ctaMain}</LeadButton>
+            <a className="btn btn-wa" href={waLink(`Здравствуйте! Интересует объект: ${u.type}, ${u.area} м² — ${b.name} (${u.price})`)} target="_blank" rel="noopener">Написать в WhatsApp</a>
+            <LeadButton className="btn btn-ghost" type="Управление" object={b.name} title="Отдать квартиру в управление">Отдать похожую в управление</LeadButton>
             <Link href={`/building/${b.slug}`} className="btn btn-ghost" style={{ width: "100%", marginTop: 10 }}>Все объекты в «{b.name}»</Link>
             <div className="agent">
               <div className="av" />
