@@ -1,7 +1,7 @@
 import Link from "next/link";
 import MapView from "@/components/MapView";
 import PropertyCard from "@/components/PropertyCard";
-import { DEAL_LABEL } from "@/data/data";
+import { DEAL_LABEL, CAT_LABEL, unitCat, unitIsNew } from "@/data/data";
 import { getAllUnits } from "@/data/source";
 
 export const revalidate = 300;
@@ -21,13 +21,16 @@ const DEAL_CHIPS = [
 export default async function CatalogPage({ searchParams }) {
   const sp = searchParams || {};
   const deal = sp.deal || "";
-  const type = sp.type || "";
+  const cat = sp.cat || "";
+  const isNew = sp.new === "1" || sp.type === "new";
+  const legacyType = sp.type && sp.type !== "new" ? sp.type : "";
   const district = sp.district || "";
 
   let units = await getAllUnits();
   if (deal) units = units.filter((u) => u.deal === deal);
-  if (type === "new") units = units.filter((u) => u.type === "Новостройка");
-  else if (type) units = units.filter((u) => u.type === type);
+  if (isNew) units = units.filter((u) => unitIsNew(u));
+  if (cat) units = units.filter((u) => unitCat(u.type) === cat);
+  if (legacyType) units = units.filter((u) => u.type === legacyType);
   if (district) units = units.filter((u) => u.building.district === district);
 
   const bmap = new Map();
@@ -49,8 +52,8 @@ export default async function CatalogPage({ searchParams }) {
     <div className="wrap" style={{ paddingTop: 22, paddingBottom: 40 }}>
       <div className="sec-head">
         <div>
-          <h2>Недвижимость в Батуми{deal ? ` — ${DEAL_LABEL[deal].toLowerCase()}` : ""}</h2>
-          <p>Найдено {units.length} объект(ов){type === "new" ? " · новостройки" : ""}{district ? ` · ${district}` : ""}</p>
+          <h2>Недвижимость в Батуми{deal ? ` — ${DEAL_LABEL[deal].toLowerCase()}` : ""}{cat && CAT_LABEL[cat] ? ` · ${CAT_LABEL[cat].toLowerCase()}` : ""}</h2>
+          <p>Найдено {units.length} объект(ов){isNew ? " · новостройки" : ""}{district ? ` · ${district}` : ""}</p>
         </div>
       </div>
 
@@ -58,7 +61,7 @@ export default async function CatalogPage({ searchParams }) {
         {DEAL_CHIPS.map((c) => (
           <Link key={c.key} href={qs("deal", c.key)} className={"chip" + (deal === c.key ? " active" : "")}>{c.label}</Link>
         ))}
-        <Link href={qs("type", type === "new" ? "" : "new")} className={"chip" + (type === "new" ? " active" : "")}>Новостройки</Link>
+        <Link href={qs("new", isNew ? "" : "1")} className={"chip" + (isNew ? " active" : "")}>Новостройки</Link>
         <Link href={qs("district", district === "Новый бульвар" ? "" : "Новый бульвар")} className={"chip" + (district === "Новый бульвар" ? " active" : "")}>Новый бульвар</Link>
         <Link href={qs("district", district === "Старый Батуми" ? "" : "Старый Батуми")} className={"chip" + (district === "Старый Батуми" ? " active" : "")}>Старый Батуми</Link>
       </div>

@@ -28,7 +28,7 @@ export default async function HomePage() {
           <div className="tabs">
             <Link className="tab active" href="/catalog?deal=sale">Продажа</Link>
             <Link className="tab" href="/catalog?deal=rent">Аренда</Link>
-            <Link className="tab" href="/catalog?type=new">Новостройки</Link>
+            <Link className="tab" href="/catalog?new=1">Новостройки</Link>
             <Link className="tab" href="/catalog?deal=daily">Посуточно</Link>
           </div>
           <form className="searchbar" action="/catalog">
@@ -42,9 +42,11 @@ export default async function HomePage() {
             </div>
             <div className="field">
               <label>Тип</label>
-              <select name="type">
+              <select name="cat">
                 <option value="">Любой тип</option>
-                <option>Квартира</option><option>Дом</option><option>Коммерция</option><option>Новостройка</option>
+                <option value="apartment">Квартира</option>
+                <option value="house">Дом</option>
+                <option value="commercial">Коммерция</option>
               </select>
             </div>
             <div className="field"><label>Цена до, $</label><input name="max" defaultValue="150 000" /></div>

@@ -19,6 +19,28 @@ export const GE_CITIES = [
 export const DEAL_LABEL = { sale: "Продажа", rent: "Аренда", daily: "Посуточно" };
 export const DEAL_CLASS = { sale: "b-sale", rent: "b-rent", daily: "b-daily" };
 
+// Категории недвижимости (тип объекта) — для фильтров меню/каталога.
+export const CAT_LABEL = {
+  apartment: "Квартиры", house: "Дома", commercial: "Коммерция",
+  office: "Офисы", warehouse: "Склады", land: "Участки", garage: "Гаражи и паркинги",
+};
+// Сопоставляем «человеческий» тип объекта с категорией фильтра.
+export function unitCat(type) {
+  const t = (type || "").toLowerCase();
+  if (/студи|квартир|апарт|новострой/.test(t)) return "apartment";
+  if (/коттедж|вилл|таун|особняк|дом/.test(t)) return "house";
+  if (/офис/.test(t)) return "office";
+  if (/склад/.test(t)) return "warehouse";
+  if (/участ|земл/.test(t)) return "land";
+  if (/гараж|паркинг|машино/.test(t)) return "garage";
+  if (/коммерц|ритейл|торг/.test(t)) return "commercial";
+  return "other";
+}
+// Новостройка: явный флаг из таблицы (isNew) или по типу «Новостройка».
+export function unitIsNew(u) {
+  return u.isNew === true || /новострой/i.test(u.type || "");
+}
+
 function img(seed) { return `https://picsum.photos/seed/${seed}/900/600`; }
 
 // type: "complex" — ЖК/новостройка с множеством квартир; "house" — частный объект (1 лот)

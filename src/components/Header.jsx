@@ -17,29 +17,29 @@ const CURR = [
 // Верхнее меню с выпадающими подменю (как korter, адаптировано под Baylux)
 const NAV = [
   { label: "Продажа", href: "/catalog?deal=sale", sub: [
-    ["Продажа квартир", "/catalog?deal=sale&type=Квартира"],
-    ["Продажа домов", "/catalog?deal=sale&type=Дом"],
-    ["Продажа коммерческой недвижимости", "/catalog?deal=sale&type=Коммерция"],
-    ["Продажа офисов", "/catalog?deal=sale&type=Офис"],
-    ["Продажа складов", "/catalog?deal=sale&type=Склад"],
-    ["Продажа участков", "/catalog?deal=sale&type=Участок"],
-    ["Продажа гаражей и паркингов", "/catalog?deal=sale&type=Гараж"],
+    ["Продажа квартир", "/catalog?deal=sale&cat=apartment"],
+    ["Продажа домов", "/catalog?deal=sale&cat=house"],
+    ["Продажа коммерческой недвижимости", "/catalog?deal=sale&cat=commercial"],
+    ["Продажа офисов", "/catalog?deal=sale&cat=office"],
+    ["Продажа складов", "/catalog?deal=sale&cat=warehouse"],
+    ["Продажа участков", "/catalog?deal=sale&cat=land"],
+    ["Продажа гаражей и паркингов", "/catalog?deal=sale&cat=garage"],
   ] },
   { label: "Аренда", href: "/catalog?deal=rent", sub: [
-    ["Аренда квартир", "/catalog?deal=rent&type=Квартира"],
-    ["Аренда домов", "/catalog?deal=rent&type=Дом"],
-    ["Аренда коммерческой недвижимости", "/catalog?deal=rent&type=Коммерция"],
-    ["Аренда офисов", "/catalog?deal=rent&type=Офис"],
-    ["Аренда складов", "/catalog?deal=rent&type=Склад"],
-    ["Аренда гаражей и паркингов", "/catalog?deal=rent&type=Гараж"],
+    ["Аренда квартир", "/catalog?deal=rent&cat=apartment"],
+    ["Аренда домов", "/catalog?deal=rent&cat=house"],
+    ["Аренда коммерческой недвижимости", "/catalog?deal=rent&cat=commercial"],
+    ["Аренда офисов", "/catalog?deal=rent&cat=office"],
+    ["Аренда складов", "/catalog?deal=rent&cat=warehouse"],
+    ["Аренда гаражей и паркингов", "/catalog?deal=rent&cat=garage"],
   ] },
-  { label: "Новостройки", href: "/catalog?type=new", sub: [
-    ["Жилые комплексы", "/catalog?type=new"],
-    ["Коттеджи", "/catalog?deal=sale&type=Дом"],
+  { label: "Новостройки", href: "/catalog?new=1", sub: [
+    ["Жилые комплексы", "/catalog?new=1"],
+    ["Коттеджи", "/catalog?cat=house&new=1"],
   ] },
   { label: "Посуточно", href: "/catalog?deal=daily", sub: [
-    ["Посуточная аренда квартир", "/catalog?deal=daily&type=Квартира"],
-    ["Посуточная аренда домов", "/catalog?deal=daily&type=Дом"],
+    ["Посуточная аренда квартир", "/catalog?deal=daily&cat=apartment"],
+    ["Посуточная аренда домов", "/catalog?deal=daily&cat=house"],
   ] },
   { label: "Услуги", href: "/#services", sub: [
     ["Управление недвижимостью", "/#services"],
