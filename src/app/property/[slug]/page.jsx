@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import { notFound } from "next/navigation";
 import MapView from "@/components/MapView";
 import { DEAL_LABEL } from "@/data/data";
@@ -56,7 +57,7 @@ export default async function PropertyPage({ params }) {
       </div>
 
       <div className="gallery">
-        {gallery.map((g, i) => <div key={i} style={{ backgroundImage: `url('${g}')` }} />)}
+        {gallery.map((g, i) => <div key={i}><Image src={g} alt={`${u.type} — фото ${i + 1}`} fill sizes="(max-width:560px) 100vw, 50vw" style={{ objectFit: "cover" }} /></div>)}
       </div>
 
       <div className="pp-grid">

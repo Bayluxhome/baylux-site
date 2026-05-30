@@ -5,3 +5,8 @@
 *.log
 .env*.local
 .vercel
+
+# Тяжёлые исходники изображений — в репозиторий идут только сжатые версии
+/public/hero-batumi.png
+/public/*-original.*
+/public/*-src.*

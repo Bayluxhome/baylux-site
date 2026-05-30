@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import { notFound } from "next/navigation";
 import MapView from "@/components/MapView";
 import { DEAL_LABEL, buildingPriceFrom } from "@/data/data";
@@ -48,7 +49,7 @@ export default async function BuildingPage({ params }) {
       </div>
 
       <div className="gallery">
-        {gallery.map((u, i) => <div key={i} style={{ backgroundImage: `url('${u}')` }} />)}
+        {gallery.map((g, i) => <div key={i}><Image src={g} alt={`${b.name} — фото ${i + 1}`} fill sizes="(max-width:560px) 100vw, 50vw" style={{ objectFit: "cover" }} /></div>)}
       </div>
 
       <div className="pp-grid">
