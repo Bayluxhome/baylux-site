@@ -14,6 +14,40 @@ const CURR = [
   { code: "USD", sym: "$", name: "USD — Американский доллар" },
 ];
 
+// Верхнее меню с выпадающими подменю (как korter, адаптировано под Baylux)
+const NAV = [
+  { label: "Продажа", href: "/catalog?deal=sale", sub: [
+    ["Продажа квартир", "/catalog?deal=sale&type=Квартира"],
+    ["Продажа домов", "/catalog?deal=sale&type=Дом"],
+    ["Продажа коммерческой недвижимости", "/catalog?deal=sale&type=Коммерция"],
+    ["Продажа офисов", "/catalog?deal=sale&type=Офис"],
+    ["Продажа складов", "/catalog?deal=sale&type=Склад"],
+    ["Продажа участков", "/catalog?deal=sale&type=Участок"],
+    ["Продажа гаражей и паркингов", "/catalog?deal=sale&type=Гараж"],
+  ] },
+  { label: "Аренда", href: "/catalog?deal=rent", sub: [
+    ["Аренда квартир", "/catalog?deal=rent&type=Квартира"],
+    ["Аренда домов", "/catalog?deal=rent&type=Дом"],
+    ["Аренда коммерческой недвижимости", "/catalog?deal=rent&type=Коммерция"],
+    ["Аренда офисов", "/catalog?deal=rent&type=Офис"],
+    ["Аренда складов", "/catalog?deal=rent&type=Склад"],
+    ["Аренда гаражей и паркингов", "/catalog?deal=rent&type=Гараж"],
+  ] },
+  { label: "Новостройки", href: "/catalog?type=new", sub: [
+    ["Жилые комплексы", "/catalog?type=new"],
+    ["Коттеджи", "/catalog?deal=sale&type=Дом"],
+  ] },
+  { label: "Посуточно", href: "/catalog?deal=daily", sub: [
+    ["Посуточная аренда квартир", "/catalog?deal=daily&type=Квартира"],
+    ["Посуточная аренда домов", "/catalog?deal=daily&type=Дом"],
+  ] },
+  { label: "Услуги", href: "/#services", sub: [
+    ["Управление недвижимостью", "/#services"],
+    ["Клининг", "/#services"],
+    ["Риелторы", "/#services"],
+  ] },
+];
+
 export default function Header() {
   const [open, setOpen] = useState(false);
   const [label, setLabel] = useState("Грузия, Батуми");
@@ -68,11 +102,14 @@ export default function Header() {
         </div>
 
         <nav className="main">
-          <Link href="/catalog?deal=sale">Продажа</Link>
-          <Link href="/catalog?deal=rent">Аренда</Link>
-          <Link href="/catalog?type=new">Новостройки</Link>
-          <Link href="/catalog?deal=daily">Посуточно</Link>
-          <Link href="/#services">Услуги</Link>
+          {NAV.map((it) => (
+            <div className="navitem" key={it.label}>
+              <Link className="navtop" href={it.href}>{it.label}<span className="navcar">▾</span></Link>
+              <div className="submenu">
+                {it.sub.map(([l, h]) => <Link key={l} href={h}>{l}</Link>)}
+              </div>
+            </div>
+          ))}
         </nav>
 
         <div className="hright">
