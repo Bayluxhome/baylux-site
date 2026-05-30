@@ -4,6 +4,7 @@ import { verifySession } from "@/lib/session";
 import { supa } from "@/lib/supabase";
 import { DEAL_LABEL } from "@/data/data";
 import TelegramLogin from "@/components/TelegramLogin";
+import BotLogin from "@/components/BotLogin";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Личный кабинет" };
@@ -21,9 +22,11 @@ export default async function MyPage() {
         <p style={{ color: "var(--ink-soft)", margin: "12px 0 22px", lineHeight: 1.6 }}>
           Войдите через Telegram — увидите свои объявления, поданные через бота, и их статусы.
         </p>
+        <BotLogin />
+        <div style={{ margin: "24px 0 12px", color: "var(--ink-soft)", fontSize: 13 }}>или войдите виджетом Telegram:</div>
         <TelegramLogin />
-        <p style={{ color: "var(--ink-soft)", fontSize: 13, marginTop: 18 }}>
-          Объект добавляется в боте <b>@baylux_leads_bot</b> командой /start.
+        <p style={{ color: "var(--ink-soft)", fontSize: 13, marginTop: 20 }}>
+          Объявления добавляются в боте <b>@baylux_leads_bot</b> (команда /start или меню).
         </p>
       </div>
     );

@@ -103,6 +103,11 @@ async function onMessage(msg) {
   const uid = msg.from.id;
   const text = (msg.text || "").trim();
 
+  if (text.startsWith("/start login_")) {
+    const ltoken = text.slice("/start login_".length).trim();
+    if (ltoken) await supa.from("login_tokens").update({ tg_user_id: uid, name: msg.from.first_name || "", username: msg.from.username || "" }).eq("token", ltoken);
+    return send(chat, "✅ Готово! Вернитесь на сайт — вход выполнен.", MAIN_MENU);
+  }
   if (text === "/start" || text === "/menu") { await clearDraft(uid); return showMenu(chat, "👋 Baylux — кабинет владельца объектов. Выберите действие:"); }
   if (text === "/cancel" || text === "/отмена" || text === "✖️ Отмена") { await clearDraft(uid); return showMenu(chat, "Отменено. Выберите действие:"); }
   if (text === "/add" || text === "/добавить" || text === "➕ Добавить объявление") {
