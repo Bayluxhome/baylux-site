@@ -32,6 +32,7 @@ export default function MapView({ buildings = [], center = [41.642, 41.632], zoo
       });
       mapRef.current = map;
       map.addControl(new maplibregl.NavigationControl({ showCompass: false }), "top-left");
+      map.addControl(new maplibregl.FullscreenControl(), "top-right");
 
       const card = document.createElement("div");
       card.className = "map-card";

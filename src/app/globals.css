@@ -129,6 +129,9 @@ nav.main{display:flex;gap:2px;font-weight:500;font-size:15px}
 .map-full{height:calc(100vh - 170px);border-radius:16px;box-shadow:var(--shadow);border:1px solid var(--line);position:sticky;top:88px;align-self:start;overflow:hidden}
 /* MapLibre ставит .maplibregl-map{position:relative} на контейнер — перекрываем, чтобы sticky работал */
 .map-home.maplibregl-map,.map-full.maplibregl-map{position:sticky;top:88px}
+.mapscreen-bar{display:flex;align-items:center;gap:14px;padding:12px 24px;border-bottom:1px solid var(--line);background:#fff;flex-wrap:wrap}
+.ms-count{font-weight:600;color:var(--navy);font-size:15px}
+.map-screen{position:relative;width:100%;height:calc(100vh - 72px - 58px);min-height:440px}
 
 .card{background:var(--cream);border:1px solid var(--line);border-radius:16px;overflow:hidden;transition:.18s;cursor:pointer;display:block}
 .card:hover{box-shadow:var(--shadow-lg);transform:translateY(-3px)}
