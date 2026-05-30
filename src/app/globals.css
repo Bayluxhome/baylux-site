@@ -26,7 +26,8 @@ img{display:block;border:0}
 
 header.site{position:sticky;top:0;z-index:1100;background:rgba(255,255,255,.95);backdrop-filter:blur(10px);border-bottom:1px solid var(--line)}
 .hrow{display:flex;align-items:center;gap:22px;height:72px}
-.logo img{height:50px;width:auto}
+.logo{display:flex;align-items:center}
+.logo img{height:44px;width:auto;transform:translateY(-8px)}
 nav.main{display:flex;gap:20px;font-weight:500;font-size:15px;color:var(--ink-soft)}
 nav.main a:hover,nav.main a.on{color:var(--navy)}
 .hright{margin-left:auto;display:flex;align-items:center;gap:8px}
@@ -44,6 +45,11 @@ nav.main a:hover,nav.main a.on{color:var(--navy)}
 .lp-row b{display:inline-block;min-width:30px;font-weight:700;color:var(--navy)}
 .lp-row span{font-size:14px}
 .lp-cur{font-size:16px}
+.hdiv{width:1px;height:26px;background:var(--line);margin:0 2px}
+.hlogin{border:1px solid var(--line)}
+.hlogin:hover{border-color:var(--gold);background:#fff}
+.login-pop{width:280px}
+.login-note{font-size:13px;color:var(--ink-soft);line-height:1.5;padding:2px 10px 12px}
 .icon-btn{width:40px;height:40px;border-radius:10px;border:1px solid var(--line);background:#fff;display:grid;place-items:center;cursor:pointer;color:var(--navy)}
 .icon-btn:hover{border-color:var(--gold)}
 

@@ -21,13 +21,16 @@ export default function Header() {
   const [langOpen, setLangOpen] = useState(false);
   const [lang, setLang] = useState("RU");
   const [curr, setCurr] = useState("USD");
+  const [loginOpen, setLoginOpen] = useState(false);
   const locRef = useRef(null);
   const langRef = useRef(null);
+  const loginRef = useRef(null);
 
   useEffect(() => {
     function onDoc(e) {
       if (locRef.current && !locRef.current.contains(e.target)) setOpen(false);
       if (langRef.current && !langRef.current.contains(e.target)) setLangOpen(false);
+      if (loginRef.current && !loginRef.current.contains(e.target)) setLoginOpen(false);
     }
     document.addEventListener("click", onDoc);
     return () => document.removeEventListener("click", onDoc);
@@ -96,6 +99,21 @@ export default function Header() {
                     <b className="lp-cur">{c.sym}</b><span>{c.name}</span>
                   </button>
                 ))}
+              </div>
+            )}
+          </div>
+
+          <span className="hdiv" />
+
+          <div className="langw" ref={loginRef}>
+            <button className="hicon hlogin" onClick={(e) => { e.stopPropagation(); setLoginOpen((v) => !v); }} title="Личный кабинет">
+              <span className="hi-ic">👤</span><span className="hi-tx">Войти</span>
+            </button>
+            {loginOpen && (
+              <div className="lang-pop login-pop">
+                <div className="lp-h">Личный кабинет</div>
+                <p className="login-note">Кабинет с избранным, бронированиями и заявками — скоро. Пока вход не требуется: оставьте заявку, и менеджер ответит за 5 минут.</p>
+                <LeadButton className="btn btn-gold" style={{ width: "100%" }} type="Вопрос / заявка" title="Оставить заявку">Оставить заявку</LeadButton>
               </div>
             )}
           </div>
