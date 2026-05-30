@@ -75,6 +75,7 @@ export default function Header() {
   function pickAll() { setActive(null); setLabel("Вся Грузия"); setOpen(false); }
 
   return (
+    <>
     <header className="site">
       <div className="wrap hrow">
         <Link className="logo" href="/"><img src="/baylux_logo.svg" alt="Baylux" /></Link>
@@ -152,6 +153,7 @@ export default function Header() {
 
         <button className="burger" aria-label="Меню" onClick={() => setMenuOpen(true)}>☰</button>
       </div>
+    </header>
 
       {menuOpen && (
         <div className="mobile-drawer" onClick={(e) => { if (e.target.classList.contains("mobile-drawer")) setMenuOpen(false); }}>
@@ -164,6 +166,6 @@ export default function Header() {
           </div>
         </div>
       )}
-    </header>
+    </>
   );
 }

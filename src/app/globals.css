@@ -292,7 +292,8 @@ footer.site a:hover{color:var(--gold-lt)}
   nav.main,.stat-row,.loc,.hright{display:none}
   .burger{display:inline-flex;align-items:center;justify-content:center}
   .split{grid-template-columns:1fr}
-  .map-home,.map-full{height:380px;position:relative;top:0;order:-1}
+  .map-home,.map-full{height:360px;position:relative;top:0;order:0}
+  .map-home.maplibregl-map,.map-full.maplibregl-map{position:relative;top:0}
   .cards,.cards.three{grid-template-columns:1fr 1fr}
   .svc-grid,.why-grid,.fgrid{grid-template-columns:1fr 1fr}
   .hero h1{font-size:32px}
