@@ -28,6 +28,11 @@ function gePhone(raw) {
   if (s.length === 9) return "+995" + s;
   return null;
 }
+// Telegram-ник из «@username» или ссылки t.me/username
+function cleanTg(raw) {
+  const m = String(raw || "").trim().match(/(?:t\.me\/|@)?([A-Za-z0-9_]{3,})/);
+  return m ? m[1].replace(/[^A-Za-z0-9_]/g, "") : "";
+}
 // Кнопки модерации — те же, что в боте (включая исправление гео)
 function modButtons(id) {
   return { inline_keyboard: [
@@ -60,7 +65,7 @@ export async function POST(req) {
     rooms: parseInt(b.rooms, 10) || 0, area: parseInt(b.area, 10) || 0,
     floor: (b.floor || "—").toString(), price: normPrice(b.price), per: deal === "rent" ? "в месяц" : deal === "daily" ? "в сутки" : "",
     about: (b.about || "").toString(), photos: Array.isArray(b.photos) ? b.photos.slice(0, 10) : [],
-    tg_user_id: session.id, tg_username: session.username || "", contact: phone, phone,
+    tg_user_id: session.id, tg_username: cleanTg(b.tg) || session.username || "", contact: phone, phone,
   };
   const { data: ins, error } = await supa.from("listings").insert(row).select("id").single();
   if (error) return Response.json({ ok: false });

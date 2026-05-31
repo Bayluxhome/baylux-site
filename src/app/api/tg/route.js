@@ -36,6 +36,11 @@ function gePhone(raw) {
   return null;
 }
 const mapsLink = (lat, lng) => `https://www.google.com/maps?q=${lat},${lng}`;
+// Telegram-ник из «@username» или ссылки t.me/username
+function cleanTg(raw) {
+  const m = String(raw || "").trim().match(/(?:t\.me\/|@)?([A-Za-z0-9_]{3,})/);
+  return m ? m[1].replace(/[^A-Za-z0-9_]/g, "") : "";
+}
 
 // Геокодинг адреса через MapTiler (ключ уже есть на сайте). Возвращает {lat,lng} или null.
 async function geocode(q) {
@@ -97,7 +102,7 @@ async function uploadPhoto(fileId) {
 }
 
 const MAIN_MENU = [["➕ Добавить объявление"], ["📋 Мои объявления", "🌐 Сайт"]];
-const STEP_ORDER = ["country", "city", "deal", "type", "address", "geo", "price", "area", "rooms", "floor", "about", "photos", "contact"];
+const STEP_ORDER = ["country", "city", "deal", "type", "address", "geo", "price", "area", "rooms", "floor", "about", "photos", "contact", "tg"];
 function showMenu(chat, greet) { return send(chat, greet || "Главное меню Baylux:", MAIN_MENU); }
 async function showMyListings(chat, uid) {
   const STAT = { pending: "⏳ на модерации", approved: "✅ опубликовано", rejected: "🚫 снято" };
@@ -120,7 +125,8 @@ const STEPS = {
   floor: { q: "Шаг 10/12. Этаж? Например: 10/22 (этаж/всего этажей). Для дома/участка — поставьте «—»." },
   about: { q: "Шаг 11/12. Краткое описание объекта." },
   photos: { q: "Шаг 12/12. Пришлите фото (по одному, до 8). Когда закончите — /done. Можно без фото — сразу /done." },
-  contact: { q: "Последний шаг — контактный номер (Грузия, +995).\nПросто напишите номер сообщением, например: +995 555 12 34 56.\n(Или нажмите кнопку ниже, чтобы поделиться своим номером.)" },
+  contact: { q: "Контактный номер (Грузия, +995).\nПросто напишите номер сообщением, например: +995 555 12 34 56.\n(Или нажмите кнопку ниже, чтобы поделиться своим номером.)" },
+  tg: { q: "Последний шаг (по желанию): Telegram для связи — @username.\nНапишите ник или нажмите «Пропустить».", kb: [["Пропустить"]] },
 };
 async function ask(chat, step) {
   const kb = [...(STEPS[step].kb || []), ["⬅️ Назад", "✖️ Отмена"]];
@@ -134,6 +140,35 @@ async function askGeo(chat, data) {
     return send(chat, `📍 Поставил точку по адресу «${esc(data.address || "")}». Проверьте на карте выше.\n• Если верно — нажмите «✅ Точка верна».\n• Если неточно — пришлите свою точку: 📎 → Геопозиция → «Выбрать на карте» (лучше в режиме 🛰 «Спутник»).`, [["✅ Точка верна"], nav]);
   }
   return send(chat, STEPS.geo.q, [nav]);
+}
+
+// Финальная сборка объявления: запись в БД + отправка на модерацию CEO.
+async function finalizeListing(chat, uid, data) {
+  const city = data.city || "Батуми";
+  const row = {
+    status: "pending",
+    building_name: data.address || (data.type ? `${data.type}, ${city}` : "Объект"),
+    kind: COMPLEX_TYPES.test(data.type || "") ? "complex" : "house",
+    district: city,
+    lat: data.lat || 41.645, lng: data.lng || 41.642,
+    deal: data.deal, type: data.type, rooms: data.rooms || 0, area: data.area || 0,
+    floor: data.floor || "—", price: data.price || "—", per: data.deal === "rent" ? "в месяц" : data.deal === "daily" ? "в сутки" : "",
+    about: data.about || "", photos: data.photos || [],
+    tg_user_id: uid, tg_username: data.tg_username || "", contact: data.contact, phone: data.phone || "",
+  };
+  const { data: ins, error } = await supa.from("listings").insert(row).select("id").single();
+  if (uid) await supa.from("users").upsert({ tg_user_id: uid, phone: data.phone || null, username: data.tg_username || "" }, { onConflict: "tg_user_id" });
+  await clearDraft(uid);
+  if (error) return send(chat, "Ошибка сохранения, попробуйте позже. /start");
+  await send(chat, "✅ Спасибо! Объявление отправлено на модерацию. Опубликуем после проверки и сообщим вам.");
+  if (row.photos.length) await tg("sendMediaGroup", { chat_id: ADMIN, media: row.photos.slice(0, 10).map((u) => ({ type: "photo", media: u })) });
+  if (data.lat) await tg("sendLocation", { chat_id: ADMIN, latitude: data.lat, longitude: data.lng });
+  const geoLine = data.lat
+    ? `\n📍 <a href="${mapsLink(data.lat, data.lng)}">проверить точку на карте</a> (откройте спутник)`
+    : `\n⚠️ точка на карте НЕ указана`;
+  const tgLine = row.tg_username ? `\n✈️ @${esc(row.tg_username)}` : "";
+  const summary = `🆕 <b>Новое объявление</b>\n${DEAL_RU[row.deal]} · ${row.type}\n🏙 ${esc(city)}\n🏠 ${esc(row.building_name)}\n💰 ${row.price}\n📐 ${row.area} м² · 🛏 ${row.rooms} комн. · 🏢 ${esc(row.floor)}\n📷 ${row.photos.length} фото${geoLine}\n📞 ${row.contact}${data.verified ? " ✅ подтверждён" : ""}${tgLine}\n\n${esc(row.about)}`;
+  await tg("sendMessage", { chat_id: ADMIN, text: summary, parse_mode: "HTML", disable_web_page_preview: true, reply_markup: modButtons("pending", ins.id) });
 }
 
 async function onMessage(msg) {
@@ -218,41 +253,21 @@ async function onMessage(msg) {
     case "contact": {
       // Принимаем только грузинский номер (+995)
       const phone = gePhone(msg.contact && msg.contact.phone_number ? msg.contact.phone_number : text);
-      const verified = !!(msg.contact && msg.contact.phone_number && phone);
       if (!phone) {
         await send(chat, "❗ Сейчас принимаем только грузинские номера (+995).\nНапишите номер, например: +995 555 12 34 56.");
         return sendContact(chat);
       }
       data.phone = phone; data.contact = phone;
-      const city = data.city || "Батуми";
-      const row = {
-        status: "pending",
-        building_name: data.address || (data.type ? `${data.type}, ${city}` : "Объект"),
-        kind: COMPLEX_TYPES.test(data.type || "") ? "complex" : "house",
-        district: city,
-        lat: data.lat || 41.645, lng: data.lng || 41.642,
-        deal: data.deal, type: data.type, rooms: data.rooms || 0, area: data.area || 0,
-        floor: data.floor || "—", price: data.price || "—", per: data.deal === "rent" ? "в месяц" : data.deal === "daily" ? "в сутки" : "",
-        about: data.about || "", photos: data.photos || [],
-        tg_user_id: uid, tg_username: data.tg_username || "", contact: data.contact, phone: data.phone || "",
-      };
-      const { data: ins, error } = await supa.from("listings").insert(row).select("id").single();
-      // привязка аккаунта к подтверждённому номеру (один номер — один аккаунт)
-      if (uid) await supa.from("users").upsert({ tg_user_id: uid, phone: data.phone || null, username: data.tg_username || "" }, { onConflict: "tg_user_id" });
-      await clearDraft(uid);
-      if (error) return send(chat, "Ошибка сохранения, попробуйте позже. /start");
-      await send(chat, "✅ Спасибо! Объявление отправлено на модерацию. Опубликуем после проверки и сообщим вам.");
-      // CEO: фото → пин геопозиции для проверки → текст с кнопками
-      if (row.photos.length) {
-        await tg("sendMediaGroup", { chat_id: ADMIN, media: row.photos.slice(0, 10).map((u) => ({ type: "photo", media: u })) });
+      data.verified = !!(msg.contact && msg.contact.phone_number);
+      await saveDraft(uid, "tg", data);
+      return ask(chat, "tg");
+    }
+    case "tg": {
+      if (!/^(пропустить|skip|\/skip|нет|-)$/i.test(text)) {
+        const t = cleanTg(text);
+        if (t) data.tg_username = t;
       }
-      if (data.lat) await tg("sendLocation", { chat_id: ADMIN, latitude: data.lat, longitude: data.lng });
-      const geoLine = data.lat
-        ? `\n📍 <a href="${mapsLink(data.lat, data.lng)}">проверить точку на карте</a> (откройте спутник)`
-        : `\n⚠️ точка на карте НЕ указана`;
-      const summary = `🆕 <b>Новое объявление</b>\n${DEAL_RU[row.deal]} · ${row.type}\n🏙 ${esc(city)}\n🏠 ${esc(row.building_name)}\n💰 ${row.price}\n📐 ${row.area} м² · 🛏 ${row.rooms} комн. · 🏢 ${esc(row.floor)}\n📷 ${row.photos.length} фото${geoLine}\n📞 ${row.contact}${verified ? " ✅ подтверждён" : ""}\n\n${esc(row.about)}`;
-      await tg("sendMessage", { chat_id: ADMIN, text: summary, parse_mode: "HTML", disable_web_page_preview: true, reply_markup: modButtons("pending", ins.id) });
-      return;
+      return finalizeListing(chat, uid, data);
     }
     default: return send(chat, "/start — добавить объект.");
   }

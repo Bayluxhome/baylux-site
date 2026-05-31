@@ -33,7 +33,7 @@ function compress(file) {
 }
 
 export default function AddListingForm() {
-  const [f, setF] = useState({ country: "Грузия", city: "Батуми", deal: "sale", type: "Квартира", address: "", price: "", area: "", rooms: "", floor: "", about: "", contact: "" });
+  const [f, setF] = useState({ country: "Грузия", city: "Батуми", deal: "sale", type: "Квартира", address: "", price: "", area: "", rooms: "", floor: "", about: "", contact: "", tg: "" });
   const [files, setFiles] = useState([]);
   const [geo, setGeo] = useState(null);
   const [geoNote, setGeoNote] = useState("");
@@ -126,6 +126,9 @@ export default function AddListingForm() {
       </label>
       <label className="af-full">Телефон для связи — Грузия, +995 (обязательно)
         <input value={f.contact} onChange={(e) => upd("contact", e.target.value)} inputMode="tel" placeholder="+995 555 12 34 56" required />
+      </label>
+      <label className="af-full">Telegram для связи (@username) — по желанию
+        <input value={f.tg} onChange={(e) => upd("tg", e.target.value)} placeholder="@username (необязательно)" />
       </label>
       <div className="af-full">
         <div className="af-lbl">Фото (до 10, сжимаются автоматически)</div>
