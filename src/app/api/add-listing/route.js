@@ -67,9 +67,10 @@ export async function POST(req) {
   const amenities = Array.isArray(b.amenities) ? b.amenities.filter(Boolean).join(", ") : (b.amenities || "");
   const lang = ["ru", "en", "ka"].includes(b.lang) ? b.lang : "ru";
   const aboutText = (b.about || "").toString();
+  const buildingName = (b.address || "").trim() || (b.type ? `${b.type}, ${city}` : "Объект");
   const row = {
-    status: "pending", lang, ["desc_" + lang]: aboutText,
-    building_name: (b.address || "").trim() || (b.type ? `${b.type}, ${city}` : "Объект"),
+    status: "pending", lang, ["desc_" + lang]: aboutText, ["name_" + lang]: buildingName,
+    building_name: buildingName,
     kind: /новострой/i.test(b.type || "") || (b.complex || "").trim() ? "complex" : "house",
     district: city,
     lat: Number(b.lat) || 41.645, lng: Number(b.lng) || 41.642,

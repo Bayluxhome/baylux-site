@@ -12,9 +12,10 @@ export default function PropertyCard({ unit }) {
   const rs = t("rooms_short");
   const ty = typeLabel(lang, unit.type);
   const district = cityLabel(lang, b.district || "Батуми");
+  const bname = b["name_" + lang] || b.name;
   const photos = unit.photos && unit.photos.length > 1 ? unit.photos : null;
-  const alt = `${unit.type}, ${unit.area} м² — ${b.name}`;
-  const fav = { slug: unit.slug, href: `/property/${unit.slug}`, title: `${unit.type}${unit.rooms ? `, ${unit.rooms} ${rs}` : ""}, ${unit.area} м²`, sub: `📍 ${b.district || "Батуми"} · ${b.name}`, price: unit.price, img: unit.img };
+  const alt = `${ty}, ${unit.area} м² — ${bname}`;
+  const fav = { slug: unit.slug, href: `/property/${unit.slug}`, title: `${ty}${unit.rooms ? `, ${unit.rooms} ${rs}` : ""}, ${unit.area} м²`, sub: `📍 ${district} · ${bname}`, price: unit.price, img: unit.img };
   return (
     <Link className="card" href={`/property/${unit.slug}`}>
       <div className="ph">
@@ -45,7 +46,7 @@ export default function PropertyCard({ unit }) {
           </span>
         </div>
         <div className="ctitle">{ty}{unit.rooms ? `, ${unit.rooms} ${rs}` : ""}, {unit.area} м²</div>
-        <div className="cdistrict">📍 {district}{b.district && b.name ? " · " : ""}{b.name}</div>
+        <div className="cdistrict">📍 {district}{b.district && bname ? " · " : ""}{bname}</div>
         <div className="meta">
           {unit.rooms ? <span>🛏 {unit.rooms} {rs}</span> : null}
           <span>📐 {unit.area} м²</span><span>🏢 {unit.floor}</span>

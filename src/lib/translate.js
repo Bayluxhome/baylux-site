@@ -19,15 +19,25 @@ export async function translateText(text, target, source) {
   }
 }
 
-// Возвращает { desc_ru, desc_en, desc_ka } — оригинал + переводы на остальные языки.
-export async function translateDescriptions(about, sourceLang) {
+// Универсально: { <prefix>ru, <prefix>en, <prefix>ka } — оригинал + переводы на остальные языки.
+async function translateToAll(text, sourceLang, prefix) {
   const src = LANGS.includes(sourceLang) ? sourceLang : "ru";
-  const out = { ["desc_" + src]: about || "" };
-  if (!about || !about.trim()) return out;
+  const out = { [prefix + src]: text || "" };
+  if (!text || !text.trim()) return out;
   for (const l of LANGS) {
     if (l === src) continue;
-    const t = await translateText(about, l, src);
-    if (t) out["desc_" + l] = t;
+    const t = await translateText(text, l, src);
+    if (t) out[prefix + l] = t;
   }
   return out;
+}
+
+// Описание объявления → desc_ru/desc_en/desc_ka.
+export async function translateDescriptions(about, sourceLang) {
+  return translateToAll(about, sourceLang, "desc_");
+}
+
+// Адрес/название (улица) → name_ru/name_en/name_ka. ЖК (бренд) не переводим отдельно.
+export async function translateNames(name, sourceLang) {
+  return translateToAll(name, sourceLang, "name_");
 }

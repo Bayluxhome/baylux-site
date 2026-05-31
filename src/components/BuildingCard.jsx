@@ -9,16 +9,17 @@ import { cityLabel } from "@/lib/dict";
 export default function BuildingCard({ building }) {
   const { t, lang } = useLang();
   const district = cityLabel(lang, building.district || "Батуми");
+  const bname = building["name_" + lang] || building.name;
   const from = buildingFromNum(building);
   const perM2 = from && from.deal === "sale" && from.area > 0 && from.n ? Math.round(from.n / from.area) : null;
   const counts = {};
   building.units.forEach((u) => { counts[u.deal] = (counts[u.deal] || 0) + 1; });
   const summary = Object.entries(counts).map(([d, n]) => `${t("deal_" + d)}: ${n}`).join(" · ");
-  const fav = { slug: "b-" + building.slug, href: `/building/${building.slug}`, title: building.name, sub: `📍 ${building.district || "Батуми"}`, price: t("w_from") + " " + buildingPriceFrom(building), img: building.image };
+  const fav = { slug: "b-" + building.slug, href: `/building/${building.slug}`, title: bname, sub: `📍 ${district}`, price: t("w_from") + " " + buildingPriceFrom(building), img: building.image };
   return (
     <Link className="card" href={`/building/${building.slug}`}>
       <div className="ph">
-        <Image src={building.image} alt={building.name} fill sizes="(max-width:560px) 100vw, 360px" style={{ objectFit: "cover" }} />
+        <Image src={building.image} alt={bname} fill sizes="(max-width:560px) 100vw, 360px" style={{ objectFit: "cover" }} />
         <span className="badge b-jk">{t(building.kind === "complex" ? "badge_jk" : "badge_house")}</span>
         <FavButton item={fav} />
       </div>
@@ -26,7 +27,7 @@ export default function BuildingCard({ building }) {
         <div className="price">{t("w_from")} {from ? <span className="bx-price" data-num={from.n} data-cur={from.c}>{fmtMoney(from.n, from.c)}</span> : buildingPriceFrom(building)}
           {perM2 ? <>{" "}<span className="perm"><span className="bx-price" data-num={perM2} data-cur={from.c}>{fmtMoney(perM2, from.c)}</span> {t("per_m2")}</span></> : null}
         </div>
-        <div className="ctitle">{building.name}</div>
+        <div className="ctitle">{bname}</div>
         <div className="cdistrict">📍 {district}{building.developer ? ` · ${building.developer}` : ""}</div>
         <span className="unit-tag">{building.units.length} {t("w_objects")} · {summary}</span>
       </div>

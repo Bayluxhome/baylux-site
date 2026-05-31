@@ -32,6 +32,7 @@ export default async function PropertyPage({ params }) {
   const lang = getLang();
   const t = (k) => tr(lang, k);
   const ty = typeLabel(lang, u.type);
+  const bname = b["name_" + lang] || b.name;
 
   const photos = (u.photos && u.photos.length) ? u.photos : [u.img || "/placeholder-baylux.jpg"];
   const gallery = Array.from({ length: 5 }, (_, i) => photos[i % photos.length]);
@@ -53,14 +54,14 @@ export default async function PropertyPage({ params }) {
     <div className="wrap">
       <div className="crumbs">
         <Link href="/">{t("crumb_home")}</Link> · <Link href="/catalog">{t("crumb_catalog")}</Link> ·{" "}
-        <Link href={`/building/${b.slug}`}>{b.name}</Link> · <span>{ty}, {u.area} м²</span>
+        <Link href={`/building/${b.slug}`}>{bname}</Link> · <span>{ty}, {u.area} м²</span>
       </div>
 
       <div className="pp-head">
         <div>
           <h1>{ty}{u.rooms ? `, ${u.rooms} ${t("rooms_short")}` : ""}, {u.area} м²</h1>
           <div className="cdistrict" style={{ marginTop: 8, fontSize: 15 }}>
-            📍 {b.district} · <Link href={`/building/${b.slug}`} style={{ color: "var(--gold-dk)", fontWeight: 600 }}>{b.name}</Link> · {t("deal_" + u.deal)}
+            📍 {b.district} · <Link href={`/building/${b.slug}`} style={{ color: "var(--gold-dk)", fontWeight: 600 }}>{bname}</Link> · {t("deal_" + u.deal)}
           </div>
           {u.boost > 0 && <span className="boost-badge" style={{ marginTop: 8, display: "inline-block" }}>{t("boost_badge")}</span>}
         </div>
@@ -109,7 +110,7 @@ export default async function PropertyPage({ params }) {
               {tgUser && <a className="btn btn-tg" href={`https://t.me/${tgUser}`} target="_blank" rel="noopener">✈️ Telegram</a>}
             </div>
             <LeadButton className="btn btn-ghost" type="Управление" object={b.name} title="Отдать квартиру в управление">{t("mgmt_btn")}</LeadButton>
-            <Link href={`/building/${b.slug}`} className="btn btn-ghost" style={{ width: "100%", marginTop: 10 }}>{t("all_in")} «{b.name}»</Link>
+            <Link href={`/building/${b.slug}`} className="btn btn-ghost" style={{ width: "100%", marginTop: 10 }}>{t("all_in")} «{bname}»</Link>
             <div className="agent">
               <div className="av" />
               <div><div style={{ fontWeight: 700, color: "var(--navy)" }}>{t("team")}</div><div style={{ fontSize: 13, color: "var(--ink-soft)" }}>{t("team_sub")}</div></div>

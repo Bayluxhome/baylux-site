@@ -1,6 +1,6 @@
 import { supa } from "@/lib/supabase";
 import { slugify } from "@/data/sheet";
-import { translateDescriptions } from "@/lib/translate";
+import { translateDescriptions, translateNames } from "@/lib/translate";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -351,6 +351,7 @@ async function finalizeListing(chat, uid, data) {
     tg_user_id: uid, tg_username: data.tg_username || "", contact: data.contact, phone: data.phone || "",
   };
   if (descCol) row[descCol] = data.about || "";
+  row["name_" + lang] = row.building_name;
   const { data: ins, error } = await supa.from("listings").insert(row).select("id").single();
   if (uid) await supa.from("users").upsert({ tg_user_id: uid, phone: data.phone || null, username: data.tg_username || "", lang }, { onConflict: "tg_user_id" });
   await clearDraft(uid);
@@ -550,11 +551,13 @@ async function onCallback(cb) {
   const { data: row } = await supa.from("listings").update({ status }).eq("id", id).select("*").single();
   await tg("answerCallbackQuery", { callback_query_id: cb.id, text: status === "approved" ? "Опубликовано" : "Снято с публикации" });
 
-  // Автоперевод описания на 3 языка при одобрении (если ключ Google задан и ещё не переведено)
-  if (row && action === "ap" && row.about && (!row.desc_ru || !row.desc_en || !row.desc_ka)) {
+  // Автоперевод при одобрении (если ключ Google задан): описание + адрес (улица). ЖК не переводим.
+  if (row && action === "ap") {
     try {
-      const descs = await translateDescriptions(row.about, row.lang || "ru");
-      if (descs && Object.keys(descs).length) { await supa.from("listings").update(descs).eq("id", id); Object.assign(row, descs); }
+      const upd = {};
+      if (row.about && (!row.desc_ru || !row.desc_en || !row.desc_ka)) Object.assign(upd, await translateDescriptions(row.about, row.lang || "ru"));
+      if (row.building_name && (!row.name_ru || !row.name_en || !row.name_ka)) Object.assign(upd, await translateNames(row.building_name, row.lang || "ru"));
+      if (Object.keys(upd).length) { await supa.from("listings").update(upd).eq("id", id); Object.assign(row, upd); }
     } catch (e) { console.error("translate on approve:", e?.message); }
   }
 

@@ -25,6 +25,7 @@ function groupRows(rows) {
         about: r.about || "",
         lang: r.lang || "ru",
         desc_ru: r.desc_ru || "", desc_en: r.desc_en || "", desc_ka: r.desc_ka || "",
+        name_ru: r.name_ru || "", name_en: r.name_en || "", name_ka: r.name_ka || "",
         units: [],
       });
     }

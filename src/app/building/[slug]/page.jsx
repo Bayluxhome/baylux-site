@@ -30,6 +30,7 @@ export default async function BuildingPage({ params }) {
   if (!b) notFound();
   const lang = getLang();
   const t = (k) => tr(lang, k);
+  const bname = b["name_" + lang] || b.name;
 
   const gallery = Array(5).fill(b.image || "/placeholder-baylux.jpg");
   const mapBuildings = [{ slug: b.slug, name: b.name, district: b.district, kind: b.kind, lat: b.lat, lng: b.lng, priceFrom: buildingPriceFrom(b), units: b.units }];
@@ -37,12 +38,12 @@ export default async function BuildingPage({ params }) {
   return (
     <div className="wrap">
       <div className="crumbs">
-        <Link href="/">{t("crumb_home")}</Link> · <Link href="/catalog">{t("crumb_catalog")}</Link> · <span>{b.name}</span>
+        <Link href="/">{t("crumb_home")}</Link> · <Link href="/catalog">{t("crumb_catalog")}</Link> · <span>{bname}</span>
       </div>
 
       <div className="pp-head">
         <div>
-          <h1>{b.name}</h1>
+          <h1>{bname}</h1>
           <div className="cdistrict" style={{ fontSize: 15, marginTop: 8 }}>
             📍 {b.district}{b.developer ? ` · ${b.developer}` : ""}{b.yearBuilt ? ` · ${b.yearBuilt}` : ""}
           </div>
@@ -87,7 +88,7 @@ export default async function BuildingPage({ params }) {
 
         <aside>
           <div className="cta-card">
-            <div style={{ fontWeight: 700, color: "var(--navy)", fontSize: 18 }}>{t("bld_cta_title")} «{b.name}»?</div>
+            <div style={{ fontWeight: 700, color: "var(--navy)", fontSize: 18 }}>{t("bld_cta_title")} «{bname}»?</div>
             <p style={{ color: "var(--ink-soft)", fontSize: 14, margin: "8px 0 4px" }}>{t("bld_cta_sub")}</p>
             <LeadButton className="btn btn-gold" type="Заявка по ЖК" object={b.name} title={`Заявка — ${b.name}`}>{t("bld_lead")}</LeadButton>
             <a className="btn btn-wa" href={waLink(`Здравствуйте! Интересует ${b.name} в Батуми.`)} target="_blank" rel="noopener">💬 WhatsApp</a>
