@@ -2,8 +2,10 @@ import "./globals.css";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import LeadModal from "@/components/LeadModal";
+import { headers } from "next/headers";
 import CurrencyManager from "@/components/CurrencyManager";
 import { FilterProvider } from "@/components/FilterContext";
+import { LangProvider } from "@/components/LangContext";
 import { getUsdGel } from "@/lib/rate";
 
 export const metadata = {
@@ -24,8 +26,10 @@ export const metadata = {
 
 export default async function RootLayout({ children }) {
   const rate = await getUsdGel();
+  const country = headers().get("x-vercel-ip-country") || "";
+  const initialLang = country === "GE" ? "ka" : "ru";
   return (
-    <html lang="ru">
+    <html lang={initialLang}>
       <head>
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link
@@ -34,13 +38,15 @@ export default async function RootLayout({ children }) {
         />
       </head>
       <body>
-        <FilterProvider>
-          <CurrencyManager rate={rate} />
-          <Header />
-          <main>{children}</main>
-          <Footer />
-          <LeadModal />
-        </FilterProvider>
+        <LangProvider initial={initialLang}>
+          <FilterProvider>
+            <CurrencyManager rate={rate} />
+            <Header />
+            <main>{children}</main>
+            <Footer />
+            <LeadModal />
+          </FilterProvider>
+        </LangProvider>
       </body>
     </html>
   );

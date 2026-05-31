@@ -3,13 +3,15 @@ import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import { GE_CITIES } from "@/data/data";
 import { useFilter } from "@/components/FilterContext";
+import { useLang } from "@/components/LangContext";
 import LeadButton from "@/components/LeadButton";
 
 const LANGS = [
-  { code: "GE", name: "ქართული" },
-  { code: "RU", name: "Русский" },
-  { code: "EN", name: "English" },
+  { code: "ka", label: "GE", name: "ქართული" },
+  { code: "ru", label: "RU", name: "Русский" },
+  { code: "en", label: "EN", name: "English" },
 ];
+const NAV_KEY = { "Продажа": "nav_sale", "Аренда": "nav_rent", "Новостройки": "nav_new", "Посуточно": "nav_daily", "Услуги": "nav_services" };
 const CURR = [
   { code: "GEL", sym: "₾", name: "GEL — Грузинский лари" },
   { code: "USD", sym: "$", name: "USD — Американский доллар" },
@@ -52,10 +54,10 @@ const NAV = [
 export default function Header() {
   const [open, setOpen] = useState(false);
   const fc = useFilter();
+  const { lang: uiLang, setLang: setUiLang, t } = useLang();
   const city = (fc && fc.f && fc.f.city) || "";
-  const label = city ? "Грузия, " + city : "Вся Грузия";
+  const label = city || t("allGeorgia");
   const [langOpen, setLangOpen] = useState(false);
-  const [lang, setLang] = useState("RU");
   const [curr, setCurr] = useState("USD");
   const [loginOpen, setLoginOpen] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
@@ -122,7 +124,7 @@ export default function Header() {
         <nav className="main">
           {NAV.map((it) => (
             <div className="navitem" key={it.label}>
-              <Link className="navtop" href={it.href}>{it.label}<span className="navcar">▾</span></Link>
+              <Link className="navtop" href={it.href}>{NAV_KEY[it.label] ? t(NAV_KEY[it.label]) : it.label}<span className="navcar">▾</span></Link>
               <div className="submenu">
                 {it.sub.map(([l, h]) => <Link key={l} href={h}>{l}</Link>)}
               </div>
@@ -133,20 +135,20 @@ export default function Header() {
         <div className="hright">
           <Link className="hicon" href="/catalog" title="Поиск объектов" aria-label="Поиск">
             <svg className="hi-ic" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="7" /><path d="m21 21-4.3-4.3" /></svg>
-            <span className="hi-tx">Поиск</span>
+            <span className="hi-tx">{t("search")}</span>
           </Link>
           <Link className="hicon hicon-sq" href="/favorites" title="Избранное" aria-label="Избранное">♡{favCount > 0 && <span className="fav-count">{favCount}</span>}</Link>
 
           <div className="langw" ref={langRef}>
             <button className="hicon hlang" onClick={(e) => { e.stopPropagation(); setLangOpen((v) => !v); }} title="Язык и валюта" aria-label="Язык и валюта">
-              <svg className="hi-ic" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9" /><path d="M3 12h18" /><path d="M12 3c2.5 2.5 2.5 15.5 0 18M12 3c-2.5 2.5-2.5 15.5 0 18" /></svg><span className="lang-cur">{lang}</span>
+              <svg className="hi-ic" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9" /><path d="M3 12h18" /><path d="M12 3c2.5 2.5 2.5 15.5 0 18M12 3c-2.5 2.5-2.5 15.5 0 18" /></svg><span className="lang-cur">{uiLang === "ka" ? "GE" : uiLang.toUpperCase()}</span>
             </button>
             {langOpen && (
               <div className="lang-pop">
                 <div className="lp-h">Язык сайта</div>
                 {LANGS.map((l) => (
-                  <button key={l.code} className={"lp-row" + (lang === l.code ? " active" : "")} onClick={() => { setLang(l.code); }}>
-                    <b>{l.code}</b><span>{l.name}</span>
+                  <button key={l.code} className={"lp-row" + (uiLang === l.code ? " active" : "")} onClick={() => setUiLang(l.code)}>
+                    <b>{l.label}</b><span>{l.name}</span>
                   </button>
                 ))}
                 <div className="lp-h">Валюта сайта</div>
@@ -162,10 +164,10 @@ export default function Header() {
           <span className="hdiv" />
 
           <Link className={"hicon hlogin" + (auth && auth.in ? " hlogin-in" : "")} href="/my" title="Личный кабинет">
-            <span className="hi-ic">👤</span><span className="hi-tx">{auth && auth.in ? (auth.name ? auth.name.split(" ")[0] : "Кабинет") : "Войти"}</span>
+            <span className="hi-ic">👤</span><span className="hi-tx">{auth && auth.in ? (auth.name ? auth.name.split(" ")[0] : t("cabinet")) : t("login")}</span>
           </Link>
 
-          <Link className="btn btn-gold" href="/add">Сдать / продать</Link>
+          <Link className="btn btn-gold" href="/add">{t("sell")}</Link>
         </div>
 
         <button className="burger" aria-label="Меню" onClick={() => setMenuOpen(true)}>☰</button>
@@ -182,10 +184,10 @@ export default function Header() {
                 <button key={c.code} type="button" className={"md-curr-btn" + (curr === c.code ? " on" : "")} onClick={() => { setCurr(c.code); if (typeof window !== "undefined" && window.bxApplyCurrency) window.bxApplyCurrency(c.code); }}>{c.sym} {c.code}</button>
               ))}
             </div>
-            {NAV.map((it) => <Link key={it.label} href={it.href} className="md-item" onClick={() => setMenuOpen(false)}>{it.label}</Link>)}
-            <Link href="/catalog" className="md-item" onClick={() => setMenuOpen(false)}>🔍 Поиск по каталогу</Link>
-            <Link href="/my" className="md-item" onClick={() => setMenuOpen(false)}>👤 Войти / Кабинет</Link>
-            <Link href="/add" className="md-item md-sell" onClick={() => setMenuOpen(false)}>Сдать / продать</Link>
+            {NAV.map((it) => <Link key={it.label} href={it.href} className="md-item" onClick={() => setMenuOpen(false)}>{NAV_KEY[it.label] ? t(NAV_KEY[it.label]) : it.label}</Link>)}
+            <Link href="/catalog" className="md-item" onClick={() => setMenuOpen(false)}>🔍 {t("search")}</Link>
+            <Link href="/my" className="md-item" onClick={() => setMenuOpen(false)}>👤 {auth && auth.in ? t("cabinet") : t("login")}</Link>
+            <Link href="/add" className="md-item md-sell" onClick={() => setMenuOpen(false)}>{t("sell")}</Link>
           </div>
         </div>
       )}
