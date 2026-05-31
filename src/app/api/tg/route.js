@@ -37,6 +37,19 @@ function gePhone(raw) {
 }
 const mapsLink = (lat, lng) => `https://www.google.com/maps?q=${lat},${lng}`;
 
+// Геокодинг адреса через MapTiler (ключ уже есть на сайте). Возвращает {lat,lng} или null.
+async function geocode(q) {
+  const key = process.env.NEXT_PUBLIC_MAPTILER_KEY;
+  if (!key) return null;
+  try {
+    const r = await fetch(`https://api.maptiler.com/geocoding/${encodeURIComponent(q)}.json?key=${key}&limit=1&country=ge`);
+    const j = await r.json();
+    const c = j?.features?.[0]?.center;
+    if (Array.isArray(c) && c.length === 2) return { lat: c[1], lng: c[0] };
+  } catch (e) { console.error("geocode error:", e?.message); }
+  return null;
+}
+
 // ---- Telegram helpers ----
 async function tg(method, body) {
   const r = await fetch(`${API}/${method}`, {
@@ -113,6 +126,15 @@ async function ask(chat, step) {
   const kb = [...(STEPS[step].kb || []), ["⬅️ Назад", "✖️ Отмена"]];
   return send(chat, STEPS[step].q, kb);
 }
+// Гео-шаг: если адрес уже геокодирован — показываем пин и кнопку подтверждения.
+async function askGeo(chat, data) {
+  const nav = ["⬅️ Назад", "✖️ Отмена"];
+  if (data.geo_auto && data.lat) {
+    await tg("sendLocation", { chat_id: chat, latitude: data.lat, longitude: data.lng });
+    return send(chat, `📍 Поставил точку по адресу «${esc(data.address || "")}». Проверьте на карте выше.\n• Если верно — нажмите «✅ Точка верна».\n• Если неточно — пришлите свою точку: 📎 → Геопозиция → «Выбрать на карте» (лучше в режиме 🛰 «Спутник»).`, [["✅ Точка верна"], nav]);
+  }
+  return send(chat, STEPS.geo.q, [nav]);
+}
 
 async function onMessage(msg) {
   const chat = msg.chat.id;
@@ -152,7 +174,7 @@ async function onMessage(msg) {
     if (idx <= 0) { await clearDraft(uid); return showMenu(chat, "Главное меню:"); }
     const prev = STEP_ORDER[idx - 1];
     await saveDraft(uid, prev, data);
-    return prev === "contact" ? sendContact(chat) : ask(chat, prev);
+    return prev === "contact" ? sendContact(chat) : prev === "geo" ? askGeo(chat, data) : ask(chat, prev);
   }
 
   switch (d.step) {
@@ -167,10 +189,16 @@ async function onMessage(msg) {
       data.deal = deal; await saveDraft(uid, "type", data); return ask(chat, "type");
     }
     case "type": { data.type = text; await saveDraft(uid, "address", data); return ask(chat, "address"); }
-    case "address": { data.address = text; await saveDraft(uid, "geo", data); return ask(chat, "geo"); }
+    case "address": {
+      data.address = text;
+      const g = await geocode(`${text}, ${data.city || "Батуми"}, Georgia`);
+      if (g) { data.lat = g.lat; data.lng = g.lng; data.geo_auto = true; }
+      await saveDraft(uid, "geo", data);
+      return askGeo(chat, data);
+    }
     case "geo": {
-      if (msg.location) { data.lat = msg.location.latitude; data.lng = msg.location.longitude; }
-      // если текст/«пропустить» — оставляем без координат (центр Батуми по умолчанию)
+      if (msg.location) { data.lat = msg.location.latitude; data.lng = msg.location.longitude; data.geo_auto = false; }
+      // "✅ Точка верна" / любой текст — оставляем авто-точку по адресу (или без координат)
       await saveDraft(uid, "price", data); return ask(chat, "price");
     }
     case "price": { data.price = normPrice(text); await saveDraft(uid, "area", data); return ask(chat, "area"); }
