@@ -3,9 +3,7 @@ import { cookies } from "next/headers";
 import { verifySession } from "@/lib/session";
 import { supa } from "@/lib/supabase";
 import { slugify } from "@/data/sheet";
-import TelegramLogin from "@/components/TelegramLogin";
-import BotLogin from "@/components/BotLogin";
-import EmailLogin from "@/components/EmailLogin";
+import LoginBlock from "@/components/LoginBlock";
 import MyListings from "@/components/MyListings";
 import { getLang } from "@/lib/serverLang";
 import { t as tr, typeLabel } from "@/lib/dict";
@@ -26,11 +24,7 @@ export default async function MyPage() {
         <p style={{ color: "var(--ink-soft)", margin: "12px 0 22px", lineHeight: 1.6 }}>
           {t("cab_login_p")}
         </p>
-        <BotLogin />
-        <div style={{ margin: "24px 0 12px", color: "var(--ink-soft)", fontSize: 13 }}>{t("cab_or")}</div>
-        <TelegramLogin />
-        <div style={{ margin: "22px 0 0", color: "var(--ink-soft)", fontSize: 13 }}>{t("el_or")}</div>
-        <EmailLogin />
+        <LoginBlock />
         <p style={{ color: "var(--ink-soft)", fontSize: 13, marginTop: 22 }}>
           {t("cab_bot_a")} <b>@baylux_leads_bot</b> {t("cab_bot_b")}
         </p>

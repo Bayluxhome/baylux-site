@@ -349,3 +349,24 @@ footer.site a:hover{color:var(--gold-lt)}
   .searchbar .field select,.searchbar .field input{font-size:16px}
   .searchbar>.btn{width:100%;height:50px;padding:0!important;display:flex;align-items:center;justify-content:center;border-radius:12px}
 }
+
+/* cookie-баннер */
+.cookie-bar{position:fixed;left:0;right:0;bottom:0;z-index:1000;background:#fff;border-top:1px solid var(--line);box-shadow:0 -6px 24px rgba(0,0,0,.12)}
+.cookie-inner{display:flex;align-items:center;gap:16px;padding:14px 0;flex-wrap:wrap}
+.cookie-tx{flex:1;min-width:240px;font-size:14px;color:var(--ink);line-height:1.45}
+.cookie-tx a{color:var(--gold-dk);font-weight:600}
+.cookie-btns{display:flex;gap:8px;flex-wrap:wrap}
+.cookie-btns .btn{padding:9px 16px}
+.cookie-adv{width:100%}
+.cookie-cat{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:9px 0;border-bottom:1px solid var(--line)}
+.cookie-cat b{display:block;color:var(--navy);font-size:14px}
+.cookie-cat span{font-size:13px;color:var(--ink-soft)}
+.cookie-cat input{width:20px;height:20px;flex:none}
+.cookie-adv .cookie-btns{margin-top:12px;justify-content:flex-end}
+.cookie-link{background:none;border:none;color:inherit;font:inherit;cursor:pointer;padding:0;text-decoration:underline}
+@media(max-width:560px){.cookie-btns{width:100%}.cookie-btns .btn{flex:1;text-align:center}}
+
+/* чекбоксы согласия на входе */
+.consent-row{display:flex;gap:10px;align-items:flex-start;font-size:14px;color:var(--ink);margin-top:10px;cursor:pointer;line-height:1.45}
+.consent-row input{margin-top:3px;flex:none;width:18px;height:18px}
+.consent-row a{color:var(--gold-dk);font-weight:600}

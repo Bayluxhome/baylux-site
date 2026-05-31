@@ -13,3 +13,7 @@
 
 # heavy source icons (originals from image gen) — keep only optimized .png
 public/icons/*.jpg
+
+# случайные скриншоты, не относящиеся к сайту
+/public/Снимок экрана*
+/public/Screenshot*

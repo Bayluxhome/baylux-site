@@ -193,6 +193,9 @@ export default function AddListingForm({ initial, editId }) {
         <input type="file" accept="image/*" onChange={(e) => setFacadeFile(e.target.files[0] || null)} />
         {(facadeFile || facade) && <div className="af-hint">✓ 1</div>}
       </div>
+      <div className="af-full" style={{ fontSize: 13, color: "var(--ink-soft)" }}>
+        {t("af_rules_pre")}<a href="/rules" target="_blank" style={{ color: "var(--gold-dk)", fontWeight: 600 }}>{t("af_rules_link")}</a>.
+      </div>
       <div className="af-full">
         <button className="btn btn-gold" type="submit" disabled={state === "loading"} style={{ padding: "13px 26px", fontSize: 15 }}>
           {state === "loading" ? t("af_saving") : editId ? t("af_submit_edit") : t("af_submit")}

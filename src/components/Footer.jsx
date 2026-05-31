@@ -1,6 +1,8 @@
 import Link from "next/link";
 import { getLang } from "@/lib/serverLang";
 import { t as tr } from "@/lib/dict";
+import { OPERATOR } from "@/config";
+import CookieLink from "@/components/CookieLink";
 
 export default function Footer() {
   const lang = getLang();
@@ -26,10 +28,13 @@ export default function Footer() {
           </div>
           <div>
             <h4>{t("foot_company")}</h4>
-            <Link href="/about">{t("foot_about_l")}</Link><Link href="/contacts">{t("foot_contacts")}</Link><Link href="/terms">{t("foot_terms")}</Link><Link href="/privacy">{t("foot_privacy")}</Link>
+            <Link href="/about">{t("foot_about_l")}</Link><Link href="/contacts">{t("foot_contacts")}</Link><Link href="/terms">{t("foot_terms")}</Link><Link href="/privacy">{t("foot_privacy")}</Link><Link href="/cookies">{t("ck_title")}</Link><Link href="/rules">{t("rl_title")}</Link><CookieLink />
           </div>
         </div>
-        <div className="fbar"><span>© Baylux 2026 · Batumi, Georgia</span><span>WhatsApp · Instagram · Telegram</span></div>
+        <div className="fbar" style={{ flexWrap: "wrap", gap: 6 }}>
+          <span>{t("foot_operator")}: {OPERATOR.name} · {OPERATOR.email} · {OPERATOR.phone}</span>
+          <span>© Baylux 2026 · Batumi, Georgia</span>
+        </div>
       </div>
     </footer>
   );

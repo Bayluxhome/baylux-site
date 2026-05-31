@@ -2,6 +2,7 @@ import "./globals.css";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import LeadModal from "@/components/LeadModal";
+import CookieConsent from "@/components/CookieConsent";
 import { headers } from "next/headers";
 import CurrencyManager from "@/components/CurrencyManager";
 import { FilterProvider } from "@/components/FilterContext";
@@ -45,6 +46,7 @@ export default async function RootLayout({ children }) {
             <main>{children}</main>
             <Footer />
             <LeadModal />
+            <CookieConsent />
           </FilterProvider>
         </LangProvider>
       </body>

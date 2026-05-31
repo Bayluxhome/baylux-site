@@ -2,7 +2,7 @@
 import { useState } from "react";
 import { useLang } from "@/components/LangContext";
 
-export default function EmailLogin() {
+export default function EmailLogin({ marketing = false }) {
   const { t, lang } = useLang();
   const [email, setEmail] = useState("");
   const [st, setSt] = useState(""); // "", sending, sent, error
@@ -11,7 +11,7 @@ export default function EmailLogin() {
     e.preventDefault();
     setSt("sending");
     try {
-      const r = await fetch("/api/email-login-init", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ email, lang }) });
+      const r = await fetch("/api/email-login-init", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ email, lang, marketing, consent: true }) });
       const j = await r.json();
       setSt(j.ok ? "sent" : "error");
     } catch {

@@ -22,7 +22,7 @@ export default function Hero() {
         <p>{t("hero_sub")}</p>
         <HeroSearch />
         <div className="stat-row">
-          <div className="stat"><b>100%</b><span>{t("st_verified")}</span></div>
+          <div className="stat"><b>✓</b><span>{t("st_verified2")}</span></div>
           <div className="stat"><b>0%</b><span>{t("st_commission")}</span></div>
           <div className="stat"><b>24/7</b><span>{t("st_support")}</span></div>
           <div className="stat"><b>3</b><span>{t("st_langs")}</span></div>
