@@ -7,7 +7,6 @@ const TYPES = ["Квартира", "Студия", "Дом", "Коммерция
 const AMENITIES = ["Мебель", "Балкон", "Терраса", "Парковка", "Ремонт «евро»", "Без ремонта", "Кондиционер", "Лифт"];
 const CITIES = ["Батуми", "Тбилиси", "Кутаиси", "Гонио", "Махинджаури", "Чакви"];
 
-// Грузинский номер: +995XXXXXXXXX, 995XXXXXXXXX или локальные 9 цифр. Иначе null.
 function gePhone(raw) {
   const s = String(raw || "").replace(/[^\d]/g, "");
   if (s.startsWith("995") && s.length === 12) return "+" + s;
@@ -33,17 +32,18 @@ function compress(file) {
   });
 }
 
-export default function AddListingForm() {
-  const [f, setF] = useState({ country: "Грузия", city: "Батуми", deal: "sale", type: "Квартира", complex: "", address: "", price: "", currency: "USD", area: "", rooms: "", bathrooms: "", floor: "", year: "", about: "", contact: "", tg: "", noCommission: false });
-  const [amenities, setAmenities] = useState([]);
+export default function AddListingForm({ initial, editId }) {
+  const init = initial || {};
+  const [f, setF] = useState({ country: "Грузия", city: "Батуми", deal: "sale", type: "Квартира", complex: "", address: "", price: "", currency: "USD", area: "", rooms: "", bathrooms: "", floor: "", year: "", about: "", contact: "", tg: "", noCommission: false, ...(init.f || {}) });
+  const [amenities, setAmenities] = useState(init.amenities || []);
+  const [existingPhotos, setExistingPhotos] = useState(init.photos || []);
   const [files, setFiles] = useState([]);
-  const [geo, setGeo] = useState(null);
+  const [geo, setGeo] = useState(init.geo || null);
   const [geoNote, setGeoNote] = useState("");
   const [state, setState] = useState("");
   const upd = (k, v) => setF((s) => ({ ...s, [k]: v }));
   const toggleAmenity = (a) => setAmenities((arr) => arr.includes(a) ? arr.filter((x) => x !== a) : [...arr, a]);
 
-  // Геокод адреса → ставим пин на карте автоматически
   async function geocodeAddress(addr, city) {
     const key = process.env.NEXT_PUBLIC_MAPTILER_KEY;
     if (!addr || !addr.trim() || !key) return;
@@ -52,11 +52,8 @@ export default function AddListingForm() {
       const r = await fetch(`https://api.maptiler.com/geocoding/${encodeURIComponent(q)}.json?key=${key}&limit=1&country=ge`);
       const j = await r.json();
       const c = j?.features?.[0]?.center;
-      if (Array.isArray(c) && c.length === 2) {
-        setGeo({ lat: c[1], lng: c[0] });
-        setGeoNote("📍 Точка поставлена по адресу — проверьте и при необходимости передвиньте кликом по карте.");
-      }
-    } catch { /* ignore */ }
+      if (Array.isArray(c) && c.length === 2) { setGeo({ lat: c[1], lng: c[0] }); setGeoNote("📍 Точка поставлена по адресу — проверьте и при необходимости передвиньте кликом по карте."); }
+    } catch (e) { /* ignore */ }
   }
 
   async function submit(e) {
@@ -66,17 +63,19 @@ export default function AddListingForm() {
     if (!phone) { alert("Укажите грузинский номер телефона (+995). Например: +995 555 12 34 56."); return; }
     setState("loading");
     try {
-      const urls = [];
+      const newUrls = [];
       for (const file of files.slice(0, 10)) {
         const blob = await compress(file);
         const fd = new FormData();
         fd.append("photo", blob, "photo.jpg");
         const r = await fetch("/api/upload-photo", { method: "POST", body: fd });
         const j = await r.json();
-        if (j.ok) urls.push(j.url);
+        if (j.ok) newUrls.push(j.url);
       }
-      const payload = { ...f, contact: phone, amenities, lat: geo?.lat, lng: geo?.lng, photos: urls };
-      const r = await fetch("/api/add-listing", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) });
+      const photos = [...existingPhotos, ...newUrls].slice(0, 10);
+      const payload = { ...f, contact: phone, amenities, lat: geo?.lat, lng: geo?.lng, photos };
+      if (editId) payload.id = editId;
+      const r = await fetch(editId ? "/api/edit-listing" : "/api/add-listing", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) });
       const j = await r.json();
       setState(j.ok ? "done" : "error");
     } catch (err) { setState("error"); }
@@ -84,8 +83,8 @@ export default function AddListingForm() {
 
   if (state === "done") return (
     <div className="addform-done">
-      <h2 style={{ color: "var(--navy)" }}>✅ Объявление отправлено на модерацию</h2>
-      <p style={{ color: "var(--ink-soft)", margin: "10px 0 18px" }}>Мы проверим его и опубликуем. Статус — в разделе «Мои объявления».</p>
+      <h2 style={{ color: "var(--navy)" }}>✅ {editId ? "Изменения отправлены на модерацию" : "Объявление отправлено на модерацию"}</h2>
+      <p style={{ color: "var(--ink-soft)", margin: "10px 0 18px" }}>{editId ? "Объявление снято с публикации и появится снова после повторной проверки." : "Мы проверим его и опубликуем."} Статус — в разделе «Мои объявления».</p>
       <a className="btn btn-gold" href="/my" style={{ padding: "11px 20px" }}>Мои объявления</a>
     </div>
   );
@@ -157,14 +156,27 @@ export default function AddListingForm() {
       <label className="af-full">Telegram для связи (@username) — по желанию
         <input value={f.tg} onChange={(e) => upd("tg", e.target.value)} placeholder="@username (необязательно)" />
       </label>
+      {existingPhotos.length > 0 && (
+        <div className="af-full">
+          <div className="af-lbl">Текущие фото (нажмите ✕, чтобы убрать)</div>
+          <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
+            {existingPhotos.map((u, i) => (
+              <div key={u + i} style={{ position: "relative", width: 84, height: 64, borderRadius: 8, overflow: "hidden", border: "1px solid var(--line)" }}>
+                <img src={u} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                <button type="button" onClick={() => setExistingPhotos((p) => p.filter((_, j) => j !== i))} style={{ position: "absolute", top: 2, right: 2, width: 20, height: 20, borderRadius: "50%", border: "none", background: "rgba(0,0,0,.6)", color: "#fff", cursor: "pointer", lineHeight: 1, fontSize: 12 }}>✕</button>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
       <div className="af-full">
-        <div className="af-lbl">Фото (до 10, сжимаются автоматически)</div>
+        <div className="af-lbl">{editId ? "Добавить ещё фото" : "Фото (до 10, сжимаются автоматически)"}</div>
         <input type="file" accept="image/*" multiple onChange={(e) => setFiles([...e.target.files])} />
-        {files.length > 0 && <div className="af-hint">{files.length} фото выбрано</div>}
+        {files.length > 0 && <div className="af-hint">{files.length} новых фото</div>}
       </div>
       <div className="af-full">
         <button className="btn btn-gold" type="submit" disabled={state === "loading"} style={{ padding: "13px 26px", fontSize: 15 }}>
-          {state === "loading" ? "Отправляю…" : "Отправить на модерацию"}
+          {state === "loading" ? "Сохраняю…" : editId ? "Сохранить и отправить на модерацию" : "Отправить на модерацию"}
         </button>
         {state === "error" && <div className="af-err">Ошибка отправки. Проверьте поля и попробуйте снова.</div>}
       </div>

@@ -31,7 +31,8 @@ export default function MyListings({ items }) {
               <b>{r.title}</b>
               <span>{r.sub}</span>
               <div className="my-actions">
-                {r.slug ? <a className="my-link" href={"/property/" + r.slug}>Посмотреть на сайте →</a> : <span className="my-note">на сайте не виден</span>}
+                {r.slug ? <a className="my-link" href={"/property/" + r.slug}>Посмотреть →</a> : <span className="my-note">на сайте не виден</span>}
+                <a className="my-link" href={"/my/edit/" + r.id}>✏️ Редактировать</a>
                 <button className="my-del" onClick={() => del(r.id)} disabled={busy === r.id}>{busy === r.id ? "Удаляю…" : "🗑 Удалить"}</button>
               </div>
             </div>
