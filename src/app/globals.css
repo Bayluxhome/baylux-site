@@ -211,6 +211,10 @@ nav.main{display:flex;gap:2px;font-weight:500;font-size:15px}
 .price{font-size:20px;font-weight:800;letter-spacing:-.3px;color:var(--navy)}
 .perm{font-size:12px;color:var(--ink-soft);font-weight:600;font-family:Inter}
 .price .perm{margin-left:8px}
+.fav{position:absolute;top:10px;right:10px;z-index:3;width:34px;height:34px;border-radius:50%;border:none;background:rgba(255,255,255,.92);color:var(--navy);font-size:18px;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:var(--shadow)}
+.fav:hover{background:#fff}
+.fav.on{color:#E0245E}
+.fav-count{display:inline-block;min-width:16px;height:16px;line-height:16px;margin-left:4px;font-size:11px;font-weight:800;color:#fff;background:var(--gold-dk);border-radius:8px;text-align:center;padding:0 4px;vertical-align:top}
 .ctitle{font-weight:600;margin-top:6px;font-size:15px;color:var(--ink)}
 .meta{display:flex;gap:14px;color:var(--ink-soft);font-size:13px;margin-top:8px;flex-wrap:wrap}
 .cdistrict{color:var(--ink-soft);font-size:13px;margin-top:8px;display:flex;gap:6px;align-items:center}

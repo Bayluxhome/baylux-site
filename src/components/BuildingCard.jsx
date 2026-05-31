@@ -1,15 +1,18 @@
 import Link from "next/link";
 import Image from "next/image";
 import { buildingPriceFrom, buildingDealsSummary, buildingFromNum, fmtMoney } from "@/data/data";
+import FavButton from "@/components/FavButton";
 
 export default function BuildingCard({ building }) {
   const from = buildingFromNum(building);
   const perM2 = from && from.deal === "sale" && from.area > 0 && from.n ? Math.round(from.n / from.area) : null;
+  const fav = { slug: "b-" + building.slug, href: `/building/${building.slug}`, title: building.name, sub: `📍 ${building.district || "Батуми"}`, price: "от " + buildingPriceFrom(building), img: building.image };
   return (
     <Link className="card" href={`/building/${building.slug}`}>
       <div className="ph">
         <Image src={building.image} alt={building.name} fill sizes="(max-width:560px) 100vw, 360px" style={{ objectFit: "cover" }} />
         <span className="badge b-jk">{building.kind === "complex" ? "ЖК" : "Дом"}</span>
+        <FavButton item={fav} />
       </div>
       <div className="body">
         <div className="price">от {from ? <span className="bx-price" data-num={from.n} data-cur={from.c}>{fmtMoney(from.n, from.c)}</span> : buildingPriceFrom(building)}

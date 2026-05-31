@@ -2,7 +2,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { notFound } from "next/navigation";
 import MapView from "@/components/MapView";
-import { DEAL_LABEL, buildingPriceFrom } from "@/data/data";
+import { DEAL_LABEL, buildingPriceFrom, fmtMoney } from "@/data/data";
 import { getBuildingsList, findBuilding } from "@/data/source";
 import LeadButton from "@/components/LeadButton";
 import { waLink } from "@/config";
@@ -70,7 +70,10 @@ export default async function BuildingPage({ params }) {
                 <div>{u.area} м²</div>
                 <div>{u.floor}</div>
                 <div>{DEAL_LABEL[u.deal]}</div>
-                <div className="uprice">{u.price}</div>
+                <div className="uprice">
+                  {u.priceNum ? <span className="bx-price" data-num={u.priceNum} data-cur={u.currency}>{fmtMoney(u.priceNum, u.currency)}</span> : u.price}
+                  {u.deal === "sale" && u.perM2 ? <div className="perm"><span className="bx-price" data-num={u.perM2} data-cur={u.currency}>{fmtMoney(u.perM2, u.currency)}</span> /м²</div> : null}
+                </div>
               </Link>
             ))}
           </div>

@@ -59,6 +59,7 @@ export default function Header() {
   const [curr, setCurr] = useState("USD");
   const [loginOpen, setLoginOpen] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
+  const [favCount, setFavCount] = useState(0);
   const locRef = useRef(null);
   const langRef = useRef(null);
   const loginRef = useRef(null);
@@ -74,6 +75,14 @@ export default function Header() {
   }, []);
 
   useEffect(() => { try { const c = localStorage.getItem("bxCurrency"); if (c) setCurr(c); } catch (e) {} }, []);
+
+  useEffect(() => {
+    const upd = () => { try { setFavCount(JSON.parse(localStorage.getItem("bxFav") || "[]").length); } catch (e) {} };
+    upd();
+    window.addEventListener("bxfav", upd);
+    window.addEventListener("storage", upd);
+    return () => { window.removeEventListener("bxfav", upd); window.removeEventListener("storage", upd); };
+  }, []);
 
   function pickCity(name) { if (fc) fc.upd("city", name); setOpen(false); }
   function pickAll() { if (fc) fc.upd("city", ""); setOpen(false); }
@@ -122,7 +131,7 @@ export default function Header() {
           <Link className="hicon" href="/catalog" title="Поиск объектов" aria-label="Поиск">
             <span className="hi-ic">🔍</span><span className="hi-tx">Поиск</span>
           </Link>
-          <button className="hicon hicon-sq" title="Избранное" aria-label="Избранное">♡</button>
+          <Link className="hicon hicon-sq" href="/favorites" title="Избранное" aria-label="Избранное">♡{favCount > 0 && <span className="fav-count">{favCount}</span>}</Link>
 
           <div className="langw" ref={langRef}>
             <button className="hicon hlang" onClick={(e) => { e.stopPropagation(); setLangOpen((v) => !v); }} title="Язык и валюта" aria-label="Язык и валюта">
