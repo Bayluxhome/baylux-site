@@ -1,8 +1,9 @@
 import Link from "next/link";
 import Image from "next/image";
-import { buildingPriceFrom, buildingDealsSummary } from "@/data/data";
+import { buildingPriceFrom, buildingDealsSummary, buildingFromNum, fmtMoney } from "@/data/data";
 
 export default function BuildingCard({ building }) {
+  const from = buildingFromNum(building);
   return (
     <Link className="card" href={`/building/${building.slug}`}>
       <div className="ph">
@@ -10,7 +11,7 @@ export default function BuildingCard({ building }) {
         <span className="badge b-jk">{building.kind === "complex" ? "ЖК" : "Дом"}</span>
       </div>
       <div className="body">
-        <div className="price">от {buildingPriceFrom(building)}</div>
+        <div className="price">от {from ? <span className="bx-price" data-num={from.n} data-cur={from.c}>{fmtMoney(from.n, from.c)}</span> : buildingPriceFrom(building)}</div>
         <div className="ctitle">{building.name}</div>
         <div className="cdistrict">📍 Батуми{building.district ? ` · ${building.district}` : ""}{building.developer ? ` · ${building.developer}` : ""}</div>
         <span className="unit-tag">{building.units.length} объект(ов) · {buildingDealsSummary(building)}</span>

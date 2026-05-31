@@ -38,6 +38,7 @@ export default async function CatalogPage({ searchParams }) {
 
   let units = await getAllUnits();
   if (deal) units = units.filter((u) => u.deal === deal);
+  if (deal === "daily") units = units.filter((u) => ["apartment", "house"].includes(unitCat(u.type)));
   if (isNew) units = units.filter((u) => unitIsNew(u));
   if (cat) units = units.filter((u) => unitCat(u.type) === cat);
   if (legacyType) units = units.filter((u) => u.type === legacyType);

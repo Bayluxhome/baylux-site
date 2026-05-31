@@ -3,7 +3,8 @@ import MapView from "@/components/MapView";
 import CategoryGrid from "@/components/CategoryGrid";
 import BuildingCard from "@/components/BuildingCard";
 import PropertyCard from "@/components/PropertyCard";
-import { buildingPriceFrom, GE_CITIES, CAT_LABEL } from "@/data/data";
+import { buildingPriceFrom } from "@/data/data";
+import HeroSearch from "@/components/HeroSearch";
 import { getBuildingsList, getAllUnits } from "@/data/source";
 
 export const revalidate = 300;
@@ -25,34 +26,7 @@ export default async function HomePage() {
             Проверенные квартиры, дома и апартаменты у моря — без дублей и фейков. Прозрачные цены,
             честные условия и помощь местной команды на каждом шаге сделки.
           </p>
-          <div className="tabs">
-            <Link className="tab active" href="/catalog?deal=sale">Продажа</Link>
-            <Link className="tab" href="/catalog?deal=rent">Аренда</Link>
-            <Link className="tab" href="/catalog?new=1">Новостройки</Link>
-            <Link className="tab" href="/catalog?deal=daily">Посуточно</Link>
-          </div>
-          <form className="searchbar" action="/catalog">
-            <div className="field">
-              <label>Город</label>
-              <select name="city">
-                <option value="">Любой город</option>
-                {GE_CITIES.map((c) => <option key={c.name} value={c.name}>{c.name}</option>)}
-              </select>
-            </div>
-            <div className="field">
-              <label>Тип</label>
-              <select name="cat">
-                <option value="">Любой тип</option>
-                {Object.entries(CAT_LABEL).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
-              </select>
-            </div>
-            <div className="field"><label>Цена до, $</label><input name="pmax" inputMode="numeric" placeholder="150000" /></div>
-            <button className="btn btn-gold" style={{ padding: "0 26px" }} type="submit">Показать объекты</button>
-            <Link className="btn btn-ghost" href="/map" style={{ padding: "0 20px", border: "1px solid var(--navy)", whiteSpace: "nowrap" }}>
-              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0Z" /><circle cx="12" cy="10" r="3" /></svg>
-              На карте
-            </Link>
-          </form>
+          <HeroSearch />
           <div className="stat-row">
             <div className="stat"><b>100%</b><span>проверенные объекты</span></div>
             <div className="stat"><b>0%</b><span>скрытых комиссий</span></div>

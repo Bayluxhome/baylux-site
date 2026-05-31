@@ -161,6 +161,12 @@ export default function Header() {
         <div className="mobile-drawer" onClick={(e) => { if (e.target.classList.contains("mobile-drawer")) setMenuOpen(false); }}>
           <div className="md-panel">
             <button className="md-close" onClick={() => setMenuOpen(false)} aria-label="Закрыть">✕</button>
+            <div className="md-curr">
+              <span className="md-curr-lbl">Валюта:</span>
+              {CURR.map((c) => (
+                <button key={c.code} type="button" className={"md-curr-btn" + (curr === c.code ? " on" : "")} onClick={() => { setCurr(c.code); if (typeof window !== "undefined" && window.bxApplyCurrency) window.bxApplyCurrency(c.code); }}>{c.sym} {c.code}</button>
+              ))}
+            </div>
             {NAV.map((it) => <Link key={it.label} href={it.href} className="md-item" onClick={() => setMenuOpen(false)}>{it.label}</Link>)}
             <Link href="/catalog" className="md-item" onClick={() => setMenuOpen(false)}>🔍 Поиск по каталогу</Link>
             <Link href="/my" className="md-item" onClick={() => setMenuOpen(false)}>👤 Войти / Кабинет</Link>

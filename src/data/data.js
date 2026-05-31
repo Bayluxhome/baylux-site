@@ -42,6 +42,18 @@ export function unitIsNew(u) {
 }
 
 export const fmtMoney = (n, c) => (c === "GEL" ? "₾" : "$") + String(Math.round(n)).replace(/\B(?=(\d{3})+(?!\d))/g, " ");
+// Минимальная цена дома числом + валюта (для карточки «от …», конвертируется)
+export function buildingFromNum(b) {
+  const w = b.units.map((u) => ({
+    n: u.priceNum || (parseInt(String(u.price || "").replace(/[^\d]/g, ""), 10) || 0),
+    c: u.currency || (/₾|gel|лар/i.test(String(u.price || "")) ? "GEL" : "USD"),
+    deal: u.deal,
+  }));
+  const sale = w.filter((u) => u.deal === "sale" && u.n);
+  const pool = sale.length ? sale : w.filter((u) => u.n);
+  if (!pool.length) return null;
+  return pool.reduce((a, c) => (c.n < a.n ? c : a));
+}
 export const perSuffix = (deal) => (deal === "rent" ? " / мес" : deal === "daily" ? " / ночь" : "");
 
 function img(seed) { return "/placeholder-baylux.jpg"; }
