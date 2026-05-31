@@ -4,13 +4,14 @@ import Image from "next/image";
 import { DEAL_CLASS, fmtMoney, perSuffix } from "@/data/data";
 import FavButton from "@/components/FavButton";
 import { useLang } from "@/components/LangContext";
-import { typeLabel } from "@/lib/dict";
+import { typeLabel, cityLabel } from "@/lib/dict";
 
 export default function PropertyCard({ unit }) {
   const { t, lang } = useLang();
   const b = unit.building;
   const rs = t("rooms_short");
   const ty = typeLabel(lang, unit.type);
+  const district = cityLabel(lang, b.district || "Батуми");
   const photos = unit.photos && unit.photos.length > 1 ? unit.photos : null;
   const alt = `${unit.type}, ${unit.area} м² — ${b.name}`;
   const fav = { slug: unit.slug, href: `/property/${unit.slug}`, title: `${unit.type}${unit.rooms ? `, ${unit.rooms} ${rs}` : ""}, ${unit.area} м²`, sub: `📍 ${b.district || "Батуми"} · ${b.name}`, price: unit.price, img: unit.img };
@@ -44,7 +45,7 @@ export default function PropertyCard({ unit }) {
           </span>
         </div>
         <div className="ctitle">{ty}{unit.rooms ? `, ${unit.rooms} ${rs}` : ""}, {unit.area} м²</div>
-        <div className="cdistrict">📍 {b.district || "Батуми"}{b.district && b.name ? " · " : ""}{b.name}</div>
+        <div className="cdistrict">📍 {district}{b.district && b.name ? " · " : ""}{b.name}</div>
         <div className="meta">
           {unit.rooms ? <span>🛏 {unit.rooms} {rs}</span> : null}
           <span>📐 {unit.area} м²</span><span>🏢 {unit.floor}</span>

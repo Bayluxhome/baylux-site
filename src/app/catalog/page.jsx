@@ -4,7 +4,7 @@ import PropertyCard from "@/components/PropertyCard";
 import { DEAL_LABEL, CAT_LABEL, GE_CITIES, unitCat, unitIsNew } from "@/data/data";
 import { getAllUnits } from "@/data/source";
 import { getLang } from "@/lib/serverLang";
-import { t as tr } from "@/lib/dict";
+import { t as tr, cityLabel } from "@/lib/dict";
 
 export const revalidate = 300;
 
@@ -92,10 +92,10 @@ export default async function CatalogPage({ searchParams }) {
         {isNew && <input type="hidden" name="new" value="1" />}
         <div className="cf-grid">
           <label>{t("f_city")}
-            <select name="city" defaultValue={city}><option value="">{t("f_anyCity")}</option>{GE_CITIES.map((c) => <option key={c.name} value={c.name}>{c.name}</option>)}</select>
+            <select name="city" defaultValue={city}><option value="">{t("f_anyCity")}</option>{GE_CITIES.map((c) => <option key={c.name} value={c.name}>{cityLabel(lang, c.name)}</option>)}</select>
           </label>
           <label>{t("f_type")}
-            <select name="cat" defaultValue={cat}><option value="">{t("f_anyType")}</option>{(isNew ? ["apartment", "house", "commercial", "office", "garage"] : deal === "daily" ? ["apartment", "house"] : Object.keys(CAT_LABEL)).map((k) => <option key={k} value={k}>{CAT_LABEL[k]}</option>)}</select>
+            <select name="cat" defaultValue={cat}><option value="">{t("f_anyType")}</option>{(isNew ? ["apartment", "house", "commercial", "office", "garage"] : deal === "daily" ? ["apartment", "house"] : Object.keys(CAT_LABEL)).map((k) => <option key={k} value={k}>{t("cat_" + k)}</option>)}</select>
           </label>
           <label>{t("f_rooms")}
             <select name="rooms" defaultValue={rooms}><option value="">{t("f_anyRooms")}</option><option value="0">{t("f_studio")}</option><option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4+</option></select>

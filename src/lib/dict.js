@@ -83,6 +83,17 @@ export const DICT = {
     pv_h_rights: "Ваши права", pv_rights: "Вы можете удалить свои объявления в разделе «Мои объявления» или запросить удаление аккаунта, написав в «Контакты».",
     add_title: "Разместить объявление", add_login_p: "Сначала войдите через Telegram — объявление привяжется к вашему аккаунту, и вы сможете им управлять.", add_intro: "Заполните данные, отметьте точку на карте и добавьте фото. После проверки модератором объявление появится на сайте. Статус — в разделе «Мои объявления».",
     fav_title: "Избранное", fav_empty: "Пока пусто. Нажимайте ♡ на карточках объектов — они появятся здесь.", fav_to_catalog: "Открыть каталог →", fav_open: "Открыть", fav_remove: "Убрать",
+    // главная страница
+    home_map_h: "Жилые комплексы и дома на карте", home_map_p: "Один пин — один дом. Откройте здание и посмотрите все квартиры, что в нём продаются и сдаются.", home_map_btn: "Открыть каталог с фильтрами →",
+    home_fresh_h: "Свежие объекты", home_fresh_p: "Последние квартиры и апартаменты в базе Baylux.",
+    svc_h: "Что мы делаем", svc_p: "Не просто витрина объявлений — полный цикл работы с недвижимостью в Грузии.",
+    svc_mgmt_h: "Управление", svc_mgmt_p: "Доверьте нам квартиру — займёмся гостями, уборкой, ремонтом и отчётами. Вы получаете доход, мы берём рутину.", svc_mgmt_btn: "Отдать в управление →",
+    svc_rent_h: "Аренда", svc_rent_p: "Посуточно для гостей города и долгосрочно для тех, кто переезжает. Честные цены, проверенные объекты, договор.", svc_rent_btn: "Снять или сдать →",
+    svc_sale_h: "Продажа и инвестиции", svc_sale_p: "Поможем купить квартиру для жизни или вложиться в новостройку у моря. Сопровождаем сделку от показа до ключей.", svc_sale_btn: "Купить или продать →",
+    why_local_h: "Местные", why_local_p: "Команда в Батуми — приедем, покажем, поможем на месте.",
+    why_nodup_h: "Без дублей", why_nodup_p: "Чистая база: один объект — одно объявление, без мусора.",
+    why_clear_h: "Прозрачно", why_clear_p: "Реальные цены и условия. Без скрытых комиссий.",
+    why_fast_h: "Быстро", why_fast_p: "Заявка и бронь через сайт или WhatsApp — за минуту.",
   },
   en: {
     nav_sale: "Buy", nav_rent: "Rent", nav_new: "New buildings", nav_daily: "Daily", nav_services: "Services",
@@ -157,6 +168,16 @@ export const DICT = {
     pv_h_rights: "Your rights", pv_rights: "You can delete your listings in the “My listings” section or request account deletion via “Contacts”.",
     add_title: "Post a listing", add_login_p: "First log in with Telegram — the listing will be linked to your account and you'll be able to manage it.", add_intro: "Fill in the details, mark the point on the map and add photos. After a moderator's review the listing will appear on the site. Status is in the “My listings” section.",
     fav_title: "Favorites", fav_empty: "Nothing here yet. Tap ♡ on listing cards — they'll show up here.", fav_to_catalog: "Open catalog →", fav_open: "Open", fav_remove: "Remove",
+    home_map_h: "Residential complexes and houses on the map", home_map_p: "One pin — one building. Open a building to see all apartments for sale and rent in it.", home_map_btn: "Open catalog with filters →",
+    home_fresh_h: "Fresh listings", home_fresh_p: "The latest apartments and units in the Baylux database.",
+    svc_h: "What we do", svc_p: "Not just a listings board — a full cycle of real-estate services in Georgia.",
+    svc_mgmt_h: "Management", svc_mgmt_p: "Hand us your apartment — we handle guests, cleaning, repairs and reports. You get the income, we take the routine.", svc_mgmt_btn: "Hand over to management →",
+    svc_rent_h: "Rent", svc_rent_p: "Daily for city guests and long-term for those relocating. Fair prices, verified properties, a contract.", svc_rent_btn: "Rent or let out →",
+    svc_sale_h: "Sales and investment", svc_sale_p: "We'll help you buy a home to live in or invest in a new build by the sea. We guide the deal from viewing to keys.", svc_sale_btn: "Buy or sell →",
+    why_local_h: "Local", why_local_p: "A team in Batumi — we come, show and help on the spot.",
+    why_nodup_h: "No duplicates", why_nodup_p: "A clean database: one property — one listing, no clutter.",
+    why_clear_h: "Transparent", why_clear_p: "Real prices and terms. No hidden fees.",
+    why_fast_h: "Fast", why_fast_p: "Request and booking via the site or WhatsApp — in a minute.",
   },
   ka: {
     nav_sale: "ყიდვა", nav_rent: "ქირა", nav_new: "ახალი კორპუსები", nav_daily: "დღიურად", nav_services: "სერვისები",
@@ -231,6 +252,16 @@ export const DICT = {
     pv_h_rights: "თქვენი უფლებები", pv_rights: "შეგიძლიათ წაშალოთ თქვენი განცხადებები განყოფილებაში „ჩემი განცხადებები“ ან მოითხოვოთ ანგარიშის წაშლა „კონტაქტის“ მეშვეობით.",
     add_title: "განცხადების განთავსება", add_login_p: "ჯერ შედით Telegram-ით — განცხადება დაუკავშირდება თქვენს ანგარიშს და შეძლებთ მის მართვას.", add_intro: "შეავსეთ მონაცემები, მონიშნეთ წერტილი რუკაზე და დაამატეთ ფოტოები. მოდერატორის შემოწმების შემდეგ განცხადება გამოჩნდება საიტზე. სტატუსი — განყოფილებაში „ჩემი განცხადებები“.",
     fav_title: "რჩეულები", fav_empty: "ჯერ ცარიელია. დააჭირეთ ♡ ობიექტების ბარათებზე — ისინი აქ გამოჩნდება.", fav_to_catalog: "კატალოგის გახსნა →", fav_open: "გახსნა", fav_remove: "მოშორება",
+    home_map_h: "საცხოვრებელი კომპლექსები და სახლები რუკაზე", home_map_p: "ერთი ნიშანი — ერთი შენობა. გახსენით შენობა და იხილეთ ყველა ბინა, რომელიც იყიდება ან ქირავდება.", home_map_btn: "კატალოგის გახსნა ფილტრებით →",
+    home_fresh_h: "ახალი ობიექტები", home_fresh_p: "უახლესი ბინები და აპარტამენტები Baylux-ის ბაზაში.",
+    svc_h: "რას ვაკეთებთ", svc_p: "არა მხოლოდ განცხადებების ვიტრინა — უძრავ ქონებასთან მუშაობის სრული ციკლი საქართველოში.",
+    svc_mgmt_h: "მართვა", svc_mgmt_p: "გადმოგვეცით ბინა — ვიზრუნებთ სტუმრებზე, დასუფთავებაზე, რემონტსა და ანგარიშებზე. თქვენ იღებთ შემოსავალს, ჩვენ ვიღებთ რუტინას.", svc_mgmt_btn: "მართვაში გადაცემა →",
+    svc_rent_h: "ქირა", svc_rent_p: "დღიურად ქალაქის სტუმრებისთვის და გრძელვადიანად მათთვის, ვინც გადმოდის. სამართლიანი ფასები, შემოწმებული ობიექტები, ხელშეკრულება.", svc_rent_btn: "ქირაობა ან გაქირავება →",
+    svc_sale_h: "გაყიდვა და ინვესტიცია", svc_sale_p: "დაგეხმარებით საცხოვრებელი ბინის ყიდვაში ან ზღვისპირა ახალ კორპუსში ინვესტიციაში. გარიგებას ვუძღვებით დათვალიერებიდან გასაღებამდე.", svc_sale_btn: "ყიდვა ან გაყიდვა →",
+    why_local_h: "ადგილობრივები", why_local_p: "გუნდი ბათუმში — მოვალთ, გაჩვენებთ და ადგილზე დაგეხმარებით.",
+    why_nodup_h: "დუბლიკატების გარეშე", why_nodup_p: "სუფთა ბაზა: ერთი ობიექტი — ერთი განცხადება, ნაგვის გარეშე.",
+    why_clear_h: "გამჭვირვალედ", why_clear_p: "რეალური ფასები და პირობები. ფარული საკომისიოს გარეშე.",
+    why_fast_h: "სწრაფად", why_fast_p: "განაცხადი და ჯავშანი საიტით ან WhatsApp-ით — წუთში.",
   },
 };
 
@@ -257,4 +288,14 @@ const AMEN_KEY = {
 export function amenLabel(lang, a) {
   const k = AMEN_KEY[a];
   return k ? t(lang, k) : (a || "");
+}
+
+// Названия городов/районов хранятся по-русски; переводим известные.
+const CITY_TR = {
+  en: { "Батуми": "Batumi", "Тбилиси": "Tbilisi", "Кобулети": "Kobuleti", "Гонио": "Gonio", "Чакви": "Chakvi", "Кутаиси": "Kutaisi", "Рустави": "Rustavi", "Бакуриани": "Bakuriani", "Гудаури": "Gudauri", "Местиа": "Mestia", "Махинджаури": "Makhinjauri" },
+  ka: { "Батуми": "ბათუმი", "Тбилиси": "თბილისი", "Кобулети": "ქობულეთი", "Гонио": "გონიო", "Чакви": "ჩაქვი", "Кутаиси": "ქუთაისი", "Рустави": "რუსთავი", "Бакуриани": "ბაკურიანი", "Гудаури": "გუდაური", "Местиа": "მესტია", "Махинджаури": "მახინჯაური" },
+};
+export function cityLabel(lang, name) {
+  if (lang === "ru" || !CITY_TR[lang]) return name || "";
+  return CITY_TR[lang][name] || name || "";
 }

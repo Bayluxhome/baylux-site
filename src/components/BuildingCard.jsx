@@ -4,9 +4,11 @@ import Image from "next/image";
 import { buildingPriceFrom, buildingFromNum, fmtMoney } from "@/data/data";
 import FavButton from "@/components/FavButton";
 import { useLang } from "@/components/LangContext";
+import { cityLabel } from "@/lib/dict";
 
 export default function BuildingCard({ building }) {
-  const { t } = useLang();
+  const { t, lang } = useLang();
+  const district = cityLabel(lang, building.district || "Батуми");
   const from = buildingFromNum(building);
   const perM2 = from && from.deal === "sale" && from.area > 0 && from.n ? Math.round(from.n / from.area) : null;
   const counts = {};
@@ -22,10 +24,10 @@ export default function BuildingCard({ building }) {
       </div>
       <div className="body">
         <div className="price">{t("w_from")} {from ? <span className="bx-price" data-num={from.n} data-cur={from.c}>{fmtMoney(from.n, from.c)}</span> : buildingPriceFrom(building)}
-          {perM2 ? <span className="perm"><span className="bx-price" data-num={perM2} data-cur={from.c}>{fmtMoney(perM2, from.c)}</span> {t("per_m2")}</span> : null}
+          {perM2 ? <>{" "}<span className="perm"><span className="bx-price" data-num={perM2} data-cur={from.c}>{fmtMoney(perM2, from.c)}</span> {t("per_m2")}</span></> : null}
         </div>
         <div className="ctitle">{building.name}</div>
-        <div className="cdistrict">📍 {building.district || "Батуми"}{building.developer ? ` · ${building.developer}` : ""}</div>
+        <div className="cdistrict">📍 {district}{building.developer ? ` · ${building.developer}` : ""}</div>
         <span className="unit-tag">{building.units.length} {t("w_objects")} · {summary}</span>
       </div>
     </Link>

@@ -4,6 +4,7 @@ import Link from "next/link";
 import { GE_CITIES } from "@/data/data";
 import { useFilter } from "@/components/FilterContext";
 import { useLang } from "@/components/LangContext";
+import { cityLabel } from "@/lib/dict";
 import LeadButton from "@/components/LeadButton";
 
 const LANGS = [
@@ -56,7 +57,7 @@ export default function Header() {
   const fc = useFilter();
   const { lang: uiLang, setLang: setUiLang, t } = useLang();
   const city = (fc && fc.f && fc.f.city) || "";
-  const label = city || t("allGeorgia");
+  const label = city ? cityLabel(uiLang, city) : t("allGeorgia");
   const [langOpen, setLangOpen] = useState(false);
   const [curr, setCurr] = useState("USD");
   const [loginOpen, setLoginOpen] = useState(false);
@@ -113,7 +114,7 @@ export default function Header() {
               <div className="loc-cities">
                 {GE_CITIES.map((c) => (
                   <button key={c.name} className={"loc-city" + (city === c.name ? " active" : "")} onClick={() => pickCity(c.name)}>
-                    <b>{c.name}</b><span>{c.count}</span>
+                    <b>{cityLabel(uiLang, c.name)}</b><span>{c.count}</span>
                   </button>
                 ))}
               </div>

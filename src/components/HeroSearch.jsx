@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import { GE_CITIES, CAT_LABEL } from "@/data/data";
 import { useFilter } from "./FilterContext";
 import { useLang } from "./LangContext";
+import { cityLabel } from "@/lib/dict";
 
 const TABS = [["sale", "tab_sale"], ["rent", "tab_rent"], ["new", "tab_new"], ["daily", "tab_daily"]];
 const TYPE_BY_TAB = {
@@ -13,7 +14,7 @@ const TYPE_BY_TAB = {
 
 export default function HeroSearch() {
   const { f, upd } = useFilter();
-  const { t } = useLang();
+  const { t, lang } = useLang();
   const router = useRouter();
   const typeKeys = TYPE_BY_TAB[f.tab] || Object.keys(CAT_LABEL);
 
@@ -37,11 +38,11 @@ export default function HeroSearch() {
       <form className="searchbar" onSubmit={show}>
         <div className="field">
           <label>{t("f_city")}</label>
-          <select value={f.city} onChange={(e) => upd("city", e.target.value)}><option value="">{t("f_anyCity")}</option>{GE_CITIES.map((c) => <option key={c.name} value={c.name}>{c.name}</option>)}</select>
+          <select value={f.city} onChange={(e) => upd("city", e.target.value)}><option value="">{t("f_anyCity")}</option>{GE_CITIES.map((c) => <option key={c.name} value={c.name}>{cityLabel(lang, c.name)}</option>)}</select>
         </div>
         <div className="field">
           <label>{t("f_type")}</label>
-          <select value={f.cat} onChange={(e) => upd("cat", e.target.value)}><option value="">{t("f_anyType")}</option>{typeKeys.map((k) => <option key={k} value={k}>{CAT_LABEL[k]}</option>)}</select>
+          <select value={f.cat} onChange={(e) => upd("cat", e.target.value)}><option value="">{t("f_anyType")}</option>{typeKeys.map((k) => <option key={k} value={k}>{t("cat_" + k)}</option>)}</select>
         </div>
         <div className="field"><label>{t("f_priceTo")}</label><input value={f.pmax} onChange={(e) => upd("pmax", e.target.value)} inputMode="numeric" placeholder="150000" /></div>
         <button className="btn btn-gold" style={{ padding: "0 26px" }} type="submit">{t("f_show")}</button>
