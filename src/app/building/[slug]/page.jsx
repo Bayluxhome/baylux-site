@@ -6,6 +6,8 @@ import { DEAL_LABEL, buildingPriceFrom, fmtMoney } from "@/data/data";
 import { getBuildingsList, findBuilding } from "@/data/source";
 import LeadButton from "@/components/LeadButton";
 import { waLink } from "@/config";
+import { getLang } from "@/lib/serverLang";
+import { t as tr } from "@/lib/dict";
 
 export const revalidate = 300;
 
@@ -26,6 +28,8 @@ export async function generateMetadata({ params }) {
 export default async function BuildingPage({ params }) {
   const b = await findBuilding(params.slug);
   if (!b) notFound();
+  const lang = getLang();
+  const t = (k) => tr(lang, k);
 
   const gallery = Array(5).fill(b.image || "/placeholder-baylux.jpg");
   const mapBuildings = [{ slug: b.slug, name: b.name, district: b.district, kind: b.kind, lat: b.lat, lng: b.lng, priceFrom: buildingPriceFrom(b), units: b.units }];
@@ -33,18 +37,18 @@ export default async function BuildingPage({ params }) {
   return (
     <div className="wrap">
       <div className="crumbs">
-        <Link href="/">Главная</Link> · <Link href="/catalog">Каталог Батуми</Link> · <span>{b.name}</span>
+        <Link href="/">{t("crumb_home")}</Link> · <Link href="/catalog">{t("crumb_catalog")}</Link> · <span>{b.name}</span>
       </div>
 
       <div className="pp-head">
         <div>
           <h1>{b.name}</h1>
           <div className="cdistrict" style={{ fontSize: 15, marginTop: 8 }}>
-            📍 Батуми · {b.district}{b.developer ? ` · застройщик ${b.developer}` : ""}{b.yearBuilt ? ` · ${b.yearBuilt} г.` : ""}
+            📍 {b.district}{b.developer ? ` · ${b.developer}` : ""}{b.yearBuilt ? ` · ${b.yearBuilt}` : ""}
           </div>
         </div>
         <div style={{ textAlign: "right" }}>
-          <div className="unit-tag">{b.units.length} объект(ов) в продаже и аренде</div>
+          <div className="unit-tag">{b.units.length} {t("bld_objects_here")}</div>
         </div>
       </div>
 
@@ -55,21 +59,21 @@ export default async function BuildingPage({ params }) {
       <div className="pp-grid">
         <div>
           <div className="pp-desc">
-            <h3>О {b.kind === "complex" ? "комплексе" : "доме"}</h3>
+            <h3>{b.kind === "complex" ? t("bld_about_complex") : t("bld_about_house")}</h3>
             <p>{b.about}</p>
           </div>
 
-          <h3 style={{ color: "var(--navy)", margin: "24px 0 4px", fontSize: 21 }}>Объекты в этом доме</h3>
+          <h3 style={{ color: "var(--navy)", margin: "24px 0 4px", fontSize: 21 }}>{t("bld_units_here")}</h3>
           <div className="units">
             <div className="urow uhead">
-              <div>Объект</div><div>Площадь</div><div>Этаж</div><div>Сделка</div><div>Цена</div>
+              <div>{t("th_object")}</div><div>{t("th_area")}</div><div>{t("th_floor")}</div><div>{t("th_deal")}</div><div>{t("th_price")}</div>
             </div>
             {b.units.map((u) => (
               <Link key={u.id} href={`/property/${u.slug}`} className="urow" style={{ color: "var(--ink)" }}>
-                <div><b>{u.type}</b>{u.rooms ? `, ${u.rooms} комн.` : ""}</div>
+                <div><b>{u.type}</b>{u.rooms ? `, ${u.rooms} ${t("rooms_short")}` : ""}</div>
                 <div>{u.area} м²</div>
                 <div>{u.floor}</div>
-                <div>{DEAL_LABEL[u.deal]}</div>
+                <div>{t("deal_" + u.deal)}</div>
                 <div className="uprice">
                   {u.priceNum ? <span className="bx-price" data-num={u.priceNum} data-cur={u.currency}>{fmtMoney(u.priceNum, u.currency)}</span> : u.price}
                   {u.deal === "sale" && u.perM2 ? <div className="perm"><span className="bx-price" data-num={u.perM2} data-cur={u.currency}>{fmtMoney(u.perM2, u.currency)}</span> /м²</div> : null}
@@ -83,14 +87,14 @@ export default async function BuildingPage({ params }) {
 
         <aside>
           <div className="cta-card">
-            <div style={{ fontWeight: 700, color: "var(--navy)", fontSize: 18 }}>Интересует объект в «{b.name}»?</div>
-            <p style={{ color: "var(--ink-soft)", fontSize: 14, margin: "8px 0 4px" }}>Подберём квартиру под бюджет и задачу, организуем просмотр.</p>
-            <LeadButton className="btn btn-gold" type="Заявка по ЖК" object={b.name} title={`Заявка — ${b.name}`}>Оставить заявку</LeadButton>
-            <a className="btn btn-wa" href={waLink(`Здравствуйте! Интересует ${b.name} в Батуми.`)} target="_blank" rel="noopener">Написать в WhatsApp</a>
-            <LeadButton className="btn btn-ghost" type="Управление" object={b.name} title="Отдать квартиру в управление">Сдать квартиру здесь в управление</LeadButton>
+            <div style={{ fontWeight: 700, color: "var(--navy)", fontSize: 18 }}>{t("bld_cta_title")} «{b.name}»?</div>
+            <p style={{ color: "var(--ink-soft)", fontSize: 14, margin: "8px 0 4px" }}>{t("bld_cta_sub")}</p>
+            <LeadButton className="btn btn-gold" type="Заявка по ЖК" object={b.name} title={`Заявка — ${b.name}`}>{t("bld_lead")}</LeadButton>
+            <a className="btn btn-wa" href={waLink(`Здравствуйте! Интересует ${b.name} в Батуми.`)} target="_blank" rel="noopener">💬 WhatsApp</a>
+            <LeadButton className="btn btn-ghost" type="Управление" object={b.name} title="Отдать квартиру в управление">{t("bld_mgmt")}</LeadButton>
             <div className="agent">
               <div className="av" />
-              <div><div style={{ fontWeight: 700, color: "var(--navy)" }}>Команда Baylux</div><div style={{ fontSize: 13, color: "var(--ink-soft)" }}>Ответим за 5 минут · RU / EN / GE</div></div>
+              <div><div style={{ fontWeight: 700, color: "var(--navy)" }}>{t("team")}</div><div style={{ fontSize: 13, color: "var(--ink-soft)" }}>{t("team_sub")}</div></div>
             </div>
           </div>
         </aside>
