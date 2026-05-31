@@ -3,7 +3,7 @@ import MapView from "@/components/MapView";
 import CategoryGrid from "@/components/CategoryGrid";
 import BuildingCard from "@/components/BuildingCard";
 import PropertyCard from "@/components/PropertyCard";
-import { buildingPriceFrom } from "@/data/data";
+import { buildingPriceFrom, GE_CITIES, CAT_LABEL } from "@/data/data";
 import { getBuildingsList, getAllUnits } from "@/data/source";
 
 export const revalidate = 300;
@@ -33,23 +33,20 @@ export default async function HomePage() {
           </div>
           <form className="searchbar" action="/catalog">
             <div className="field">
-              <label>Район</label>
-              <select name="district">
-                <option value="">Любой район</option>
-                <option>Старый Батуми</option><option>Новый бульвар</option>
-                <option>Аэропорт</option><option>Гонио</option>
+              <label>Город</label>
+              <select name="city">
+                <option value="">Любой город</option>
+                {GE_CITIES.map((c) => <option key={c.name} value={c.name}>{c.name}</option>)}
               </select>
             </div>
             <div className="field">
               <label>Тип</label>
               <select name="cat">
                 <option value="">Любой тип</option>
-                <option value="apartment">Квартира</option>
-                <option value="house">Дом</option>
-                <option value="commercial">Коммерция</option>
+                {Object.entries(CAT_LABEL).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
               </select>
             </div>
-            <div className="field"><label>Цена до, $</label><input name="max" defaultValue="150 000" /></div>
+            <div className="field"><label>Цена до, $</label><input name="pmax" inputMode="numeric" placeholder="150000" /></div>
             <button className="btn btn-gold" style={{ padding: "0 26px" }} type="submit">Показать объекты</button>
             <Link className="btn btn-ghost" href="/map" style={{ padding: "0 20px", border: "1px solid var(--navy)", whiteSpace: "nowrap" }}>
               <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0Z" /><circle cx="12" cy="10" r="3" /></svg>
