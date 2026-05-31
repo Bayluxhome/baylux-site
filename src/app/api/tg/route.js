@@ -1,13 +1,17 @@
 import { supa } from "@/lib/supabase";
+import { slugify } from "@/data/sheet";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 const TOKEN = process.env.TELEGRAM_BOT_TOKEN;
 const ADMIN = process.env.TELEGRAM_CHAT_ID; // чат CEO для модерации
+const CHANNEL = process.env.TELEGRAM_CHANNEL || ""; // публичный канал-витрина, напр. @baylux_batumi
 const API = `https://api.telegram.org/bot${TOKEN}`;
 const SECRET = (TOKEN || "").slice(-24).replace(/[^A-Za-z0-9_-]/g, "") || "baylux";
 const SITE = "https://baylux-site.vercel.app";
+
+const esc = (s) => String(s == null ? "" : s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
 
 const DEAL_MAP = { "продажа": "sale", "аренда": "rent", "посуточно": "daily" };
 const DEAL_RU = { sale: "Продажа", rent: "Аренда", daily: "Посуточно" };
@@ -195,12 +199,62 @@ async function onMessage(msg) {
   }
 }
 
+// Ссылка на конкретный объект на сайте (slug собирается так же, как в source.js groupRows)
+function unitLink(row) {
+  const uslug = slugify(`${row.building_name || "obj"}-${row.type || ""}-${row.price || ""}`);
+  return `${SITE}/property/${uslug}`;
+}
+// Публикация объявления в канал-витрину. Возвращает массив message_id (для последующего удаления).
+async function postToChannel(row) {
+  if (!CHANNEL) return [];
+  const per = row.per ? " " + row.per : "";
+  const bits = [`📐 ${row.area || 0} м²`];
+  if (row.rooms) bits.push(`🛏 ${row.rooms} комн.`);
+  if (row.floor && row.floor !== "—") bits.push(`🏢 этаж ${esc(row.floor)}`);
+  const about = (row.about || "").trim();
+  const aboutShort = about.length > 380 ? about.slice(0, 380).trim() + "…" : about;
+  const cap =
+    `🆕 <b>${DEAL_RU[row.deal] || row.deal} · ${esc(row.type)}</b>\n` +
+    `📍 ${esc(row.building_name)}\n` +
+    `💰 <b>${esc(row.price)}${per}</b>\n` +
+    `${bits.join(" · ")}\n` +
+    `📞 ${esc(row.contact || "по запросу")}\n` +
+    (aboutShort ? `\n${esc(aboutShort)}\n` : "") +
+    `\n🔗 <a href="${unitLink(row)}">Открыть на сайте Baylux</a>`;
+  const photos = Array.isArray(row.photos) ? row.photos.slice(0, 10) : [];
+  try {
+    if (photos.length) {
+      const media = photos.map((u, i) => (i === 0 ? { type: "photo", media: u, caption: cap, parse_mode: "HTML" } : { type: "photo", media: u }));
+      const res = await tg("sendMediaGroup", { chat_id: CHANNEL, media });
+      return (res?.result || []).map((m) => m.message_id);
+    }
+    const res = await tg("sendMessage", { chat_id: CHANNEL, text: cap, parse_mode: "HTML" });
+    return res?.result?.message_id ? [res.result.message_id] : [];
+  } catch (e) {
+    console.error("channel post error:", e?.message);
+    return [];
+  }
+}
+
 async function onCallback(cb) {
   const [action, id] = (cb.data || "").split(":");
   if (!id) return;
   const status = action === "ap" ? "approved" : "rejected"; // un/rj → rejected
-  const { data: row } = await supa.from("listings").update({ status }).eq("id", id).select("tg_user_id,type,building_name").single();
+  const { data: row } = await supa.from("listings").update({ status }).eq("id", id).select("*").single();
   await tg("answerCallbackQuery", { callback_query_id: cb.id, text: status === "approved" ? "Опубликовано" : "Снято с публикации" });
+
+  // Канал-витрина: при одобрении публикуем (один раз), при снятии — удаляем посты
+  if (row && CHANNEL) {
+    if (action === "ap" && !row.tg_post_id) {
+      const ids = await postToChannel(row);
+      if (ids.length) await supa.from("listings").update({ tg_post_id: ids.join(",") }).eq("id", id);
+    } else if (action !== "ap" && row.tg_post_id) {
+      for (const mid of String(row.tg_post_id).split(",")) {
+        await tg("deleteMessage", { chat_id: CHANNEL, message_id: Number(mid) });
+      }
+      await supa.from("listings").update({ tg_post_id: null }).eq("id", id);
+    }
+  }
   const tag = status === "approved" ? "✅ ОПУБЛИКОВАНО" : "❌ СНЯТО С ПУБЛИКАЦИИ";
   const base = (cb.message.text || "").replace(/\n\n(✅ ОПУБЛИКОВАНО|❌ СНЯТО С ПУБЛИКАЦИИ).*$/s, "");
   await tg("editMessageText", { chat_id: cb.message.chat.id, message_id: cb.message.message_id, text: base + `\n\n${tag}`, parse_mode: "HTML", reply_markup: modButtons(status, id) });
