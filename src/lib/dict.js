@@ -20,6 +20,7 @@ export const DICT = {
     foot_about_l: "О компании", foot_contacts: "Контакты", foot_terms: "Условия", foot_privacy: "Конфиденциальность",
     // карточки
     rooms_short: "комн.", per_m2: "за м²", deal_sale: "Продажа", deal_rent: "Аренда", deal_daily: "Посуточно",
+    badge_jk: "ЖК", badge_house: "Дом", w_from: "от", w_objects: "объект(ов)",
   },
   en: {
     nav_sale: "Buy", nav_rent: "Rent", nav_new: "New buildings", nav_daily: "Daily", nav_services: "Services",
@@ -36,6 +37,7 @@ export const DICT = {
     foot_realty: "Real estate", foot_company: "Company", foot_mgmt: "Property management", foot_cleaning: "Cleaning", foot_realtors: "Realtors",
     foot_about_l: "About", foot_contacts: "Contacts", foot_terms: "Terms", foot_privacy: "Privacy",
     rooms_short: "rooms", per_m2: "per m²", deal_sale: "Sale", deal_rent: "Rent", deal_daily: "Daily",
+    badge_jk: "Complex", badge_house: "House", w_from: "from", w_objects: "object(s)",
   },
   ka: {
     nav_sale: "ყიდვა", nav_rent: "ქირა", nav_new: "ახალი კორპუსები", nav_daily: "დღიურად", nav_services: "სერვისები",
@@ -52,6 +54,7 @@ export const DICT = {
     foot_realty: "უძრავი ქონება", foot_company: "კომპანია", foot_mgmt: "ქონების მართვა", foot_cleaning: "დასუფთავება", foot_realtors: "რიელტორები",
     foot_about_l: "კომპანიის შესახებ", foot_contacts: "კონტაქტი", foot_terms: "პირობები", foot_privacy: "კონფიდენციალურობა",
     rooms_short: "ოთახი", per_m2: "მ²-ზე", deal_sale: "გაყიდვა", deal_rent: "ქირა", deal_daily: "დღიურად",
+    badge_jk: "კომპლექსი", badge_house: "სახლი", w_from: "დან", w_objects: "ობიექტი",
   },
 };
 

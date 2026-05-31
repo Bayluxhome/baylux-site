@@ -1,13 +1,17 @@
+"use client";
 import Link from "next/link";
 import Image from "next/image";
-import { DEAL_LABEL, DEAL_CLASS, fmtMoney, perSuffix } from "@/data/data";
+import { DEAL_CLASS, fmtMoney, perSuffix } from "@/data/data";
 import FavButton from "@/components/FavButton";
+import { useLang } from "@/components/LangContext";
 
 export default function PropertyCard({ unit }) {
+  const { t } = useLang();
   const b = unit.building;
+  const rs = t("rooms_short");
   const photos = unit.photos && unit.photos.length > 1 ? unit.photos : null;
   const alt = `${unit.type}, ${unit.area} м² — ${b.name}`;
-  const fav = { slug: unit.slug, href: `/property/${unit.slug}`, title: `${unit.type}${unit.rooms ? `, ${unit.rooms} комн.` : ""}, ${unit.area} м²`, sub: `📍 ${b.district || "Батуми"} · ${b.name}`, price: unit.price, img: unit.img };
+  const fav = { slug: unit.slug, href: `/property/${unit.slug}`, title: `${unit.type}${unit.rooms ? `, ${unit.rooms} ${rs}` : ""}, ${unit.area} м²`, sub: `📍 ${b.district || "Батуми"} · ${b.name}`, price: unit.price, img: unit.img };
   return (
     <Link className="card" href={`/property/${unit.slug}`}>
       <div className="ph">
@@ -22,7 +26,7 @@ export default function PropertyCard({ unit }) {
         ) : (
           <Image src={unit.img} alt={alt} fill sizes="(max-width:560px) 100vw, 360px" style={{ objectFit: "cover" }} />
         )}
-        <span className={"badge " + DEAL_CLASS[unit.deal]}>{DEAL_LABEL[unit.deal]}</span>
+        <span className={"badge " + DEAL_CLASS[unit.deal]}>{t("deal_" + unit.deal)}</span>
         <FavButton item={fav} />
       </div>
       <div className="body">
@@ -33,14 +37,14 @@ export default function PropertyCard({ unit }) {
           {" "}
           <span className="perm">
             {unit.deal === "sale" && unit.perM2
-              ? <><span className="bx-price" data-num={unit.perM2} data-cur={unit.currency}>{fmtMoney(unit.perM2, unit.currency)}</span> за м²</>
+              ? <><span className="bx-price" data-num={unit.perM2} data-cur={unit.currency}>{fmtMoney(unit.perM2, unit.currency)}</span> {t("per_m2")}</>
               : unit.per}
           </span>
         </div>
-        <div className="ctitle">{unit.type}{unit.rooms ? `, ${unit.rooms} комн.` : ""}, {unit.area} м²</div>
-        <div className="cdistrict">📍 Батуми{b.district ? ` · ${b.district}` : ""} · {b.name}</div>
+        <div className="ctitle">{unit.type}{unit.rooms ? `, ${unit.rooms} ${rs}` : ""}, {unit.area} м²</div>
+        <div className="cdistrict">📍 {b.district || "Батуми"}{b.district && b.name ? " · " : ""}{b.name}</div>
         <div className="meta">
-          {unit.rooms ? <span>🛏 {unit.rooms} комн.</span> : null}
+          {unit.rooms ? <span>🛏 {unit.rooms} {rs}</span> : null}
           <span>📐 {unit.area} м²</span><span>🏢 {unit.floor}</span>
         </div>
       </div>
