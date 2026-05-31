@@ -83,7 +83,7 @@ export default async function HomePage() {
         </div>
       </section>
 
-      <section className="wrap" style={{ padding: "10px 0 30px" }}>
+      <section className="wrap" style={{ paddingBlock: "10px 30px" }}>
         <div className="sec-head"><div><h2>Свежие объекты</h2><p>Последние квартиры и апартаменты в базе Baylux.</p></div></div>
         <div className="cards three">
           {freshUnits.map((u) => <PropertyCard key={u.id} unit={u} />)}
