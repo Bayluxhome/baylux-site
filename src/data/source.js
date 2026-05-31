@@ -107,8 +107,10 @@ async function getBuildings() {
   }
   const merged = mergeBuildings(fromSupa, fromSheet);
   const list = merged.length ? merged : LOCAL;
+  // Обогащаем цену/валюту/цену за м² для ВСЕХ источников (Sheet/локальные без price_num)
+  const enriched = list.map((b) => ({ ...b, units: b.units.map(enrichUnit) }));
   // Продвигаемые объекты — выше (boost ставится вручную; оплата позже)
-  return list.slice().sort((a, b) => (b.boost || 0) - (a.boost || 0));
+  return enriched.sort((a, b) => (b.boost || 0) - (a.boost || 0));
 }
 
 export async function getBuildingsList() {
