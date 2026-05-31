@@ -1,6 +1,6 @@
 import Link from "next/link";
 import Image from "next/image";
-import { DEAL_LABEL, DEAL_CLASS } from "@/data/data";
+import { DEAL_LABEL, DEAL_CLASS, fmtMoney, perSuffix } from "@/data/data";
 
 export default function PropertyCard({ unit }) {
   const b = unit.building;
@@ -23,7 +23,17 @@ export default function PropertyCard({ unit }) {
         <span className={"badge " + DEAL_CLASS[unit.deal]}>{DEAL_LABEL[unit.deal]}</span>
       </div>
       <div className="body">
-        <div className="price">{unit.priceNum ? <span className="bx-price" data-num={unit.priceNum} data-cur={unit.currency}>{unit.price}</span> : unit.price} <span className="perm">{unit.per}</span></div>
+        <div className="price">
+          {unit.priceNum
+            ? <><span className="bx-price" data-num={unit.priceNum} data-cur={unit.currency}>{fmtMoney(unit.priceNum, unit.currency)}</span>{perSuffix(unit.deal)}</>
+            : unit.price}
+          {" "}
+          <span className="perm">
+            {unit.deal === "sale" && unit.perM2
+              ? <><span className="bx-price" data-num={unit.perM2} data-cur={unit.currency}>{fmtMoney(unit.perM2, unit.currency)}</span> за м²</>
+              : unit.per}
+          </span>
+        </div>
         <div className="ctitle">{unit.type}{unit.rooms ? `, ${unit.rooms} комн.` : ""}, {unit.area} м²</div>
         <div className="cdistrict">📍 Батуми{b.district ? ` · ${b.district}` : ""} · {b.name}</div>
         <div className="meta">

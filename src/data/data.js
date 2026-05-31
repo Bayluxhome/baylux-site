@@ -41,6 +41,9 @@ export function unitIsNew(u) {
   return u.isNew === true || /новострой/i.test(u.type || "");
 }
 
+export const fmtMoney = (n, c) => (c === "GEL" ? "₾" : "$") + String(Math.round(n)).replace(/\B(?=(\d{3})+(?!\d))/g, " ");
+export const perSuffix = (deal) => (deal === "rent" ? " / мес" : deal === "daily" ? " / ночь" : "");
+
 function img(seed) { return "/placeholder-baylux.jpg"; }
 
 // type: "complex" — ЖК/новостройка с множеством квартир; "house" — частный объект (1 лот)

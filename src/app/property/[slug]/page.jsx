@@ -2,7 +2,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { notFound } from "next/navigation";
 import MapView from "@/components/MapView";
-import { DEAL_LABEL } from "@/data/data";
+import { DEAL_LABEL, fmtMoney, perSuffix } from "@/data/data";
 import { getBuildingsList, findUnit } from "@/data/source";
 import LeadButton from "@/components/LeadButton";
 import { waLink } from "@/config";
@@ -60,8 +60,8 @@ export default async function PropertyPage({ params }) {
           {u.boost > 0 && <span className="boost-badge" style={{ marginTop: 8, display: "inline-block" }}>⭐ Продвигается</span>}
         </div>
         <div style={{ textAlign: "right" }}>
-          <div className="pp-price">{u.priceNum ? <span className="bx-price" data-num={u.priceNum} data-cur={u.currency}>{u.price}</span> : u.price}</div>
-          <div className="perm">{u.per}</div>
+          <div className="pp-price">{u.priceNum ? <><span className="bx-price" data-num={u.priceNum} data-cur={u.currency}>{fmtMoney(u.priceNum, u.currency)}</span>{perSuffix(u.deal)}</> : u.price}</div>
+          <div className="perm">{u.deal === "sale" && u.perM2 ? <><span className="bx-price" data-num={u.perM2} data-cur={u.currency}>{fmtMoney(u.perM2, u.currency)}</span> за м²</> : u.per}</div>
         </div>
       </div>
 
@@ -93,8 +93,8 @@ export default async function PropertyPage({ params }) {
 
         <aside>
           <div className="cta-card">
-            <div className="price">{u.priceNum ? <span className="bx-price" data-num={u.priceNum} data-cur={u.currency}>{u.price}</span> : u.price}</div>
-            <div className="perm" style={{ marginBottom: 6 }}>{u.per}</div>
+            <div className="price">{u.priceNum ? <><span className="bx-price" data-num={u.priceNum} data-cur={u.currency}>{fmtMoney(u.priceNum, u.currency)}</span>{perSuffix(u.deal)}</> : u.price}</div>
+            <div className="perm" style={{ marginBottom: 6 }}>{u.deal === "sale" && u.perM2 ? <><span className="bx-price" data-num={u.perM2} data-cur={u.currency}>{fmtMoney(u.perM2, u.currency)}</span> за м²</> : u.per}</div>
             <LeadButton className="btn btn-gold" type={DEAL_LABEL[u.deal]} object={`${u.type}, ${u.area} м² — ${b.name}`} title={ctaMain}>{ctaMain}</LeadButton>
             {cleanPhone && <a className="seller-phone" href={`tel:+${cleanPhone}`}>📞 +{cleanPhone}</a>}
             <div className="contact-btns">

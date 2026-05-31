@@ -32,13 +32,18 @@ function groupRows(rows) {
     if (boost > (b.boost || 0)) b.boost = boost;
     if (r.complex && !b.complex) b.complex = r.complex;
     const uslug = slugify(name + "-" + (r.type || "") + "-" + (r.price || b.units.length + 1));
+    const dealU = r.deal || "sale";
+    const areaN = r.area ? parseInt(r.area, 10) : 0;
+    const pNum = r.price_num != null ? Number(r.price_num) : (parseInt(String(r.price || "").replace(/[^\d]/g, ""), 10) || null);
+    const curU = r.currency === "GEL" ? "GEL" : (/₾|gel|лар/i.test(String(r.price || "")) ? "GEL" : "USD");
+    const perM2 = (dealU === "sale" && areaN > 0 && pNum) ? Math.round(pNum / areaN) : null;
     b.units.push({
       id: String(r.id || slug + "-" + b.units.length),
       slug: uslug,
-      deal: r.deal || "sale",
+      deal: dealU,
       type: r.type || "Квартира",
       rooms: r.rooms ? parseInt(r.rooms, 10) : 0,
-      area: r.area ? parseInt(r.area, 10) : 0,
+      area: areaN,
       floor: r.floor || "—",
       price: r.price || "—",
       per: r.per || "",
@@ -52,8 +57,9 @@ function groupRows(rows) {
       complex: r.complex || "",
       amenities: typeof r.amenities === "string" && r.amenities ? r.amenities.split(",").map((s) => s.trim()).filter(Boolean) : (Array.isArray(r.amenities) ? r.amenities : []),
       noCommission: !!r.no_commission,
-      currency: r.currency === "GEL" ? "GEL" : "USD",
-      priceNum: r.price_num != null ? Number(r.price_num) : null,
+      currency: curU,
+      priceNum: pNum,
+      perM2,
       boost,
     });
   });
@@ -109,10 +115,19 @@ export async function getBuildingsList() {
   return getBuildings();
 }
 
+// Доп. обогащение цены (для локальных/сторонних данных без price_num)
+function enrichUnit(u) {
+  if (u.currency) return u; // из groupRows уже посчитано
+  const pNum = parseInt(String(u.price || "").replace(/[^\d]/g, ""), 10) || null;
+  const currency = /₾|gel|лар/i.test(String(u.price || "")) ? "GEL" : "USD";
+  const perM2 = (u.deal === "sale" && u.area > 0 && pNum) ? Math.round(pNum / u.area) : null;
+  return { ...u, priceNum: pNum, currency, perM2 };
+}
+
 export async function getAllUnits() {
   const bs = await getBuildings();
   return bs
-    .flatMap((b) => b.units.map((u) => ({ ...u, building: b, img: u.unit_image || b.image })))
+    .flatMap((b) => b.units.map((u) => ({ ...enrichUnit(u), building: b, img: u.unit_image || b.image })))
     .sort((a, b) => (b.boost || 0) - (a.boost || 0));
 }
 
@@ -125,7 +140,7 @@ export async function findUnit(slug) {
   const bs = await getBuildings();
   for (const b of bs) {
     const u = b.units.find((x) => x.slug === slug);
-    if (u) return { ...u, building: b, img: u.unit_image || b.image };
+    if (u) return { ...enrichUnit(u), building: b, img: u.unit_image || b.image };
   }
   return null;
 }
