@@ -60,7 +60,7 @@ export default async function BuildingPage({ params }) {
         <div>
           <div className="pp-desc">
             <h3>{b.kind === "complex" ? t("bld_about_complex") : t("bld_about_house")}</h3>
-            <p>{b.about}</p>
+            <p>{b["desc_" + lang] || b.about}</p>
           </div>
 
           <h3 style={{ color: "var(--navy)", margin: "24px 0 4px", fontSize: 21 }}>{t("bld_units_here")}</h3>

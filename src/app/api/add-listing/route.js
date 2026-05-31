@@ -65,8 +65,10 @@ export async function POST(req) {
   const priceNum = parseInt(String(b.price || "").replace(/[^\d]/g, ""), 10) || null;
   const priceStr = fmtPrice(priceNum, currency) || normPrice(b.price);
   const amenities = Array.isArray(b.amenities) ? b.amenities.filter(Boolean).join(", ") : (b.amenities || "");
+  const lang = ["ru", "en", "ka"].includes(b.lang) ? b.lang : "ru";
+  const aboutText = (b.about || "").toString();
   const row = {
-    status: "pending",
+    status: "pending", lang, ["desc_" + lang]: aboutText,
     building_name: (b.address || "").trim() || (b.type ? `${b.type}, ${city}` : "Объект"),
     kind: /новострой/i.test(b.type || "") || (b.complex || "").trim() ? "complex" : "house",
     district: city,

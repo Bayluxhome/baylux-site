@@ -1,5 +1,6 @@
 import { supa } from "@/lib/supabase";
 import { slugify } from "@/data/sheet";
+import { translateDescriptions } from "@/lib/translate";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -548,6 +549,14 @@ async function onCallback(cb) {
   const status = action === "ap" ? "approved" : "rejected";
   const { data: row } = await supa.from("listings").update({ status }).eq("id", id).select("*").single();
   await tg("answerCallbackQuery", { callback_query_id: cb.id, text: status === "approved" ? "Опубликовано" : "Снято с публикации" });
+
+  // Автоперевод описания на 3 языка при одобрении (если ключ Google задан и ещё не переведено)
+  if (row && action === "ap" && row.about && (!row.desc_ru || !row.desc_en || !row.desc_ka)) {
+    try {
+      const descs = await translateDescriptions(row.about, row.lang || "ru");
+      if (descs && Object.keys(descs).length) { await supa.from("listings").update(descs).eq("id", id); Object.assign(row, descs); }
+    } catch (e) { console.error("translate on approve:", e?.message); }
+  }
 
   if (row && CHANNEL) {
     if (action === "ap" && !row.tg_post_id) {

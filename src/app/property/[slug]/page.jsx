@@ -87,7 +87,9 @@ export default async function PropertyPage({ params }) {
           )}
           <div className="pp-desc">
             <h3>{t("about_h")}</h3>
-            <p>{ty}, {u.area} м²{u.rooms ? `, ${u.rooms} ${t("rooms_short")}` : ""}, {u.floor}. {t("about_p")}</p>
+            {u["desc_" + lang] || u.about
+              ? <p style={{ whiteSpace: "pre-line" }}>{u["desc_" + lang] || u.about}</p>
+              : <p>{ty}, {u.area} м²{u.rooms ? `, ${u.rooms} ${t("rooms_short")}` : ""}, {u.floor}. {t("about_p")}</p>}
             <h3>{t("near_h")}</h3>
             <p>{t("near_p")}</p>
             <h3>{t("why_h")}</h3>

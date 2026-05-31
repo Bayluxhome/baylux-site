@@ -23,6 +23,8 @@ function groupRows(rows) {
         lng: Number(r.lng) || 41.63,
         image: (r.photos && r.photos[0]) || "/placeholder-baylux.jpg",
         about: r.about || "",
+        lang: r.lang || "ru",
+        desc_ru: r.desc_ru || "", desc_en: r.desc_en || "", desc_ka: r.desc_ka || "",
         units: [],
       });
     }
@@ -61,6 +63,9 @@ function groupRows(rows) {
       priceNum: pNum,
       perM2,
       boost,
+      about: r.about || "",
+      lang: r.lang || "ru",
+      desc_ru: r.desc_ru || "", desc_en: r.desc_en || "", desc_ka: r.desc_ka || "",
     });
   });
   return Array.from(by.values()).filter((b) => b.units.length > 0);

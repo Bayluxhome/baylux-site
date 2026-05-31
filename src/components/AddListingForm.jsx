@@ -76,7 +76,7 @@ export default function AddListingForm({ initial, editId }) {
         if (j.ok) newUrls.push(j.url);
       }
       const photos = [...existingPhotos, ...newUrls].slice(0, 10);
-      const payload = { ...f, contact: phone, amenities, lat: geo?.lat, lng: geo?.lng, photos };
+      const payload = { ...f, contact: phone, amenities, lat: geo?.lat, lng: geo?.lng, photos, lang };
       if (editId) payload.id = editId;
       const r = await fetch(editId ? "/api/edit-listing" : "/api/add-listing", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) });
       const j = await r.json();
