@@ -19,3 +19,7 @@ alter table users add column if not exists lang text default 'ru';
 
 -- Фото дома/фасада для обложки карточки здания/ЖК (если не задано — берём первое фото объявления)
 alter table listings add column if not exists facade_photo text;
+
+-- Вход по email (magic-link): email в токенах входа + владелец-объявления по email
+alter table login_tokens add column if not exists email text;
+alter table listings add column if not exists owner_email text;

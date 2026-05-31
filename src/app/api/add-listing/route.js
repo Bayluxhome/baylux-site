@@ -81,11 +81,11 @@ export async function POST(req) {
     complex: (b.complex || "").toString().trim(), amenities, no_commission: !!b.noCommission,
     price: priceStr, currency, price_num: priceNum, per: deal === "rent" ? "в месяц" : deal === "daily" ? "в сутки" : "",
     about: (b.about || "").toString(), photos: Array.isArray(b.photos) ? b.photos.slice(0, 10) : [], facade_photo: (b.facade || "").toString() || null,
-    tg_user_id: session.id, tg_username: cleanTg(b.tg) || session.username || "", contact: phone, phone,
+    tg_user_id: session.id ?? null, owner_email: session.email || null, tg_username: cleanTg(b.tg) || session.username || "", contact: phone, phone,
   };
   const { data: ins, error } = await supa.from("listings").insert(row).select("id").single();
   if (error) return Response.json({ ok: false });
-  if (session.id) await supa.from("users").upsert({ tg_user_id: session.id, phone, username: session.username || "" }, { onConflict: "tg_user_id" });
+  if (session.id != null) await supa.from("users").upsert({ tg_user_id: session.id, phone, username: session.username || "" }, { onConflict: "tg_user_id" });
 
   if (ADMIN && TOKEN) {
     if (row.photos.length) await tg("sendMediaGroup", { chat_id: ADMIN, media: row.photos.map((u) => ({ type: "photo", media: u })) });

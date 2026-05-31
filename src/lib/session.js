@@ -24,6 +24,14 @@ export function verifySession(token) {
   }
 }
 
+// Принадлежит ли объявление текущей сессии (Telegram-id ИЛИ email).
+export function owns(session, row) {
+  if (!session || !row) return false;
+  if (session.id != null && row.tg_user_id != null && Number(row.tg_user_id) === Number(session.id)) return true;
+  if (session.email && row.owner_email && String(row.owner_email).toLowerCase() === String(session.email).toLowerCase()) return true;
+  return false;
+}
+
 // Проверка подписи данных Telegram Login Widget.
 export function verifyTelegramAuth(params) {
   const token = process.env.TELEGRAM_BOT_TOKEN || "";

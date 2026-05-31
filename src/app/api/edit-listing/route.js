@@ -1,5 +1,5 @@
 import { cookies } from "next/headers";
-import { verifySession } from "@/lib/session";
+import { verifySession, owns } from "@/lib/session";
 import { supa } from "@/lib/supabase";
 
 export const runtime = "nodejs";
@@ -45,8 +45,8 @@ export async function POST(req) {
   if (!b.id) return Response.json({ ok: false, error: "id" }, { status: 400 });
 
   // Проверка владельца
-  const { data: existing } = await supa.from("listings").select("id, tg_user_id, tg_post_id").eq("id", b.id).single();
-  if (!existing || String(existing.tg_user_id) !== String(session.id)) return Response.json({ ok: false, error: "forbidden" }, { status: 403 });
+  const { data: existing } = await supa.from("listings").select("id, tg_user_id, owner_email, tg_post_id").eq("id", b.id).single();
+  if (!owns(session, existing)) return Response.json({ ok: false, error: "forbidden" }, { status: 403 });
 
   const phone = gePhone(b.contact);
   if (!phone) return Response.json({ ok: false, error: "phone" }, { status: 400 });

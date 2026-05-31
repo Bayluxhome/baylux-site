@@ -1,5 +1,5 @@
 import { cookies } from "next/headers";
-import { verifySession } from "@/lib/session";
+import { verifySession, owns } from "@/lib/session";
 import { supa } from "@/lib/supabase";
 
 export const runtime = "nodejs";
@@ -16,8 +16,8 @@ export async function POST(req) {
   if (!id) return Response.json({ ok: false });
 
   // проверяем, что объявление принадлежит вошедшему пользователю
-  const { data: row } = await supa.from("listings").select("id,tg_user_id,photos").eq("id", id).single();
-  if (!row || Number(row.tg_user_id) !== Number(session.id)) return Response.json({ ok: false, error: "forbidden" }, { status: 403 });
+  const { data: row } = await supa.from("listings").select("id,tg_user_id,owner_email,photos").eq("id", id).single();
+  if (!owns(session, row)) return Response.json({ ok: false, error: "forbidden" }, { status: 403 });
 
   if (action === "delete") {
     try {

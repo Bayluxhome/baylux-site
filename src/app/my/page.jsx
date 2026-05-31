@@ -5,6 +5,7 @@ import { supa } from "@/lib/supabase";
 import { slugify } from "@/data/sheet";
 import TelegramLogin from "@/components/TelegramLogin";
 import BotLogin from "@/components/BotLogin";
+import EmailLogin from "@/components/EmailLogin";
 import MyListings from "@/components/MyListings";
 import { getLang } from "@/lib/serverLang";
 import { t as tr, typeLabel } from "@/lib/dict";
@@ -28,7 +29,9 @@ export default async function MyPage() {
         <BotLogin />
         <div style={{ margin: "24px 0 12px", color: "var(--ink-soft)", fontSize: 13 }}>{t("cab_or")}</div>
         <TelegramLogin />
-        <p style={{ color: "var(--ink-soft)", fontSize: 13, marginTop: 20 }}>
+        <div style={{ margin: "22px 0 0", color: "var(--ink-soft)", fontSize: 13 }}>{t("el_or")}</div>
+        <EmailLogin />
+        <p style={{ color: "var(--ink-soft)", fontSize: 13, marginTop: 22 }}>
           {t("cab_bot_a")} <b>@baylux_leads_bot</b> {t("cab_bot_b")}
         </p>
       </div>
@@ -37,7 +40,9 @@ export default async function MyPage() {
 
   let rows = [];
   if (supa) {
-    const { data } = await supa.from("listings").select("*").eq("tg_user_id", session.id).order("created_at", { ascending: false });
+    let q = supa.from("listings").select("*");
+    q = session.id != null ? q.eq("tg_user_id", session.id) : q.eq("owner_email", session.email);
+    const { data } = await q.order("created_at", { ascending: false });
     rows = data || [];
   }
 

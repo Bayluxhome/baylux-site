@@ -96,6 +96,7 @@ export const DICT = {
     why_clear_h: "Прозрачно", why_clear_p: "Реальные цены и условия. Без скрытых комиссий.",
     why_fast_h: "Быстро", why_fast_p: "Заявка и бронь через сайт или WhatsApp — за минуту.",
     country_ge: "Грузия", country_kz: "Казахстан", country_ae: "ОАЭ", loc_soon: "скоро", loc_all: "🇬🇪 Вся Грузия — объекты во всех городах", lp_lang: "Язык сайта", lp_curr: "Валюта сайта", md_lang: "Язык:",
+    el_or: "или войдите по email:", el_ph: "ваш email", el_btn: "Получить ссылку", el_sending: "Отправляю…", el_sent: "Письмо со ссылкой отправлено — проверьте почту (и папку «Спам»).", el_err: "Не удалось отправить. Проверьте email и попробуйте позже.", el_fail: "Ссылка недействительна или истекла. Запросите новую.",
   },
   en: {
     nav_sale: "Buy", nav_rent: "Rent", nav_new: "New buildings", nav_daily: "Daily", nav_services: "Services",
@@ -182,6 +183,7 @@ export const DICT = {
     why_clear_h: "Transparent", why_clear_p: "Real prices and terms. No hidden fees.",
     why_fast_h: "Fast", why_fast_p: "Request and booking via the site or WhatsApp — in a minute.",
     country_ge: "Georgia", country_kz: "Kazakhstan", country_ae: "UAE", loc_soon: "soon", loc_all: "🇬🇪 All Georgia — properties in all cities", lp_lang: "Site language", lp_curr: "Site currency", md_lang: "Language:",
+    el_or: "or log in by email:", el_ph: "your email", el_btn: "Get link", el_sending: "Sending…", el_sent: "A login link was sent — check your inbox (and the Spam folder).", el_err: "Couldn't send. Check the email and try later.", el_fail: "The link is invalid or expired. Request a new one.",
   },
   ka: {
     nav_sale: "ყიდვა", nav_rent: "ქირა", nav_new: "ახალი კორპუსები", nav_daily: "დღიურად", nav_services: "სერვისები",
@@ -268,6 +270,7 @@ export const DICT = {
     why_clear_h: "გამჭვირვალედ", why_clear_p: "რეალური ფასები და პირობები. ფარული საკომისიოს გარეშე.",
     why_fast_h: "სწრაფად", why_fast_p: "განაცხადი და ჯავშანი საიტით ან WhatsApp-ით — წუთში.",
     country_ge: "საქართველო", country_kz: "ყაზახეთი", country_ae: "არაბთა საამიროები", loc_soon: "მალე", loc_all: "🇬🇪 მთელი საქართველო — ობიექტები ყველა ქალაქში", lp_lang: "საიტის ენა", lp_curr: "საიტის ვალუტა", md_lang: "ენა:",
+    el_or: "ან შედით email-ით:", el_ph: "თქვენი email", el_btn: "ბმულის მიღება", el_sending: "იგზავნება…", el_sent: "შესვლის ბმული გაიგზავნა — შეამოწმეთ ფოსტა (და „სპამი“).", el_err: "ვერ გაიგზავნა. შეამოწმეთ email და სცადეთ მოგვიანებით.", el_fail: "ბმული არასწორია ან ვადაგასულია. მოითხოვეთ ახალი.",
   },
 };
 
