@@ -32,10 +32,12 @@ export default async function PropertyPage({ params }) {
   const gallery = Array.from({ length: 5 }, (_, i) => photos[i % photos.length]);
   const mapBuildings = [{ slug: b.slug, name: b.name, district: b.district, kind: b.kind, lat: b.lat, lng: b.lng, priceFrom: u.price, units: [{ slug: u.slug, deal: u.deal, type: u.type, rooms: u.rooms, area: u.area, price: u.price, per: u.per }] }];
   const ctaMain = u.deal === "daily" ? "Забронировать даты" : u.deal === "rent" ? "Снять — оставить заявку" : "Забронировать просмотр";
-  const specs = [
-    ["Тип", u.type], ["Площадь", u.area + " м²"], ["Комнат", u.rooms || "—"],
-    ["Этаж", u.floor], ["Район", b.district], ["Сделка", DEAL_LABEL[u.deal]],
-  ];
+  const specs = [["Тип", u.type], ["Площадь", u.area + " м²"], ["Комнат", u.rooms || "—"]];
+  if (u.bathrooms) specs.push(["Санузлов", u.bathrooms]);
+  specs.push(["Этаж", u.floor]);
+  if (u.year) specs.push(["Год постройки", u.year]);
+  specs.push(["Район", b.district], ["Сделка", DEAL_LABEL[u.deal]]);
+  if (u.complex) specs.push(["ЖК / дом", u.complex]);
   // Контакт продавца (из объявления): телефон и/или Telegram-ник
   const cleanPhone = (u.phone || (/^\+?\d[\d\s()\-]{6,}$/.test(u.contact || "") ? u.contact : "")).replace(/[^\d]/g, "");
   const tgUser = (u.tg_username || (String(u.contact || "").trim().startsWith("@") ? u.contact.trim().slice(1) : "")).replace(/[^A-Za-z0-9_]/g, "");
@@ -55,6 +57,7 @@ export default async function PropertyPage({ params }) {
           <div className="cdistrict" style={{ marginTop: 8, fontSize: 15 }}>
             📍 Батуми · {b.district} · <Link href={`/building/${b.slug}`} style={{ color: "var(--gold-dk)", fontWeight: 600 }}>{b.name}</Link> · {DEAL_LABEL[u.deal]}
           </div>
+          {u.boost > 0 && <span className="boost-badge" style={{ marginTop: 8, display: "inline-block" }}>⭐ Продвигается</span>}
         </div>
         <div style={{ textAlign: "right" }}>
           <div className="pp-price">{u.price}</div>
@@ -71,6 +74,12 @@ export default async function PropertyPage({ params }) {
           <div className="spec">
             {specs.map(([k, v]) => <div key={k}><small>{k}</small><b>{v}</b></div>)}
           </div>
+          {((u.amenities && u.amenities.length) || u.noCommission) && (
+            <div className="amen-row pp-amen">
+              {u.noCommission && <span className="amen-tag on amen-nc">✓ Без комиссии</span>}
+              {(u.amenities || []).map((a) => <span key={a} className="amen-tag">{a}</span>)}
+            </div>
+          )}
           <div className="pp-desc">
             <h3>Об объекте</h3>
             <p>{u.type}, {u.area} м²{u.rooms ? `, ${u.rooms} комн.` : ""}, этаж {u.floor}. {DEAL_LABEL[u.deal]} в «{b.name}», район «{b.district}». Готов к заселению, актуальные документы. Подходит как для проживания, так и под сдачу гостям.</p>

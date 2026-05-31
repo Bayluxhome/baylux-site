@@ -4,6 +4,7 @@ import MapPicker from "./MapPicker";
 
 const DEALS = [["sale", "Продажа"], ["rent", "Аренда"], ["daily", "Посуточно"]];
 const TYPES = ["Квартира", "Студия", "Дом", "Коммерция", "Офис", "Участок", "Гараж"];
+const AMENITIES = ["Мебель", "Балкон", "Терраса", "Парковка", "Ремонт «евро»", "Без ремонта", "Кондиционер", "Лифт"];
 const CITIES = ["Батуми", "Тбилиси", "Кутаиси", "Гонио", "Махинджаури", "Чакви"];
 
 // Грузинский номер: +995XXXXXXXXX, 995XXXXXXXXX или локальные 9 цифр. Иначе null.
@@ -33,12 +34,14 @@ function compress(file) {
 }
 
 export default function AddListingForm() {
-  const [f, setF] = useState({ country: "Грузия", city: "Батуми", deal: "sale", type: "Квартира", address: "", price: "", area: "", rooms: "", floor: "", about: "", contact: "", tg: "" });
+  const [f, setF] = useState({ country: "Грузия", city: "Батуми", deal: "sale", type: "Квартира", complex: "", address: "", price: "", currency: "USD", area: "", rooms: "", bathrooms: "", floor: "", year: "", about: "", contact: "", tg: "", noCommission: false });
+  const [amenities, setAmenities] = useState([]);
   const [files, setFiles] = useState([]);
   const [geo, setGeo] = useState(null);
   const [geoNote, setGeoNote] = useState("");
   const [state, setState] = useState("");
   const upd = (k, v) => setF((s) => ({ ...s, [k]: v }));
+  const toggleAmenity = (a) => setAmenities((arr) => arr.includes(a) ? arr.filter((x) => x !== a) : [...arr, a]);
 
   // Геокод адреса → ставим пин на карте автоматически
   async function geocodeAddress(addr, city) {
@@ -72,7 +75,7 @@ export default function AddListingForm() {
         const j = await r.json();
         if (j.ok) urls.push(j.url);
       }
-      const payload = { ...f, contact: phone, lat: geo?.lat, lng: geo?.lng, photos: urls };
+      const payload = { ...f, contact: phone, amenities, lat: geo?.lat, lng: geo?.lng, photos: urls };
       const r = await fetch("/api/add-listing", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) });
       const j = await r.json();
       setState(j.ok ? "done" : "error");
@@ -101,6 +104,9 @@ export default function AddListingForm() {
       <label>Тип объекта
         <select value={f.type} onChange={(e) => upd("type", e.target.value)}>{TYPES.map((t) => <option key={t} value={t}>{t}</option>)}</select>
       </label>
+      <label className="af-full">Название ЖК / дома — по желанию
+        <input value={f.complex} onChange={(e) => upd("complex", e.target.value)} placeholder="напр. ЖК Orbi City (необязательно)" />
+      </label>
       <label className="af-full">Адрес (улица, дом)
         <input value={f.address} onChange={(e) => upd("address", e.target.value)} onBlur={(e) => geocodeAddress(e.target.value, f.city)} placeholder="ул. Шерифа Химшиашвили, 1" />
       </label>
@@ -110,7 +116,10 @@ export default function AddListingForm() {
         <div className="af-hint">{geoNote || (geo ? "✓ Точка выбрана" : "Введите адрес — точка встанет сама, либо кликните по карте")}</div>
       </div>
       <label>Цена
-        <input value={f.price} onChange={(e) => upd("price", e.target.value)} placeholder="74000 или $650 / мес" />
+        <input value={f.price} onChange={(e) => upd("price", e.target.value)} inputMode="numeric" placeholder="74000" />
+      </label>
+      <label>Валюта
+        <select value={f.currency} onChange={(e) => upd("currency", e.target.value)}><option value="USD">$ USD</option><option value="GEL">₾ GEL (лари)</option></select>
       </label>
       <label>Площадь, м²
         <input value={f.area} onChange={(e) => upd("area", e.target.value)} inputMode="numeric" placeholder="56" />
@@ -118,11 +127,29 @@ export default function AddListingForm() {
       <label>Комнат
         <input value={f.rooms} onChange={(e) => upd("rooms", e.target.value)} inputMode="numeric" placeholder="2" />
       </label>
+      <label>Санузлов
+        <input value={f.bathrooms} onChange={(e) => upd("bathrooms", e.target.value)} inputMode="numeric" placeholder="1" />
+      </label>
       <label>Этаж
         <input value={f.floor} onChange={(e) => upd("floor", e.target.value)} placeholder="10/22" />
       </label>
+      <label>Год постройки
+        <input value={f.year} onChange={(e) => upd("year", e.target.value)} inputMode="numeric" placeholder="2021" />
+      </label>
       <label className="af-full">Описание
         <textarea value={f.about} onChange={(e) => upd("about", e.target.value)} rows={3} placeholder="Кратко об объекте" />
+      </label>
+      <div className="af-full">
+        <div className="af-lbl">Удобства (по желанию)</div>
+        <div className="amen-row">
+          {AMENITIES.map((a) => (
+            <button type="button" key={a} className={"amen-tag" + (amenities.includes(a) ? " on" : "")} onClick={() => toggleAmenity(a)}>{a}</button>
+          ))}
+        </div>
+      </div>
+      <label className="af-full af-check">
+        <input type="checkbox" checked={f.noCommission} onChange={(e) => upd("noCommission", e.target.checked)} />
+        <span>Без комиссии с покупателя</span>
       </label>
       <label className="af-full">Телефон для связи — Грузия, +995 (обязательно)
         <input value={f.contact} onChange={(e) => upd("contact", e.target.value)} inputMode="tel" placeholder="+995 555 12 34 56" required />

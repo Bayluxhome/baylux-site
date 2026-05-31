@@ -165,6 +165,15 @@ nav.main{display:flex;gap:2px;font-weight:500;font-size:15px}
 .af-lbl{font-size:13px;font-weight:600;color:var(--navy);margin-bottom:6px}
 .af-hint{font-size:13px;color:var(--ink-soft);margin-top:6px}
 .af-err{color:#9A4B4B;font-size:14px;margin-top:10px}
+.af-check{flex-direction:row !important;align-items:center;gap:10px}
+.af-check input{width:auto}
+.amen-row{display:flex;flex-wrap:wrap;gap:8px}
+.amen-tag{border:1px solid var(--line);background:#fff;border-radius:999px;padding:7px 14px;font-size:13px;font-weight:600;color:var(--navy);cursor:pointer}
+.amen-tag.on{background:var(--navy);color:#fff;border-color:var(--navy)}
+.amen-tag.amen-nc{background:#E8F5E9;color:#1B7A3D;border-color:#BFE3C6;cursor:default}
+.pp-amen{margin-top:14px}
+.pp-amen .amen-tag{cursor:default}
+.boost-badge{background:var(--grad-gold);color:var(--navy);font-weight:700;font-size:13px;padding:5px 12px;border-radius:999px}
 .addform-done{padding:24px 0}
 .cms{max-width:760px;padding-block:36px 56px}
 .cms h1{color:var(--navy);font-size:32px;margin-bottom:8px}

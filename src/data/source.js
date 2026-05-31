@@ -28,6 +28,9 @@ function groupRows(rows) {
     }
     const b = by.get(slug);
     if ((!b.image || b.image === "/placeholder-baylux.jpg") && r.photos && r.photos[0]) b.image = r.photos[0];
+    const boost = parseInt(r.boost, 10) || 0;
+    if (boost > (b.boost || 0)) b.boost = boost;
+    if (r.complex && !b.complex) b.complex = r.complex;
     const uslug = slugify(name + "-" + (r.type || "") + "-" + (r.price || b.units.length + 1));
     b.units.push({
       id: String(r.id || slug + "-" + b.units.length),
@@ -44,6 +47,14 @@ function groupRows(rows) {
       contact: r.contact || "",
       phone: r.phone || "",
       tg_username: r.tg_username || "",
+      year: r.year || "",
+      bathrooms: r.bathrooms ? parseInt(r.bathrooms, 10) : 0,
+      complex: r.complex || "",
+      amenities: typeof r.amenities === "string" && r.amenities ? r.amenities.split(",").map((s) => s.trim()).filter(Boolean) : (Array.isArray(r.amenities) ? r.amenities : []),
+      noCommission: !!r.no_commission,
+      currency: r.currency === "GEL" ? "GEL" : "USD",
+      priceNum: r.price_num != null ? Number(r.price_num) : null,
+      boost,
     });
   });
   return Array.from(by.values()).filter((b) => b.units.length > 0);
@@ -89,7 +100,9 @@ async function getBuildings() {
     }
   }
   const merged = mergeBuildings(fromSupa, fromSheet);
-  return merged.length ? merged : LOCAL;
+  const list = merged.length ? merged : LOCAL;
+  // Продвигаемые объекты — выше (boost ставится вручную; оплата позже)
+  return list.slice().sort((a, b) => (b.boost || 0) - (a.boost || 0));
 }
 
 export async function getBuildingsList() {
@@ -98,7 +111,9 @@ export async function getBuildingsList() {
 
 export async function getAllUnits() {
   const bs = await getBuildings();
-  return bs.flatMap((b) => b.units.map((u) => ({ ...u, building: b, img: u.unit_image || b.image })));
+  return bs
+    .flatMap((b) => b.units.map((u) => ({ ...u, building: b, img: u.unit_image || b.image })))
+    .sort((a, b) => (b.boost || 0) - (a.boost || 0));
 }
 
 export async function findBuilding(slug) {

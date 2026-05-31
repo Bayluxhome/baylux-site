@@ -21,6 +21,12 @@ function normPrice(raw) {
   if (!/[$₾€]|usd|gel|lari|лар|eur|евро/i.test(s)) s = "$" + s;
   return s.replace(/\$\s*\$+/g, "$");
 }
+// Цена числом + символ валюты → «$85 000» / «₾85 000»
+function fmtPrice(num, currency) {
+  if (!num) return null;
+  const sym = currency === "GEL" ? "₾" : "$";
+  return sym + String(num).replace(/\B(?=(\d{3})+(?!\d))/g, " ");
+}
 // Грузинский номер: +995XXXXXXXXX, 995XXXXXXXXX или локальные 9 цифр. Иначе null.
 function gePhone(raw) {
   const s = String(raw || "").replace(/[^\d]/g, "");
@@ -55,15 +61,22 @@ export async function POST(req) {
   const deal = ["sale", "rent", "daily"].includes(b.deal) ? b.deal : "sale";
   const city = (b.city || "Батуми").toString().trim() || "Батуми";
   const hasGeo = b.lat != null && b.lng != null;
+  const currency = b.currency === "GEL" ? "GEL" : "USD";
+  const priceNum = parseInt(String(b.price || "").replace(/[^\d]/g, ""), 10) || null;
+  const priceStr = fmtPrice(priceNum, currency) || normPrice(b.price);
+  const amenities = Array.isArray(b.amenities) ? b.amenities.filter(Boolean).join(", ") : (b.amenities || "");
   const row = {
     status: "pending",
     building_name: (b.address || "").trim() || (b.type ? `${b.type}, ${city}` : "Объект"),
-    kind: /новострой/i.test(b.type || "") ? "complex" : "house",
+    kind: /новострой/i.test(b.type || "") || (b.complex || "").trim() ? "complex" : "house",
     district: city,
     lat: Number(b.lat) || 41.645, lng: Number(b.lng) || 41.642,
     deal, type: b.type || "Квартира",
     rooms: parseInt(b.rooms, 10) || 0, area: parseInt(b.area, 10) || 0,
-    floor: (b.floor || "—").toString(), price: normPrice(b.price), per: deal === "rent" ? "в месяц" : deal === "daily" ? "в сутки" : "",
+    bathrooms: parseInt(b.bathrooms, 10) || null,
+    floor: (b.floor || "—").toString(), year: parseInt(b.year, 10) || null,
+    complex: (b.complex || "").toString().trim(), amenities, no_commission: !!b.noCommission,
+    price: priceStr, currency, price_num: priceNum, per: deal === "rent" ? "в месяц" : deal === "daily" ? "в сутки" : "",
     about: (b.about || "").toString(), photos: Array.isArray(b.photos) ? b.photos.slice(0, 10) : [],
     tg_user_id: session.id, tg_username: cleanTg(b.tg) || session.username || "", contact: phone, phone,
   };
