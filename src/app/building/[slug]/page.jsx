@@ -7,7 +7,7 @@ import { getBuildingsList, findBuilding } from "@/data/source";
 import LeadButton from "@/components/LeadButton";
 import { waLink } from "@/config";
 import { getLang } from "@/lib/serverLang";
-import { t as tr } from "@/lib/dict";
+import { t as tr, typeLabel } from "@/lib/dict";
 
 export const revalidate = 300;
 
@@ -70,7 +70,7 @@ export default async function BuildingPage({ params }) {
             </div>
             {b.units.map((u) => (
               <Link key={u.id} href={`/property/${u.slug}`} className="urow" style={{ color: "var(--ink)" }}>
-                <div><b>{u.type}</b>{u.rooms ? `, ${u.rooms} ${t("rooms_short")}` : ""}</div>
+                <div><b>{typeLabel(lang, u.type)}</b>{u.rooms ? `, ${u.rooms} ${t("rooms_short")}` : ""}</div>
                 <div>{u.area} м²</div>
                 <div>{u.floor}</div>
                 <div>{t("deal_" + u.deal)}</div>

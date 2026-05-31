@@ -7,7 +7,7 @@ import { getBuildingsList, findUnit } from "@/data/source";
 import LeadButton from "@/components/LeadButton";
 import { waLink } from "@/config";
 import { getLang } from "@/lib/serverLang";
-import { t as tr } from "@/lib/dict";
+import { t as tr, typeLabel, amenLabel } from "@/lib/dict";
 
 export const revalidate = 300;
 
@@ -31,12 +31,13 @@ export default async function PropertyPage({ params }) {
   const b = u.building;
   const lang = getLang();
   const t = (k) => tr(lang, k);
+  const ty = typeLabel(lang, u.type);
 
   const photos = (u.photos && u.photos.length) ? u.photos : [u.img || "/placeholder-baylux.jpg"];
   const gallery = Array.from({ length: 5 }, (_, i) => photos[i % photos.length]);
   const mapBuildings = [{ slug: b.slug, name: b.name, district: b.district, kind: b.kind, lat: b.lat, lng: b.lng, priceFrom: u.price, units: [{ slug: u.slug, deal: u.deal, type: u.type, rooms: u.rooms, area: u.area, price: u.price, per: u.per }] }];
   const ctaMain = u.deal === "daily" ? t("cta_daily") : u.deal === "rent" ? t("cta_rent") : t("cta_view");
-  const specs = [[t("sp_type"), u.type], [t("sp_area"), u.area + " м²"], [t("sp_rooms"), u.rooms || "—"]];
+  const specs = [[t("sp_type"), ty], [t("sp_area"), u.area + " м²"], [t("sp_rooms"), u.rooms || "—"]];
   if (u.bathrooms) specs.push([t("sp_bath"), u.bathrooms]);
   specs.push([t("sp_floor"), u.floor]);
   if (u.year) specs.push([t("sp_year"), u.year]);
@@ -52,12 +53,12 @@ export default async function PropertyPage({ params }) {
     <div className="wrap">
       <div className="crumbs">
         <Link href="/">{t("crumb_home")}</Link> · <Link href="/catalog">{t("crumb_catalog")}</Link> ·{" "}
-        <Link href={`/building/${b.slug}`}>{b.name}</Link> · <span>{u.type}, {u.area} м²</span>
+        <Link href={`/building/${b.slug}`}>{b.name}</Link> · <span>{ty}, {u.area} м²</span>
       </div>
 
       <div className="pp-head">
         <div>
-          <h1>{u.type}{u.rooms ? `, ${u.rooms} ${t("rooms_short")}` : ""}, {u.area} м²</h1>
+          <h1>{ty}{u.rooms ? `, ${u.rooms} ${t("rooms_short")}` : ""}, {u.area} м²</h1>
           <div className="cdistrict" style={{ marginTop: 8, fontSize: 15 }}>
             📍 {b.district} · <Link href={`/building/${b.slug}`} style={{ color: "var(--gold-dk)", fontWeight: 600 }}>{b.name}</Link> · {t("deal_" + u.deal)}
           </div>
@@ -81,12 +82,12 @@ export default async function PropertyPage({ params }) {
           {((u.amenities && u.amenities.length) || u.noCommission) && (
             <div className="amen-row pp-amen">
               {u.noCommission && <span className="amen-tag on amen-nc">✓ {t("f_noCommission")}</span>}
-              {(u.amenities || []).map((a) => <span key={a} className="amen-tag">{a}</span>)}
+              {(u.amenities || []).map((a) => <span key={a} className="amen-tag">{amenLabel(lang, a)}</span>)}
             </div>
           )}
           <div className="pp-desc">
             <h3>{t("about_h")}</h3>
-            <p>{u.type}, {u.area} м²{u.rooms ? `, ${u.rooms} ${t("rooms_short")}` : ""}, {u.floor}. {t("about_p")}</p>
+            <p>{ty}, {u.area} м²{u.rooms ? `, ${u.rooms} ${t("rooms_short")}` : ""}, {u.floor}. {t("about_p")}</p>
             <h3>{t("near_h")}</h3>
             <p>{t("near_p")}</p>
             <h3>{t("why_h")}</h3>

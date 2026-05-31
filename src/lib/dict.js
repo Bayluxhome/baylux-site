@@ -36,6 +36,24 @@ export const DICT = {
     // категории и подменю
     cat_apartment: "Квартиры", cat_house: "Дома", cat_commercial: "Коммерция", cat_office: "Офисы", cat_warehouse: "Склады", cat_land: "Участки", cat_garage: "Гаражи и паркинги", cat_jk: "Жилые комплексы", cat_cottage: "Коттеджи",
     cat_title: "Категории недвижимости", cat_subtitle: "Быстрый переход к нужному разделу — продажа, аренда, посуточно и услуги.", show_all: "Показать все", collapse: "Свернуть",
+    t_apartment: "Квартира", t_studio: "Студия", t_house: "Дом", t_commercial: "Коммерция", t_office: "Офис", t_land: "Участок", t_garage: "Гараж", t_newbuild: "Новостройка",
+    // форма добавления/редактирования
+    af_country: "Страна", af_city: "Город", af_deal: "Тип сделки", af_type: "Тип объекта",
+    af_complex: "Название ЖК / дома — по желанию", af_complex_ph: "напр. ЖК Orbi City (необязательно)",
+    af_address: "Адрес (улица, дом)", af_address_ph: "ул. Шерифа Химшиашвили, 1",
+    af_mapnote: "Точка на карте — ставится по адресу автоматически. Можно поправить кликом (включите спутник):",
+    af_geo_auto: "📍 Точка поставлена по адресу — проверьте и при необходимости передвиньте кликом по карте.",
+    af_geo_manual: "✓ Точка выбрана вручную.", af_geo_set: "✓ Точка выбрана", af_geo_hint: "Введите адрес — точка встанет сама, либо кликните по карте",
+    af_price: "Цена", af_currency: "Валюта", af_area: "Площадь, м²", af_rooms: "Комнат", af_bath: "Санузлов", af_floor: "Этаж", af_year: "Год постройки",
+    af_about: "Описание", af_about_ph: "Кратко об объекте", af_amen: "Удобства (по желанию)", af_nc: "Без комиссии с покупателя",
+    af_phone: "Телефон для связи — Грузия, +995 (обязательно)", af_tg: "Telegram для связи (@username) — по желанию", af_tg_ph: "@username (необязательно)",
+    af_cur_photos: "Текущие фото (нажмите ✕, чтобы убрать)", af_add_photos: "Добавить ещё фото", af_photos: "Фото (до 10, сжимаются автоматически)", af_newphotos: "новых фото",
+    af_saving: "Сохраняю…", af_submit: "Отправить на модерацию", af_submit_edit: "Сохранить и отправить на модерацию", af_err: "Ошибка отправки. Проверьте поля и попробуйте снова.",
+    af_alert_addr: "Укажите адрес объекта.", af_alert_phone: "Укажите грузинский номер телефона (+995). Например: +995 555 12 34 56.",
+    af_done_add_h: "✅ Объявление отправлено на модерацию", af_done_edit_h: "✅ Изменения отправлены на модерацию",
+    af_done_add_p: "Мы проверим его и опубликуем.", af_done_edit_p: "Объявление снято с публикации и появится снова после повторной проверки.",
+    af_done_tail: "Статус — в разделе «Мои объявления».", af_my: "Мои объявления",
+    am_furniture: "Мебель", am_balcony: "Балкон", am_terrace: "Терраса", am_parking: "Парковка", am_euro: "Ремонт «евро»", am_norenov: "Без ремонта", am_ac: "Кондиционер", am_elevator: "Лифт",
   },
   en: {
     nav_sale: "Buy", nav_rent: "Rent", nav_new: "New buildings", nav_daily: "Daily", nav_services: "Services",
@@ -66,6 +84,23 @@ export const DICT = {
     bld_cta_title: "Interested in an object in", bld_cta_sub: "We'll match your budget and arrange a viewing.", bld_lead: "Send request", bld_mgmt: "Put an apartment here under management",
     cat_apartment: "Apartments", cat_house: "Houses", cat_commercial: "Commercial", cat_office: "Offices", cat_warehouse: "Warehouses", cat_land: "Land plots", cat_garage: "Garages & parking", cat_jk: "Residential complexes", cat_cottage: "Cottages",
     cat_title: "Property categories", cat_subtitle: "Quick access — sale, rent, daily and services.", show_all: "Show all", collapse: "Collapse",
+    t_apartment: "Apartment", t_studio: "Studio", t_house: "House", t_commercial: "Commercial", t_office: "Office", t_land: "Land plot", t_garage: "Garage", t_newbuild: "New building",
+    af_country: "Country", af_city: "City", af_deal: "Deal type", af_type: "Property type",
+    af_complex: "Complex / building name — optional", af_complex_ph: "e.g. Orbi City (optional)",
+    af_address: "Address (street, building)", af_address_ph: "Sherif Khimshiashvili St, 1",
+    af_mapnote: "Map point — set automatically from the address. You can adjust it by clicking (enable satellite):",
+    af_geo_auto: "📍 Point set from the address — check it and move it by clicking the map if needed.",
+    af_geo_manual: "✓ Point selected manually.", af_geo_set: "✓ Point selected", af_geo_hint: "Enter the address — the point will appear, or click on the map",
+    af_price: "Price", af_currency: "Currency", af_area: "Area, m²", af_rooms: "Rooms", af_bath: "Bathrooms", af_floor: "Floor", af_year: "Year built",
+    af_about: "Description", af_about_ph: "Briefly about the property", af_amen: "Amenities (optional)", af_nc: "No buyer commission",
+    af_phone: "Contact phone — Georgia, +995 (required)", af_tg: "Telegram for contact (@username) — optional", af_tg_ph: "@username (optional)",
+    af_cur_photos: "Current photos (click ✕ to remove)", af_add_photos: "Add more photos", af_photos: "Photos (up to 10, auto-compressed)", af_newphotos: "new photos",
+    af_saving: "Saving…", af_submit: "Submit for moderation", af_submit_edit: "Save and submit for moderation", af_err: "Submit error. Check the fields and try again.",
+    af_alert_addr: "Please enter the property address.", af_alert_phone: "Please enter a Georgian phone number (+995). For example: +995 555 12 34 56.",
+    af_done_add_h: "✅ Listing submitted for moderation", af_done_edit_h: "✅ Changes submitted for moderation",
+    af_done_add_p: "We'll review and publish it.", af_done_edit_p: "The listing was unpublished and will reappear after re-review.",
+    af_done_tail: "Status is in the “My listings” section.", af_my: "My listings",
+    am_furniture: "Furniture", am_balcony: "Balcony", am_terrace: "Terrace", am_parking: "Parking", am_euro: "Renovated (euro)", am_norenov: "No renovation", am_ac: "Air conditioning", am_elevator: "Elevator",
   },
   ka: {
     nav_sale: "ყიდვა", nav_rent: "ქირა", nav_new: "ახალი კორპუსები", nav_daily: "დღიურად", nav_services: "სერვისები",
@@ -96,10 +131,47 @@ export const DICT = {
     bld_cta_title: "გაინტერესებთ ობიექტი —", bld_cta_sub: "შევარჩევთ ბიუჯეტის მიხედვით და მოვაწყობთ ჩვენებას.", bld_lead: "განაცხადის დატოვება", bld_mgmt: "ბინის მართვაში გადაცემა",
     cat_apartment: "ბინები", cat_house: "სახლები", cat_commercial: "კომერციული", cat_office: "ოფისები", cat_warehouse: "საწყობები", cat_land: "მიწის ნაკვეთები", cat_garage: "გარაჟები და პარკინგი", cat_jk: "საცხოვრებელი კომპლექსები", cat_cottage: "კოტეჯები",
     cat_title: "უძრავი ქონების კატეგორიები", cat_subtitle: "სწრაფი გადასვლა — გაყიდვა, ქირა, დღიურად და სერვისები.", show_all: "ყველას ჩვენება", collapse: "დაკეცვა",
+    t_apartment: "ბინა", t_studio: "სტუდია", t_house: "სახლი", t_commercial: "კომერციული", t_office: "ოფისი", t_land: "მიწის ნაკვეთი", t_garage: "გარაჟი", t_newbuild: "ახალი კორპუსი",
+    af_country: "ქვეყანა", af_city: "ქალაქი", af_deal: "გარიგების ტიპი", af_type: "ობიექტის ტიპი",
+    af_complex: "კომპლექსის / სახლის სახელი — სურვილისამებრ", af_complex_ph: "მაგ. Orbi City (არასავალდებულო)",
+    af_address: "მისამართი (ქუჩა, სახლი)", af_address_ph: "შერიფ ხიმშიაშვილის ქ. 1",
+    af_mapnote: "წერტილი რუკაზე — მისამართის მიხედვით ავტომატურად. შეგიძლიათ შეასწოროთ დაჭერით (ჩართეთ სატელიტი):",
+    af_geo_auto: "📍 წერტილი დაყენებულია მისამართის მიხედვით — შეამოწმეთ და საჭიროების შემთხვევაში გადაიტანეთ რუკაზე დაჭერით.",
+    af_geo_manual: "✓ წერტილი არჩეულია ხელით.", af_geo_set: "✓ წერტილი არჩეულია", af_geo_hint: "შეიყვანეთ მისამართი — წერტილი თავად გამოჩნდება, ან დააჭირეთ რუკას",
+    af_price: "ფასი", af_currency: "ვალუტა", af_area: "ფართობი, მ²", af_rooms: "ოთახები", af_bath: "სველი წერტილი", af_floor: "სართული", af_year: "აშენების წელი",
+    af_about: "აღწერა", af_about_ph: "მოკლედ ობიექტის შესახებ", af_amen: "კეთილმოწყობა (სურვილისამებრ)", af_nc: "მყიდველისგან საკომისიოს გარეშე",
+    af_phone: "საკონტაქტო ტელეფონი — საქართველო, +995 (სავალდებულო)", af_tg: "Telegram კონტაქტისთვის (@username) — სურვილისამებრ", af_tg_ph: "@username (არასავალდებულო)",
+    af_cur_photos: "მიმდინარე ფოტოები (დააჭირეთ ✕ მოსაშორებლად)", af_add_photos: "სხვა ფოტოების დამატება", af_photos: "ფოტოები (10-მდე, ავტომატურად იკუმშება)", af_newphotos: "ახალი ფოტო",
+    af_saving: "ვინახავ…", af_submit: "მოდერაციაზე გაგზავნა", af_submit_edit: "შენახვა და მოდერაციაზე გაგზავნა", af_err: "გაგზავნის შეცდომა. შეამოწმეთ ველები და სცადეთ თავიდან.",
+    af_alert_addr: "მიუთითეთ ობიექტის მისამართი.", af_alert_phone: "მიუთითეთ ქართული ტელეფონის ნომერი (+995). მაგ.: +995 555 12 34 56.",
+    af_done_add_h: "✅ განცხადება გაგზავნილია მოდერაციაზე", af_done_edit_h: "✅ ცვლილებები გაგზავნილია მოდერაციაზე",
+    af_done_add_p: "ჩვენ შევამოწმებთ და გამოვაქვეყნებთ.", af_done_edit_p: "განცხადება მოიხსნა გამოქვეყნებიდან და ხელახლა შემოწმების შემდეგ კვლავ გამოჩნდება.",
+    af_done_tail: "სტატუსი — განყოფილებაში „ჩემი განცხადებები“.", af_my: "ჩემი განცხადებები",
+    am_furniture: "ავეჯი", am_balcony: "აივანი", am_terrace: "ტერასა", am_parking: "პარკინგი", am_euro: "ევრორემონტი", am_norenov: "რემონტის გარეშე", am_ac: "კონდიციონერი", am_elevator: "ლიფტი",
   },
 };
 
 export function t(lang, key) {
   const l = DICT[lang] ? lang : "ru";
   return DICT[l][key] || DICT.ru[key] || key;
+}
+
+// Названия типов объектов хранятся по-русски; переводим для отображения.
+const TYPE_KEY = {
+  "Квартира": "t_apartment", "Студия": "t_studio", "Дом": "t_house", "Коммерция": "t_commercial",
+  "Офис": "t_office", "Участок": "t_land", "Гараж": "t_garage", "Новостройка": "t_newbuild",
+};
+export function typeLabel(lang, type) {
+  const k = TYPE_KEY[type];
+  return k ? t(lang, k) : (type || "");
+}
+
+// Удобства хранятся по-русски (значение фильтра); переводим только подпись.
+const AMEN_KEY = {
+  "Мебель": "am_furniture", "Балкон": "am_balcony", "Терраса": "am_terrace", "Парковка": "am_parking",
+  "Ремонт «евро»": "am_euro", "Без ремонта": "am_norenov", "Кондиционер": "am_ac", "Лифт": "am_elevator",
+};
+export function amenLabel(lang, a) {
+  const k = AMEN_KEY[a];
+  return k ? t(lang, k) : (a || "");
 }
