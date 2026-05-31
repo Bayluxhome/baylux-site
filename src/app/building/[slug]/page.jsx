@@ -7,7 +7,7 @@ import { getBuildingsList, findBuilding } from "@/data/source";
 import LeadButton from "@/components/LeadButton";
 import { waLink } from "@/config";
 import { getLang } from "@/lib/serverLang";
-import { t as tr, typeLabel } from "@/lib/dict";
+import { t as tr, typeLabel, translitAddress } from "@/lib/dict";
 
 export const revalidate = 300;
 
@@ -30,7 +30,7 @@ export default async function BuildingPage({ params }) {
   if (!b) notFound();
   const lang = getLang();
   const t = (k) => tr(lang, k);
-  const bname = b["name_" + lang] || b.name;
+  const bname = b["name_" + lang] || translitAddress(b.name, lang, b.kind);
 
   const gallery = Array(5).fill(b.image || "/placeholder-baylux.jpg");
   const mapBuildings = [{ slug: b.slug, name: b.name, district: b.district, kind: b.kind, lat: b.lat, lng: b.lng, priceFrom: buildingPriceFrom(b), units: b.units }];

@@ -302,3 +302,30 @@ export function cityLabel(lang, name) {
   if (lang === "ru" || !CITY_TR[lang]) return name || "";
   return CITY_TR[lang][name] || name || "";
 }
+
+// Офлайн-транслитерация адреса (улицы) с кириллицы. ЖК-бренды и английские названия не трогаем.
+const TRANSLIT = {
+  en: { "а": "a", "б": "b", "в": "v", "г": "g", "д": "d", "е": "e", "ё": "e", "ж": "zh", "з": "z", "и": "i", "й": "y", "к": "k", "л": "l", "м": "m", "н": "n", "о": "o", "п": "p", "р": "r", "с": "s", "т": "t", "у": "u", "ф": "f", "х": "kh", "ц": "ts", "ч": "ch", "ш": "sh", "щ": "shch", "ъ": "", "ы": "y", "ь": "", "э": "e", "ю": "yu", "я": "ya" },
+  ka: { "а": "ა", "б": "ბ", "в": "ვ", "г": "გ", "д": "დ", "е": "ე", "ё": "ო", "ж": "ჟ", "з": "ზ", "и": "ი", "й": "ი", "к": "კ", "л": "ლ", "м": "მ", "н": "ნ", "о": "ო", "п": "პ", "р": "რ", "с": "ს", "т": "ტ", "у": "უ", "ф": "ფ", "х": "ხ", "ц": "ც", "ч": "ჩ", "ш": "შ", "щ": "შჩ", "ъ": "", "ы": "ი", "ь": "", "э": "ე", "ю": "იუ", "я": "ია" },
+};
+const ADDR_WORDS = {
+  en: [[/у\s*л\s*\./gi, "St."], [/улиц[аы]?/gi, "St."], [/проспект/gi, "Ave."], [/пр\./gi, "Ave."], [/переулок/gi, "Ln."], [/пер\./gi, "Ln."]],
+  ka: [[/у\s*л\s*\./gi, "ქ."], [/улиц[аы]?/gi, "ქუჩა"], [/проспект/gi, "გამზირი"], [/пр\./gi, "გამზ."], [/переулок/gi, "შესახვევი"], [/пер\./gi, "შეს."]],
+};
+export function translitAddress(name, lang, kind) {
+  const s0 = name || "";
+  if (lang === "ru" || !TRANSLIT[lang]) return s0;
+  if (/[A-Za-z]/.test(s0)) return s0;           // уже латиница/бренд — не трогаем
+  if (kind === "complex") return s0;            // ЖК-бренд — не трогаем
+  if (!/[А-Яа-яЁё]/.test(s0)) return s0;        // нет кириллицы — нечего транслитерировать
+  let s = s0;
+  for (const [re, rep] of ADDR_WORDS[lang]) s = s.replace(re, rep);
+  const map = TRANSLIT[lang];
+  return s.split("").map((ch) => {
+    const low = ch.toLowerCase();
+    const m = map[low];
+    if (m === undefined) return ch;
+    if (lang === "en" && ch !== low && m) return m.charAt(0).toUpperCase() + m.slice(1);
+    return m;
+  }).join("");
+}

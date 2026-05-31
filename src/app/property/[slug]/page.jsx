@@ -7,7 +7,7 @@ import { getBuildingsList, findUnit } from "@/data/source";
 import LeadButton from "@/components/LeadButton";
 import { waLink } from "@/config";
 import { getLang } from "@/lib/serverLang";
-import { t as tr, typeLabel, amenLabel } from "@/lib/dict";
+import { t as tr, typeLabel, amenLabel, translitAddress } from "@/lib/dict";
 
 export const revalidate = 300;
 
@@ -32,7 +32,7 @@ export default async function PropertyPage({ params }) {
   const lang = getLang();
   const t = (k) => tr(lang, k);
   const ty = typeLabel(lang, u.type);
-  const bname = b["name_" + lang] || b.name;
+  const bname = b["name_" + lang] || translitAddress(b.name, lang, b.kind);
 
   const photos = (u.photos && u.photos.length) ? u.photos : [u.img || "/placeholder-baylux.jpg"];
   const gallery = Array.from({ length: 5 }, (_, i) => photos[i % photos.length]);

@@ -4,7 +4,7 @@ import Image from "next/image";
 import { DEAL_CLASS, fmtMoney, perSuffix } from "@/data/data";
 import FavButton from "@/components/FavButton";
 import { useLang } from "@/components/LangContext";
-import { typeLabel, cityLabel } from "@/lib/dict";
+import { typeLabel, cityLabel, translitAddress } from "@/lib/dict";
 
 export default function PropertyCard({ unit }) {
   const { t, lang } = useLang();
@@ -12,7 +12,7 @@ export default function PropertyCard({ unit }) {
   const rs = t("rooms_short");
   const ty = typeLabel(lang, unit.type);
   const district = cityLabel(lang, b.district || "Батуми");
-  const bname = b["name_" + lang] || b.name;
+  const bname = b["name_" + lang] || translitAddress(b.name, lang, b.kind);
   const photos = unit.photos && unit.photos.length > 1 ? unit.photos : null;
   const alt = `${ty}, ${unit.area} м² — ${bname}`;
   const fav = { slug: unit.slug, href: `/property/${unit.slug}`, title: `${ty}${unit.rooms ? `, ${unit.rooms} ${rs}` : ""}, ${unit.area} м²`, sub: `📍 ${district} · ${bname}`, price: unit.price, img: unit.img };

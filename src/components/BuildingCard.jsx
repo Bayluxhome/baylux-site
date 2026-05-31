@@ -4,12 +4,12 @@ import Image from "next/image";
 import { buildingPriceFrom, buildingFromNum, fmtMoney } from "@/data/data";
 import FavButton from "@/components/FavButton";
 import { useLang } from "@/components/LangContext";
-import { cityLabel } from "@/lib/dict";
+import { cityLabel, translitAddress } from "@/lib/dict";
 
 export default function BuildingCard({ building }) {
   const { t, lang } = useLang();
   const district = cityLabel(lang, building.district || "Батуми");
-  const bname = building["name_" + lang] || building.name;
+  const bname = building["name_" + lang] || translitAddress(building.name, lang, building.kind);
   const from = buildingFromNum(building);
   const perM2 = from && from.deal === "sale" && from.area > 0 && from.n ? Math.round(from.n / from.area) : null;
   const counts = {};
