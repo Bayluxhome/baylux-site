@@ -210,6 +210,7 @@ nav.main{display:flex;gap:2px;font-weight:500;font-size:15px}
 .card .body{padding:14px 16px 16px}
 .price{font-size:20px;font-weight:800;letter-spacing:-.3px;color:var(--navy)}
 .perm{font-size:12px;color:var(--ink-soft);font-weight:600;font-family:Inter}
+.price .perm{margin-left:8px}
 .ctitle{font-weight:600;margin-top:6px;font-size:15px;color:var(--ink)}
 .meta{display:flex;gap:14px;color:var(--ink-soft);font-size:13px;margin-top:8px;flex-wrap:wrap}
 .cdistrict{color:var(--ink-soft);font-size:13px;margin-top:8px;display:flex;gap:6px;align-items:center}
