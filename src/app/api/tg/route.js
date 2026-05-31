@@ -102,7 +102,8 @@ async function uploadPhoto(fileId) {
 }
 
 const MAIN_MENU = [["➕ Добавить объявление"], ["📋 Мои объявления", "🌐 Сайт"]];
-const STEP_ORDER = ["country", "city", "deal", "type", "address", "geo", "price", "area", "rooms", "floor", "about", "photos", "contact", "tg"];
+const STEP_ORDER = ["country", "city", "deal", "type", "complex", "address", "geo", "price", "currency", "area", "rooms", "bathrooms", "floor", "year", "about", "amenities", "no_commission", "photos", "contact", "tg"];
+const AMENITIES = ["Мебель", "Балкон", "Терраса", "Парковка", "Ремонт «евро»", "Без ремонта", "Кондиционер", "Лифт"];
 function showMenu(chat, greet) { return send(chat, greet || "Главное меню Baylux:", MAIN_MENU); }
 async function showMyListings(chat, uid) {
   const STAT = { pending: "⏳ на модерации", approved: "✅ опубликовано", rejected: "🚫 снято" };
@@ -113,18 +114,24 @@ async function showMyListings(chat, uid) {
 }
 
 const STEPS = {
-  country: { q: "Шаг 1/12. Страна объекта? (Сейчас работаем в Грузии 🇬🇪)", kb: [["🇬🇪 Грузия"]] },
-  city: { q: "Шаг 2/12. Город?", kb: [["Батуми", "Тбилиси"], ["Кутаиси", "Гонио"], ["Махинджаури", "Чакви"]] },
-  deal: { q: "Шаг 3/12. Тип сделки?", kb: [["Продажа", "Аренда", "Посуточно"]] },
-  type: { q: "Шаг 4/12. Тип объекта?", kb: [["Квартира", "Студия", "Дом"], ["Коммерция", "Офис"], ["Участок", "Гараж"]] },
-  address: { q: "Шаг 5/12. Адрес объекта (улица и номер дома). Например: ул. Шерифа Химшиашвили, 1" },
-  geo: { q: "Шаг 6/12. Пришлите точку на карте — так объект точно встанет на карту сайта.\n📎 (скрепка) → Геопозиция → «Выбрать на карте».\n🛰 Совет: переключите карту в режим «Спутник» (значок слоёв справа) и поставьте точку прямо на нужный дом.\nЕсли не получается — напишите «пропустить»." },
-  price: { q: "Шаг 7/12. Цена? Например: $74 000 (продажа) или $650 / мес (аренда)" },
-  area: { q: "Шаг 8/12. Площадь в м²? (число, например 56)" },
-  rooms: { q: "Шаг 9/12. Сколько комнат? (число; студия/коммерция — 0)" },
-  floor: { q: "Шаг 10/12. Этаж? Например: 10/22 (этаж/всего этажей). Для дома/участка — поставьте «—»." },
-  about: { q: "Шаг 11/12. Краткое описание объекта." },
-  photos: { q: "Шаг 12/12. Пришлите фото (по одному, до 8). Когда закончите — /done. Можно без фото — сразу /done." },
+  country: { q: "Страна объекта? (Сейчас работаем в Грузии 🇬🇪)", kb: [["🇬🇪 Грузия"]] },
+  city: { q: "Город?", kb: [["Батуми", "Тбилиси"], ["Кутаиси", "Гонио"], ["Кобулети", "Чакви"]] },
+  deal: { q: "Тип сделки?", kb: [["Продажа", "Аренда", "Посуточно"]] },
+  type: { q: "Тип объекта?", kb: [["Квартира", "Студия", "Дом"], ["Коммерция", "Офис"], ["Участок", "Гараж"]] },
+  complex: { q: "Название ЖК / дома — по желанию. Напишите или «Пропустить».", kb: [["Пропустить"]] },
+  address: { q: "Адрес объекта (улица и номер дома). Например: ул. Шерифа Химшиашвили, 1" },
+  geo: { q: "Пришлите точку на карте — так объект точно встанет на карту сайта.\n📎 (скрепка) → Геопозиция → «Выбрать на карте».\n🛰 Совет: переключите карту в режим «Спутник» (значок слоёв справа) и поставьте точку прямо на нужный дом.\nЕсли не получается — напишите «пропустить»." },
+  price: { q: "Цена — только число. Например: 74000" },
+  currency: { q: "Валюта цены?", kb: [["💵 USD ($)", "🇬🇪 GEL (₾)"]] },
+  area: { q: "Площадь в м²? (число, например 56)" },
+  rooms: { q: "Сколько комнат? (число; студия/коммерция — 0)" },
+  bathrooms: { q: "Сколько санузлов? (число; или «Пропустить»)", kb: [["Пропустить"]] },
+  floor: { q: "Этаж? Например: 10/22 (этаж/всего этажей). Для дома/участка — поставьте «—»." },
+  year: { q: "Год постройки? (число; или «Пропустить»)", kb: [["Пропустить"]] },
+  about: { q: "Краткое описание объекта." },
+  amenities: { q: "Удобства" },
+  no_commission: { q: "Без комиссии с покупателя?", kb: [["✅ Без комиссии", "С комиссией"]] },
+  photos: { q: "Пришлите фото (по одному, до 8). Когда закончите — /done. Можно без фото — сразу /done." },
   contact: { q: "Контактный номер (Грузия, +995).\nПросто напишите номер сообщением, например: +995 555 12 34 56.\n(Или нажмите кнопку ниже, чтобы поделиться своим номером.)" },
   tg: { q: "Последний шаг (по желанию): Telegram для связи — @username.\nНапишите ник или нажмите «Пропустить».", kb: [["Пропустить"]] },
 };
@@ -141,18 +148,32 @@ async function askGeo(chat, data) {
   }
   return send(chat, STEPS.geo.q, [nav]);
 }
+// Удобства — мультивыбор: тап отмечает ✅, «Готово» завершает.
+async function askAmenities(chat, data) {
+  const sel = data.amenities || [];
+  const rows = [];
+  for (let i = 0; i < AMENITIES.length; i += 2) rows.push(AMENITIES.slice(i, i + 2).map((a) => (sel.includes(a) ? "✅ " + a : a)));
+  rows.push(["✔️ Готово", "Пропустить"], ["⬅️ Назад", "✖️ Отмена"]);
+  return send(chat, `Удобства — нажимайте подходящие (отметятся ✅), затем «✔️ Готово».\nВыбрано: ${sel.length ? sel.join(", ") : "—"}`, rows);
+}
 
 // Финальная сборка объявления: запись в БД + отправка на модерацию CEO.
 async function finalizeListing(chat, uid, data) {
   const city = data.city || "Батуми";
+  const currency = data.currency === "GEL" ? "GEL" : "USD";
+  const sym = currency === "GEL" ? "₾" : "$";
+  const priceStr = data.priceNum ? sym + String(data.priceNum).replace(/\B(?=(\d{3})+(?!\d))/g, " ") : "—";
   const row = {
     status: "pending",
     building_name: data.address || (data.type ? `${data.type}, ${city}` : "Объект"),
-    kind: COMPLEX_TYPES.test(data.type || "") ? "complex" : "house",
+    kind: COMPLEX_TYPES.test(data.type || "") || data.complex ? "complex" : "house",
     district: city,
     lat: data.lat || 41.645, lng: data.lng || 41.642,
     deal: data.deal, type: data.type, rooms: data.rooms || 0, area: data.area || 0,
-    floor: data.floor || "—", price: data.price || "—", per: data.deal === "rent" ? "в месяц" : data.deal === "daily" ? "в сутки" : "",
+    bathrooms: data.bathrooms || null, floor: data.floor || "—", year: data.year || null,
+    complex: data.complex || "", amenities: (data.amenities || []).join(", "), no_commission: !!data.no_commission,
+    price: priceStr, currency, price_num: data.priceNum || null,
+    per: data.deal === "rent" ? "в месяц" : data.deal === "daily" ? "в сутки" : "",
     about: data.about || "", photos: data.photos || [],
     tg_user_id: uid, tg_username: data.tg_username || "", contact: data.contact, phone: data.phone || "",
   };
@@ -167,7 +188,11 @@ async function finalizeListing(chat, uid, data) {
     ? `\n📍 <a href="${mapsLink(data.lat, data.lng)}">проверить точку на карте</a> (откройте спутник)`
     : `\n⚠️ точка на карте НЕ указана`;
   const tgLine = row.tg_username ? `\n✈️ @${esc(row.tg_username)}` : "";
-  const summary = `🆕 <b>Новое объявление</b>\n${DEAL_RU[row.deal]} · ${row.type}\n🏙 ${esc(city)}\n🏠 ${esc(row.building_name)}\n💰 ${row.price}\n📐 ${row.area} м² · 🛏 ${row.rooms} комн. · 🏢 ${esc(row.floor)}\n📷 ${row.photos.length} фото${geoLine}\n📞 ${row.contact}${data.verified ? " ✅ подтверждён" : ""}${tgLine}\n\n${esc(row.about)}`;
+  const complexLine = data.complex ? `\n🏢 ЖК: ${esc(data.complex)}` : "";
+  const extra = [data.bathrooms ? `🚿 ${data.bathrooms} с/у` : "", data.year ? `🏗 ${data.year}` : ""].filter(Boolean).join(" · ");
+  const amenLine = (data.amenities && data.amenities.length) ? `\n🏷 ${esc(data.amenities.join(", "))}` : "";
+  const ncLine = data.no_commission ? `\n✅ без комиссии` : "";
+  const summary = `🆕 <b>Новое объявление</b>\n${DEAL_RU[row.deal]} · ${row.type}\n🏙 ${esc(city)}${complexLine}\n🏠 ${esc(row.building_name)}\n💰 ${row.price}\n📐 ${row.area} м² · 🛏 ${row.rooms} комн. · 🏢 ${esc(row.floor)}${extra ? "\n" + extra : ""}\n📷 ${row.photos.length} фото${geoLine}${amenLine}${ncLine}\n📞 ${row.contact}${data.verified ? " ✅ подтверждён" : ""}${tgLine}\n\n${esc(row.about)}`;
   await tg("sendMessage", { chat_id: ADMIN, text: summary, parse_mode: "HTML", disable_web_page_preview: true, reply_markup: modButtons("pending", ins.id) });
 }
 
@@ -209,7 +234,7 @@ async function onMessage(msg) {
     if (idx <= 0) { await clearDraft(uid); return showMenu(chat, "Главное меню:"); }
     const prev = STEP_ORDER[idx - 1];
     await saveDraft(uid, prev, data);
-    return prev === "contact" ? sendContact(chat) : prev === "geo" ? askGeo(chat, data) : ask(chat, prev);
+    return prev === "contact" ? sendContact(chat) : prev === "geo" ? askGeo(chat, data) : prev === "amenities" ? askAmenities(chat, data) : ask(chat, prev);
   }
 
   switch (d.step) {
@@ -223,7 +248,11 @@ async function onMessage(msg) {
       if (!deal) return ask(chat, "deal");
       data.deal = deal; await saveDraft(uid, "type", data); return ask(chat, "type");
     }
-    case "type": { data.type = text; await saveDraft(uid, "address", data); return ask(chat, "address"); }
+    case "type": { data.type = text; await saveDraft(uid, "complex", data); return ask(chat, "complex"); }
+    case "complex": {
+      if (!/^пропустить$/i.test(text)) data.complex = text.trim();
+      await saveDraft(uid, "address", data); return ask(chat, "address");
+    }
     case "address": {
       data.address = text;
       const g = await geocode(`${text}, ${data.city || "Батуми"}, Georgia`);
@@ -236,11 +265,26 @@ async function onMessage(msg) {
       // "✅ Точка верна" / любой текст — оставляем авто-точку по адресу (или без координат)
       await saveDraft(uid, "price", data); return ask(chat, "price");
     }
-    case "price": { data.price = normPrice(text); await saveDraft(uid, "area", data); return ask(chat, "area"); }
+    case "price": { data.priceNum = parseInt(String(text).replace(/[^\d]/g, ""), 10) || null; await saveDraft(uid, "currency", data); return ask(chat, "currency"); }
+    case "currency": { data.currency = /gel|₾|лар/i.test(text) ? "GEL" : "USD"; await saveDraft(uid, "area", data); return ask(chat, "area"); }
     case "area": { data.area = parseInt(text, 10) || 0; await saveDraft(uid, "rooms", data); return ask(chat, "rooms"); }
-    case "rooms": { data.rooms = parseInt(text, 10) || 0; await saveDraft(uid, "floor", data); return ask(chat, "floor"); }
-    case "floor": { data.floor = text; await saveDraft(uid, "about", data); return ask(chat, "about"); }
-    case "about": { data.about = text; data.photos = []; await saveDraft(uid, "photos", data); return ask(chat, "photos"); }
+    case "rooms": { data.rooms = parseInt(text, 10) || 0; await saveDraft(uid, "bathrooms", data); return ask(chat, "bathrooms"); }
+    case "bathrooms": { if (!/^пропустить$/i.test(text)) data.bathrooms = parseInt(text, 10) || null; await saveDraft(uid, "floor", data); return ask(chat, "floor"); }
+    case "floor": { data.floor = text; await saveDraft(uid, "year", data); return ask(chat, "year"); }
+    case "year": { if (!/^пропустить$/i.test(text)) data.year = parseInt(text, 10) || null; await saveDraft(uid, "about", data); return ask(chat, "about"); }
+    case "about": { data.about = text; await saveDraft(uid, "amenities", data); return askAmenities(chat, data); }
+    case "amenities": {
+      if (text === "✔️ Готово") { await saveDraft(uid, "no_commission", data); return ask(chat, "no_commission"); }
+      if (/^пропустить$/i.test(text)) { data.amenities = []; await saveDraft(uid, "no_commission", data); return ask(chat, "no_commission"); }
+      const a = text.replace(/^✅\s*/, "").trim();
+      if (AMENITIES.includes(a)) {
+        const sel = data.amenities || [];
+        data.amenities = sel.includes(a) ? sel.filter((x) => x !== a) : [...sel, a];
+        await saveDraft(uid, "amenities", data);
+      }
+      return askAmenities(chat, data);
+    }
+    case "no_commission": { data.no_commission = /без комисс/i.test(text); data.photos = data.photos || []; await saveDraft(uid, "photos", data); return ask(chat, "photos"); }
     case "photos": {
       if (msg.photo && msg.photo.length) {
         const url = await uploadPhoto(msg.photo[msg.photo.length - 1].file_id);
