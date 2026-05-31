@@ -2,6 +2,7 @@
 import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import { GE_CITIES } from "@/data/data";
+import { useFilter } from "@/components/FilterContext";
 import LeadButton from "@/components/LeadButton";
 
 const LANGS = [
@@ -50,8 +51,9 @@ const NAV = [
 
 export default function Header() {
   const [open, setOpen] = useState(false);
-  const [label, setLabel] = useState("Вся Грузия");
-  const [active, setActive] = useState(null);
+  const fc = useFilter();
+  const city = (fc && fc.f && fc.f.city) || "";
+  const label = city ? "Грузия, " + city : "Вся Грузия";
   const [langOpen, setLangOpen] = useState(false);
   const [lang, setLang] = useState("RU");
   const [curr, setCurr] = useState("USD");
@@ -73,8 +75,8 @@ export default function Header() {
 
   useEffect(() => { try { const c = localStorage.getItem("bxCurrency"); if (c) setCurr(c); } catch (e) {} }, []);
 
-  function pickCity(name) { setActive(name); setLabel("Грузия, " + name); setOpen(false); }
-  function pickAll() { setActive(null); setLabel("Вся Грузия"); setOpen(false); }
+  function pickCity(name) { if (fc) fc.upd("city", name); setOpen(false); }
+  function pickAll() { if (fc) fc.upd("city", ""); setOpen(false); }
 
   return (
     <>
@@ -96,7 +98,7 @@ export default function Header() {
               <button className="loc-allbtn" onClick={pickAll}>🇬🇪 Вся Грузия — объекты во всех городах</button>
               <div className="loc-cities">
                 {GE_CITIES.map((c) => (
-                  <button key={c.name} className={"loc-city" + (active === c.name ? " active" : "")} onClick={() => pickCity(c.name)}>
+                  <button key={c.name} className={"loc-city" + (city === c.name ? " active" : "")} onClick={() => pickCity(c.name)}>
                     <b>{c.name}</b><span>{c.count}</span>
                   </button>
                 ))}

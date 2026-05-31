@@ -3,7 +3,6 @@ import CategoryGrid from "@/components/CategoryGrid";
 import PropertyCard from "@/components/PropertyCard";
 import Hero from "@/components/Hero";
 import HomeExplore from "@/components/HomeExplore";
-import { FilterProvider } from "@/components/FilterContext";
 import { getBuildingsList, getAllUnits } from "@/data/source";
 
 export const revalidate = 300;
@@ -13,7 +12,7 @@ export default async function HomePage() {
   const freshUnits = (await getAllUnits()).slice(0, 6);
 
   return (
-    <FilterProvider>
+    <>
       <Hero />
 
       <CategoryGrid />
@@ -53,6 +52,6 @@ export default async function HomePage() {
           <div className="why-i"><b>Быстро</b><p>Заявка и бронь через сайт или WhatsApp — за минуту.</p></div>
         </div>
       </section>
-    </FilterProvider>
+    </>
   );
 }

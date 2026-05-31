@@ -3,6 +3,7 @@ import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import LeadModal from "@/components/LeadModal";
 import CurrencyManager from "@/components/CurrencyManager";
+import { FilterProvider } from "@/components/FilterContext";
 import { getUsdGel } from "@/lib/rate";
 
 export const metadata = {
@@ -33,11 +34,13 @@ export default async function RootLayout({ children }) {
         />
       </head>
       <body>
-        <CurrencyManager rate={rate} />
-        <Header />
-        <main>{children}</main>
-        <Footer />
-        <LeadModal />
+        <FilterProvider>
+          <CurrencyManager rate={rate} />
+          <Header />
+          <main>{children}</main>
+          <Footer />
+          <LeadModal />
+        </FilterProvider>
       </body>
     </html>
   );
