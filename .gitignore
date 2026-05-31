@@ -10,3 +10,6 @@
 /public/hero-batumi.png
 /public/*-original.*
 /public/*-src.*
+
+# heavy source icons (originals from image gen) — keep only optimized .png
+public/icons/*.jpg

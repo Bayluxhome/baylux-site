@@ -25,6 +25,9 @@ const CATS = [
   { lk: "foot_realtors", href: "/#services", ic: "🤝" },
 ];
 
+const LK_ICON = { cat_jk: "complex", foot_mgmt: "management", foot_cleaning: "cleaning", foot_realtors: "realtors" };
+const iconSrc = (it) => `/icons/${it.lk ? LK_ICON[it.lk] : `${it.d}-${it.c}`}.png`;
+
 export default function CategoryGrid() {
   const { t } = useLang();
   const [all, setAll] = useState(false);
@@ -37,7 +40,7 @@ export default function CategoryGrid() {
         {list.map((it) => (
           <Link key={it.href + (it.lk || it.c)} href={it.href} className="cat">
             <span className="cat-t">{label(it)}</span>
-            <span className="cat-badge" aria-hidden="true">{it.ic}</span>
+            <img className="cat-badge cat-ico" src={iconSrc(it)} alt="" width={46} height={46} loading="lazy" />
           </Link>
         ))}
       </div>
