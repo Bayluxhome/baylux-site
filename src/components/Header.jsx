@@ -106,11 +106,11 @@ export default function Header() {
           {open && (
             <div className="loc-pop">
               <div className="loc-countries">
-                <div className="loc-country active">Грузия</div>
-                <div className="loc-country soon">Казахстан · скоро</div>
-                <div className="loc-country soon">ОАЭ · скоро</div>
+                <div className="loc-country active">{t("country_ge")}</div>
+                <div className="loc-country soon">{t("country_kz")} · {t("loc_soon")}</div>
+                <div className="loc-country soon">{t("country_ae")} · {t("loc_soon")}</div>
               </div>
-              <button className="loc-allbtn" onClick={pickAll}>🇬🇪 Вся Грузия — объекты во всех городах</button>
+              <button className="loc-allbtn" onClick={pickAll}>{t("loc_all")}</button>
               <div className="loc-cities">
                 {GE_CITIES.map((c) => (
                   <button key={c.name} className={"loc-city" + (city === c.name ? " active" : "")} onClick={() => pickCity(c.name)}>
@@ -146,13 +146,13 @@ export default function Header() {
             </button>
             {langOpen && (
               <div className="lang-pop">
-                <div className="lp-h">Язык сайта</div>
+                <div className="lp-h">{t("lp_lang")}</div>
                 {LANGS.map((l) => (
                   <button key={l.code} className={"lp-row" + (uiLang === l.code ? " active" : "")} onClick={() => setUiLang(l.code)}>
                     <b>{l.label}</b><span>{l.name}</span>
                   </button>
                 ))}
-                <div className="lp-h">Валюта сайта</div>
+                <div className="lp-h">{t("lp_curr")}</div>
                 {CURR.map((c) => (
                   <button key={c.code} className={"lp-row" + (curr === c.code ? " active" : "")} onClick={() => { setCurr(c.code); if (typeof window !== "undefined" && window.bxApplyCurrency) window.bxApplyCurrency(c.code); }}>
                     <b className="lp-cur">{c.sym}</b><span>{c.name}</span>
@@ -180,7 +180,13 @@ export default function Header() {
           <div className="md-panel">
             <button className="md-close" onClick={() => setMenuOpen(false)} aria-label="Закрыть">✕</button>
             <div className="md-curr">
-              <span className="md-curr-lbl">Валюта:</span>
+              <span className="md-curr-lbl">{t("md_lang")}</span>
+              {LANGS.map((l) => (
+                <button key={l.code} type="button" className={"md-curr-btn" + (uiLang === l.code ? " on" : "")} onClick={() => setUiLang(l.code)}>{l.label}</button>
+              ))}
+            </div>
+            <div className="md-curr">
+              <span className="md-curr-lbl">{t("lp_curr")}</span>
               {CURR.map((c) => (
                 <button key={c.code} type="button" className={"md-curr-btn" + (curr === c.code ? " on" : "")} onClick={() => { setCurr(c.code); if (typeof window !== "undefined" && window.bxApplyCurrency) window.bxApplyCurrency(c.code); }}>{c.sym} {c.code}</button>
               ))}

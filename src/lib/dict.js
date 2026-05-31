@@ -94,6 +94,7 @@ export const DICT = {
     why_nodup_h: "Без дублей", why_nodup_p: "Чистая база: один объект — одно объявление, без мусора.",
     why_clear_h: "Прозрачно", why_clear_p: "Реальные цены и условия. Без скрытых комиссий.",
     why_fast_h: "Быстро", why_fast_p: "Заявка и бронь через сайт или WhatsApp — за минуту.",
+    country_ge: "Грузия", country_kz: "Казахстан", country_ae: "ОАЭ", loc_soon: "скоро", loc_all: "🇬🇪 Вся Грузия — объекты во всех городах", lp_lang: "Язык сайта", lp_curr: "Валюта сайта", md_lang: "Язык:",
   },
   en: {
     nav_sale: "Buy", nav_rent: "Rent", nav_new: "New buildings", nav_daily: "Daily", nav_services: "Services",
@@ -178,6 +179,7 @@ export const DICT = {
     why_nodup_h: "No duplicates", why_nodup_p: "A clean database: one property — one listing, no clutter.",
     why_clear_h: "Transparent", why_clear_p: "Real prices and terms. No hidden fees.",
     why_fast_h: "Fast", why_fast_p: "Request and booking via the site or WhatsApp — in a minute.",
+    country_ge: "Georgia", country_kz: "Kazakhstan", country_ae: "UAE", loc_soon: "soon", loc_all: "🇬🇪 All Georgia — properties in all cities", lp_lang: "Site language", lp_curr: "Site currency", md_lang: "Language:",
   },
   ka: {
     nav_sale: "ყიდვა", nav_rent: "ქირა", nav_new: "ახალი კორპუსები", nav_daily: "დღიურად", nav_services: "სერვისები",
@@ -262,6 +264,7 @@ export const DICT = {
     why_nodup_h: "დუბლიკატების გარეშე", why_nodup_p: "სუფთა ბაზა: ერთი ობიექტი — ერთი განცხადება, ნაგვის გარეშე.",
     why_clear_h: "გამჭვირვალედ", why_clear_p: "რეალური ფასები და პირობები. ფარული საკომისიოს გარეშე.",
     why_fast_h: "სწრაფად", why_fast_p: "განაცხადი და ჯავშანი საიტით ან WhatsApp-ით — წუთში.",
+    country_ge: "საქართველო", country_kz: "ყაზახეთი", country_ae: "არაბთა საამიროები", loc_soon: "მალე", loc_all: "🇬🇪 მთელი საქართველო — ობიექტები ყველა ქალაქში", lp_lang: "საიტის ენა", lp_curr: "საიტის ვალუტა", md_lang: "ენა:",
   },
 };
 
