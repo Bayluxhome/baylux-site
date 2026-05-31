@@ -60,6 +60,7 @@ export default function Header() {
   const [loginOpen, setLoginOpen] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const [favCount, setFavCount] = useState(0);
+  const [auth, setAuth] = useState(null);
   const locRef = useRef(null);
   const langRef = useRef(null);
   const loginRef = useRef(null);
@@ -83,6 +84,8 @@ export default function Header() {
     window.addEventListener("storage", upd);
     return () => { window.removeEventListener("bxfav", upd); window.removeEventListener("storage", upd); };
   }, []);
+
+  useEffect(() => { fetch("/api/me").then((r) => r.json()).then(setAuth).catch(() => setAuth({ in: false })); }, []);
 
   function pickCity(name) { if (fc) fc.upd("city", name); setOpen(false); }
   function pickAll() { if (fc) fc.upd("city", ""); setOpen(false); }
@@ -129,13 +132,14 @@ export default function Header() {
 
         <div className="hright">
           <Link className="hicon" href="/catalog" title="Поиск объектов" aria-label="Поиск">
-            <span className="hi-ic">🔍</span><span className="hi-tx">Поиск</span>
+            <svg className="hi-ic" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="7" /><path d="m21 21-4.3-4.3" /></svg>
+            <span className="hi-tx">Поиск</span>
           </Link>
           <Link className="hicon hicon-sq" href="/favorites" title="Избранное" aria-label="Избранное">♡{favCount > 0 && <span className="fav-count">{favCount}</span>}</Link>
 
           <div className="langw" ref={langRef}>
             <button className="hicon hlang" onClick={(e) => { e.stopPropagation(); setLangOpen((v) => !v); }} title="Язык и валюта" aria-label="Язык и валюта">
-              <span className="hi-ic">🌐</span><span className="lang-cur">{lang}</span>
+              <svg className="hi-ic" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9" /><path d="M3 12h18" /><path d="M12 3c2.5 2.5 2.5 15.5 0 18M12 3c-2.5 2.5-2.5 15.5 0 18" /></svg><span className="lang-cur">{lang}</span>
             </button>
             {langOpen && (
               <div className="lang-pop">
@@ -157,8 +161,8 @@ export default function Header() {
 
           <span className="hdiv" />
 
-          <Link className="hicon hlogin" href="/my" title="Личный кабинет">
-            <span className="hi-ic">👤</span><span className="hi-tx">Войти</span>
+          <Link className={"hicon hlogin" + (auth && auth.in ? " hlogin-in" : "")} href="/my" title="Личный кабинет">
+            <span className="hi-ic">👤</span><span className="hi-tx">{auth && auth.in ? (auth.name ? auth.name.split(" ")[0] : "Кабинет") : "Войти"}</span>
           </Link>
 
           <Link className="btn btn-gold" href="/add">Сдать / продать</Link>

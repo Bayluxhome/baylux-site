@@ -25,7 +25,7 @@ export default function Hero() {
         <div className="stat-row">
           <div className="stat"><b>100%</b><span>проверенные объекты</span></div>
           <div className="stat"><b>0%</b><span>скрытых комиссий</span></div>
-          <div className="stat"><b>24/7</b><span>ответ в WhatsApp</span></div>
+          <div className="stat"><b>24/7</b><span>поддержка</span></div>
           <div className="stat"><b>3</b><span>языка: RU · EN · GE</span></div>
         </div>
       </div>
