@@ -40,7 +40,7 @@ export default function CategoryGrid() {
         {list.map((it) => (
           <Link key={it.href + (it.lk || it.c)} href={it.href} className="cat">
             <span className="cat-t">{label(it)}</span>
-            <img className="cat-badge cat-ico" src={iconSrc(it)} alt="" width={46} height={46} loading="lazy" />
+            <img className="cat-ico" src={iconSrc(it)} alt="" width={60} height={60} loading="lazy" />
           </Link>
         ))}
       </div>
