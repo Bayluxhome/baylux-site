@@ -23,3 +23,6 @@ alter table listings add column if not exists facade_photo text;
 -- Вход по email (magic-link): email в токенах входа + владелец-объявления по email
 alter table login_tokens add column if not exists email text;
 alter table listings add column if not exists owner_email text;
+
+-- В какой канал опубликован объект (для маршрутизации Батуми/Тбилиси и корректного снятия)
+alter table listings add column if not exists tg_channel text;

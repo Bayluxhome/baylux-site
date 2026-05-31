@@ -7,7 +7,21 @@ export const dynamic = "force-dynamic";
 
 const TOKEN = process.env.TELEGRAM_BOT_TOKEN;
 const ADMIN = process.env.TELEGRAM_CHAT_ID; // чат CEO для модерации
-const CHANNEL = process.env.TELEGRAM_CHANNEL || ""; // публичный канал-витрина
+const CHANNEL = process.env.TELEGRAM_CHANNEL || ""; // основной канал (Батуми/побережье)
+const CH_BATUMI = CHANNEL;                                  // запад/побережье
+const CH_TBILISI = process.env.TELEGRAM_CHANNEL_TBILISI || ""; // восток
+const HUB_BATUMI = { lat: 41.6168, lng: 41.6367 };
+const HUB_TBILISI = { lat: 41.7151, lng: 44.8271 };
+// Выбираем канал по ближайшему хабу (по координатам объекта), фолбэк — по названию.
+function pickChannel(row) {
+  if (!CH_TBILISI) return CH_BATUMI; // второго канала нет — всё в основной
+  const lat = Number(row.lat), lng = Number(row.lng);
+  if (isFinite(lat) && isFinite(lng) && (lat || lng)) {
+    const d2 = (h) => (lat - h.lat) ** 2 + (lng - h.lng) ** 2;
+    return d2(HUB_TBILISI) < d2(HUB_BATUMI) ? CH_TBILISI : CH_BATUMI;
+  }
+  return /тбилиси|рустави|мцхета|гори|телави|гудаури|бакуриани|tbilisi|rustavi/i.test(String(row.district || "")) ? CH_TBILISI : CH_BATUMI;
+}
 const API = `https://api.telegram.org/bot${TOKEN}`;
 const SECRET = (TOKEN || "").slice(-24).replace(/[^A-Za-z0-9_-]/g, "") || "baylux";
 const SITE = "https://baylux-site.vercel.app";
@@ -524,14 +538,16 @@ function unitLink(row) {
   const uslug = slugify(`${row.building_name || "obj"}-${row.type || ""}-${row.price || ""}`);
   return `${SITE}/property/${uslug}`;
 }
-async function postToChannel(row) {
-  if (!CHANNEL) return [];
+async function postToChannel(row, channel) {
+  if (!channel) return [];
   const per = row.per ? " " + row.per : "";
   const bits = [`📐 ${row.area || 0} м²`];
   if (row.rooms) bits.push(`🛏 ${row.rooms} комн.`);
   if (row.floor && row.floor !== "—") bits.push(`🏢 этаж ${esc(row.floor)}`);
   const about = (row.about || "").trim();
   const aboutShort = about.length > 380 ? about.slice(0, 380).trim() + "…" : about;
+  const tag = (s) => "#" + String(s || "").replace(/[^\p{L}\p{N}]/gu, "");
+  const tags = [tag(row.district), tag(DEAL_RU[row.deal])].filter((t) => t.length > 1).join(" ");
   const cap =
     `🆕 <b>${DEAL_RU[row.deal] || row.deal} · ${esc(row.type)}</b>\n` +
     `📍 ${esc(row.building_name)}\n` +
@@ -539,15 +555,16 @@ async function postToChannel(row) {
     `${bits.join(" · ")}\n` +
     `📞 ${esc(row.contact || "по запросу")}\n` +
     (aboutShort ? `\n${esc(aboutShort)}\n` : "") +
-    `\n🔗 <a href="${unitLink(row)}">Открыть на сайте Baylux</a>`;
+    `\n🔗 <a href="${unitLink(row)}">Открыть на сайте Baylux</a>` +
+    (tags ? `\n\n${tags}` : "");
   const photos = Array.isArray(row.photos) ? row.photos.slice(0, 10) : [];
   try {
     if (photos.length) {
       const media = photos.map((u, i) => (i === 0 ? { type: "photo", media: u, caption: cap, parse_mode: "HTML" } : { type: "photo", media: u }));
-      const res = await tg("sendMediaGroup", { chat_id: CHANNEL, media });
+      const res = await tg("sendMediaGroup", { chat_id: channel, media });
       return (res?.result || []).map((m) => m.message_id);
     }
-    const res = await tg("sendMessage", { chat_id: CHANNEL, text: cap, parse_mode: "HTML" });
+    const res = await tg("sendMessage", { chat_id: channel, text: cap, parse_mode: "HTML" });
     return res?.result?.message_id ? [res.result.message_id] : [];
   } catch (e) { console.error("channel post error:", e?.message); return []; }
 }
@@ -577,12 +594,14 @@ async function onCallback(cb) {
     } catch (e) { console.error("translate on approve:", e?.message); }
   }
 
-  if (row && CHANNEL) {
+  if (row && (CH_BATUMI || CH_TBILISI)) {
     if (action === "ap" && !row.tg_post_id) {
-      const ids = await postToChannel(row);
-      if (ids.length) await supa.from("listings").update({ tg_post_id: ids.join(",") }).eq("id", id);
+      const ch = pickChannel(row);
+      const ids = await postToChannel(row, ch);
+      if (ids.length) await supa.from("listings").update({ tg_post_id: ids.join(","), tg_channel: ch }).eq("id", id);
     } else if (action !== "ap" && row.tg_post_id) {
-      for (const mid of String(row.tg_post_id).split(",")) await tg("deleteMessage", { chat_id: CHANNEL, message_id: Number(mid) });
+      const ch = row.tg_channel || CH_BATUMI;
+      for (const mid of String(row.tg_post_id).split(",")) await tg("deleteMessage", { chat_id: ch, message_id: Number(mid) });
       await supa.from("listings").update({ tg_post_id: null }).eq("id", id);
     }
   }

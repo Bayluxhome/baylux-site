@@ -45,15 +45,16 @@ export async function POST(req) {
   if (!b.id) return Response.json({ ok: false, error: "id" }, { status: 400 });
 
   // Проверка владельца
-  const { data: existing } = await supa.from("listings").select("id, tg_user_id, owner_email, tg_post_id").eq("id", b.id).single();
+  const { data: existing } = await supa.from("listings").select("id, tg_user_id, owner_email, tg_post_id, tg_channel").eq("id", b.id).single();
   if (!owns(session, existing)) return Response.json({ ok: false, error: "forbidden" }, { status: 403 });
 
   const phone = gePhone(b.contact);
   if (!phone) return Response.json({ ok: false, error: "phone" }, { status: 400 });
 
-  // Старый пост в канале удаляем — объявление снова на модерации
-  if (CHANNEL && existing.tg_post_id) {
-    for (const mid of String(existing.tg_post_id).split(",")) await tg("deleteMessage", { chat_id: CHANNEL, message_id: Number(mid) });
+  // Старый пост в канале удаляем (из того канала, куда публиковали) — объявление снова на модерации
+  const oldCh = existing.tg_channel || CHANNEL;
+  if (oldCh && existing.tg_post_id) {
+    for (const mid of String(existing.tg_post_id).split(",")) await tg("deleteMessage", { chat_id: oldCh, message_id: Number(mid) });
   }
 
   const deal = ["sale", "rent", "daily"].includes(b.deal) ? b.deal : "sale";
