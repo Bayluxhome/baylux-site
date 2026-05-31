@@ -2,6 +2,8 @@ import "./globals.css";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import LeadModal from "@/components/LeadModal";
+import CurrencyManager from "@/components/CurrencyManager";
+import { getUsdGel } from "@/lib/rate";
 
 export const metadata = {
   metadataBase: new URL("https://bayluxhome.com"),
@@ -19,7 +21,8 @@ export const metadata = {
   },
 };
 
-export default function RootLayout({ children }) {
+export default async function RootLayout({ children }) {
+  const rate = await getUsdGel();
   return (
     <html lang="ru">
       <head>
@@ -30,6 +33,7 @@ export default function RootLayout({ children }) {
         />
       </head>
       <body>
+        <CurrencyManager rate={rate} />
         <Header />
         <main>{children}</main>
         <Footer />

@@ -60,7 +60,7 @@ export default async function PropertyPage({ params }) {
           {u.boost > 0 && <span className="boost-badge" style={{ marginTop: 8, display: "inline-block" }}>⭐ Продвигается</span>}
         </div>
         <div style={{ textAlign: "right" }}>
-          <div className="pp-price">{u.price}</div>
+          <div className="pp-price">{u.priceNum ? <span className="bx-price" data-num={u.priceNum} data-cur={u.currency}>{u.price}</span> : u.price}</div>
           <div className="perm">{u.per}</div>
         </div>
       </div>
@@ -93,7 +93,7 @@ export default async function PropertyPage({ params }) {
 
         <aside>
           <div className="cta-card">
-            <div className="price">{u.price}</div>
+            <div className="price">{u.priceNum ? <span className="bx-price" data-num={u.priceNum} data-cur={u.currency}>{u.price}</span> : u.price}</div>
             <div className="perm" style={{ marginBottom: 6 }}>{u.per}</div>
             <LeadButton className="btn btn-gold" type={DEAL_LABEL[u.deal]} object={`${u.type}, ${u.area} м² — ${b.name}`} title={ctaMain}>{ctaMain}</LeadButton>
             {cleanPhone && <a className="seller-phone" href={`tel:+${cleanPhone}`}>📞 +{cleanPhone}</a>}

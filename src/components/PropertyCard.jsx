@@ -23,7 +23,7 @@ export default function PropertyCard({ unit }) {
         <span className={"badge " + DEAL_CLASS[unit.deal]}>{DEAL_LABEL[unit.deal]}</span>
       </div>
       <div className="body">
-        <div className="price">{unit.price} <span className="perm">{unit.per}</span></div>
+        <div className="price">{unit.priceNum ? <span className="bx-price" data-num={unit.priceNum} data-cur={unit.currency}>{unit.price}</span> : unit.price} <span className="perm">{unit.per}</span></div>
         <div className="ctitle">{unit.type}{unit.rooms ? `, ${unit.rooms} комн.` : ""}, {unit.area} м²</div>
         <div className="cdistrict">📍 Батуми{b.district ? ` · ${b.district}` : ""} · {b.name}</div>
         <div className="meta">

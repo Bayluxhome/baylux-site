@@ -71,6 +71,8 @@ export default function Header() {
     return () => document.removeEventListener("click", onDoc);
   }, []);
 
+  useEffect(() => { try { const c = localStorage.getItem("bxCurrency"); if (c) setCurr(c); } catch (e) {} }, []);
+
   function pickCity(name) { setActive(name); setLabel("Грузия, " + name); setOpen(false); }
   function pickAll() { setActive(null); setLabel("Вся Грузия"); setOpen(false); }
 
@@ -134,7 +136,7 @@ export default function Header() {
                 ))}
                 <div className="lp-h">Валюта сайта</div>
                 {CURR.map((c) => (
-                  <button key={c.code} className={"lp-row" + (curr === c.code ? " active" : "")} onClick={() => { setCurr(c.code); }}>
+                  <button key={c.code} className={"lp-row" + (curr === c.code ? " active" : "")} onClick={() => { setCurr(c.code); if (typeof window !== "undefined" && window.bxApplyCurrency) window.bxApplyCurrency(c.code); }}>
                     <b className="lp-cur">{c.sym}</b><span>{c.name}</span>
                   </button>
                 ))}
