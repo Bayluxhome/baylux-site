@@ -81,6 +81,8 @@ const T = {
     photo_added: (n) => `📷 Фото добавлено (${n}). Ещё или /done.`,
     photo_fail: "Не удалось загрузить фото, попробуйте другое или /done.",
     photo_need: "Пришлите фото или /done.",
+    q_facade: "🏢 Фото дома / фасада — по желанию (для карточки дома). Пришлите одно фото дома или «Пропустить».",
+    facade_added: "✅ Фото фасада добавлено.",
     q_contact: "Контактный номер (Грузия, +995).\nПросто напишите номер, например: +995 555 12 34 56.\n(Или нажмите кнопку ниже, чтобы поделиться своим номером.)",
     contact_share: "📱 Поделиться номером",
     contact_bad: "❗ Сейчас принимаем только грузинские номера (+995).\nНапишите номер, например: +995 555 12 34 56.",
@@ -125,6 +127,8 @@ const T = {
     photo_added: (n) => `📷 Photo added (${n}). More or /done.`,
     photo_fail: "Couldn't upload the photo, try another or /done.",
     photo_need: "Send a photo or /done.",
+    q_facade: "🏢 Building / facade photo — optional (for the building card). Send one photo of the building or “Skip”.",
+    facade_added: "✅ Facade photo added.",
     q_contact: "Contact number (Georgia, +995).\nJust type the number, e.g.: +995 555 12 34 56.\n(Or tap the button below to share your number.)",
     contact_share: "📱 Share my number",
     contact_bad: "❗ We currently accept only Georgian numbers (+995).\nType the number, e.g.: +995 555 12 34 56.",
@@ -169,6 +173,8 @@ const T = {
     photo_added: (n) => `📷 ფოტო დაემატა (${n}). კიდევ ან /done.`,
     photo_fail: "ფოტო ვერ აიტვირთა, სცადეთ სხვა ან /done.",
     photo_need: "გამოგზავნეთ ფოტო ან /done.",
+    q_facade: "🏢 შენობის / ფასადის ფოტო — სურვილისამებრ (შენობის ბარათისთვის). გამოგზავნეთ ერთი ფოტო ან „გამოტოვება“.",
+    facade_added: "✅ ფასადის ფოტო დაემატა.",
     q_contact: "საკონტაქტო ნომერი (საქართველო, +995).\nუბრალოდ დაწერეთ ნომერი, მაგ.: +995 555 12 34 56.\n(ან დააჭირეთ ქვემოთ ღილაკს ნომრის გასაზიარებლად.)",
     contact_share: "📱 ნომრის გაზიარება",
     contact_bad: "❗ ამჟამად ვიღებთ მხოლოდ ქართულ ნომრებს (+995).\nდაწერეთ ნომერი, მაგ.: +995 555 12 34 56.",
@@ -272,7 +278,7 @@ async function uploadPhoto(fileId) {
   return supa.storage.from("listing-photos").getPublicUrl(name).data.publicUrl;
 }
 
-const STEP_ORDER = ["lang", "country", "city", "deal", "type", "complex", "address", "geo", "price", "currency", "area", "rooms", "bathrooms", "floor", "year", "about", "amenities", "no_commission", "photos", "contact", "tg"];
+const STEP_ORDER = ["lang", "country", "city", "deal", "type", "complex", "address", "geo", "price", "currency", "area", "rooms", "bathrooms", "floor", "year", "about", "amenities", "no_commission", "photos", "facade", "contact", "tg"];
 
 function mainMenu(lang) { return [[B(lang, "btn_add")], [B(lang, "btn_my"), B(lang, "btn_site")]]; }
 function showMenu(chat, lang, greetKey) { return send(chat, B(lang, greetKey || "menu_title"), mainMenu(lang)); }
@@ -298,7 +304,7 @@ async function ask(chat, step, lang) {
   else if (step === "city") kb = chunk2(CITIES_L[lang]);
   else if (step === "deal") kb = [[B(lang, "deal_sale"), B(lang, "deal_rent"), B(lang, "deal_daily")]];
   else if (step === "type") kb = chunk2(TYPES_L[lang]);
-  else if (step === "complex" || step === "bathrooms" || step === "year" || step === "tg") kb = [[B(lang, "skip")]];
+  else if (step === "complex" || step === "bathrooms" || step === "year" || step === "tg" || step === "facade") kb = [[B(lang, "skip")]];
   else if (step === "currency") kb = [[B(lang, "cur_usd"), B(lang, "cur_gel")]];
   else if (step === "no_commission") kb = [[B(lang, "nc_yes"), B(lang, "nc_no")]];
   const qKey = step === "no_commission" ? "q_no_commission" : "q_" + step;
@@ -347,7 +353,7 @@ async function finalizeListing(chat, uid, data) {
     complex: data.complex || "", amenities: (data.amenities || []).join(", "), no_commission: !!data.no_commission,
     price: priceStr, currency, price_num: data.priceNum || null,
     per: data.deal === "rent" ? "в месяц" : data.deal === "daily" ? "в сутки" : "",
-    about: data.about || "", photos: data.photos || [],
+    about: data.about || "", photos: data.photos || [], facade_photo: data.facade || null,
     tg_user_id: uid, tg_username: data.tg_username || "", contact: data.contact, phone: data.phone || "",
   };
   if (descCol) row[descCol] = data.about || "";
@@ -485,8 +491,18 @@ async function onMessage(msg) {
         if (url) { data.photos = (data.photos || []).concat(url); await saveDraft(uid, "photos", data); return send(chat, B(lang, "photo_added")(data.photos.length)); }
         return send(chat, B(lang, "photo_fail"));
       }
-      if (text === "/done" || text === "/готово") { await saveDraft(uid, "contact", data); return sendContact(chat, lang); }
+      if (text === "/done" || text === "/готово") { await saveDraft(uid, "facade", data); return ask(chat, "facade", lang); }
       return send(chat, B(lang, "photo_need"));
+    }
+    case "facade": {
+      if (msg.photo && msg.photo.length) {
+        const url = await uploadPhoto(msg.photo[msg.photo.length - 1].file_id);
+        if (url) { data.facade = url; await saveDraft(uid, "contact", data); await send(chat, B(lang, "facade_added")); return sendContact(chat, lang); }
+        return send(chat, B(lang, "photo_fail"));
+      }
+      // «Пропустить» или любой текст — фасад необязателен, идём дальше
+      await saveDraft(uid, "contact", data);
+      return sendContact(chat, lang);
     }
     case "contact": {
       const phone = gePhone(msg.contact && msg.contact.phone_number ? msg.contact.phone_number : text);

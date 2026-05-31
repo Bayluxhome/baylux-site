@@ -41,6 +41,8 @@ export default function AddListingForm({ initial, editId }) {
   const [amenities, setAmenities] = useState(init.amenities || []);
   const [existingPhotos, setExistingPhotos] = useState(init.photos || []);
   const [files, setFiles] = useState([]);
+  const [facadeFile, setFacadeFile] = useState(null);
+  const [facade, setFacade] = useState(init.facade || "");
   const [geo, setGeo] = useState(init.geo || null);
   const [geoNote, setGeoNote] = useState("");
   const [state, setState] = useState("");
@@ -76,7 +78,16 @@ export default function AddListingForm({ initial, editId }) {
         if (j.ok) newUrls.push(j.url);
       }
       const photos = [...existingPhotos, ...newUrls].slice(0, 10);
-      const payload = { ...f, contact: phone, amenities, lat: geo?.lat, lng: geo?.lng, photos, lang };
+      let facadeUrl = facade;
+      if (facadeFile) {
+        const blob = await compress(facadeFile);
+        const fd = new FormData();
+        fd.append("photo", blob, "facade.jpg");
+        const r = await fetch("/api/upload-photo", { method: "POST", body: fd });
+        const j = await r.json();
+        if (j.ok) facadeUrl = j.url;
+      }
+      const payload = { ...f, contact: phone, amenities, lat: geo?.lat, lng: geo?.lng, photos, lang, facade: facadeUrl };
       if (editId) payload.id = editId;
       const r = await fetch(editId ? "/api/edit-listing" : "/api/add-listing", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) });
       const j = await r.json();
@@ -176,6 +187,11 @@ export default function AddListingForm({ initial, editId }) {
         <div className="af-lbl">{editId ? t("af_add_photos") : t("af_photos")}</div>
         <input type="file" accept="image/*" multiple onChange={(e) => setFiles([...e.target.files])} />
         {files.length > 0 && <div className="af-hint">{files.length} {t("af_newphotos")}</div>}
+      </div>
+      <div className="af-full">
+        <div className="af-lbl">🏢 {t("af_facade")}</div>
+        <input type="file" accept="image/*" onChange={(e) => setFacadeFile(e.target.files[0] || null)} />
+        {(facadeFile || facade) && <div className="af-hint">✓ 1</div>}
       </div>
       <div className="af-full">
         <button className="btn btn-gold" type="submit" disabled={state === "loading"} style={{ padding: "13px 26px", fontSize: 15 }}>

@@ -16,3 +16,6 @@ alter table listings add column if not exists name_ka text;
 
 -- Предпочитаемый язык пользователя бота (для меню при следующем входе)
 alter table users add column if not exists lang text default 'ru';
+
+-- Фото дома/фасада для обложки карточки здания/ЖК (если не задано — берём первое фото объявления)
+alter table listings add column if not exists facade_photo text;
