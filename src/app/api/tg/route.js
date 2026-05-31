@@ -28,6 +28,15 @@ function normPrice(raw) {
   return s;
 }
 
+// Грузинский номер: принимаем +995XXXXXXXXX, 995XXXXXXXXX или локальные 9 цифр. Иначе null.
+function gePhone(raw) {
+  const s = String(raw || "").replace(/[^\d]/g, "");
+  if (s.startsWith("995") && s.length === 12) return "+" + s;
+  if (s.length === 9) return "+995" + s;
+  return null;
+}
+const mapsLink = (lat, lng) => `https://www.google.com/maps?q=${lat},${lng}`;
+
 // ---- Telegram helpers ----
 async function tg(method, body) {
   const r = await fetch(`${API}/${method}`, {
@@ -45,9 +54,10 @@ function sendContact(chat) {
   return tg("sendMessage", { chat_id: chat, text: STEPS.contact.q, reply_markup: { keyboard: [[{ text: "📱 Поделиться номером", request_contact: true }], [{ text: "⬅️ Назад" }, { text: "✖️ Отмена" }]], resize_keyboard: true, one_time_keyboard: true } });
 }
 function modButtons(status, id) {
-  if (status === "approved") return { inline_keyboard: [[{ text: "🗑 Снять с публикации", callback_data: `un:${id}` }]] };
-  if (status === "rejected") return { inline_keyboard: [[{ text: "↩️ Опубликовать", callback_data: `ap:${id}` }]] };
-  return { inline_keyboard: [[{ text: "✅ Опубликовать", callback_data: `ap:${id}` }, { text: "❌ Отклонить", callback_data: `rj:${id}` }]] };
+  const geo = [{ text: "📍 Исправить гео", callback_data: `eg:${id}` }];
+  if (status === "approved") return { inline_keyboard: [[{ text: "🗑 Снять с публикации", callback_data: `un:${id}` }], geo] };
+  if (status === "rejected") return { inline_keyboard: [[{ text: "↩️ Опубликовать", callback_data: `ap:${id}` }], geo] };
+  return { inline_keyboard: [[{ text: "✅ Опубликовать", callback_data: `ap:${id}` }, { text: "❌ Отклонить", callback_data: `rj:${id}` }], geo] };
 }
 
 // ---- состояние диалога ----
@@ -74,7 +84,7 @@ async function uploadPhoto(fileId) {
 }
 
 const MAIN_MENU = [["➕ Добавить объявление"], ["📋 Мои объявления", "🌐 Сайт"]];
-const STEP_ORDER = ["deal", "type", "address", "geo", "price", "area", "rooms", "floor", "about", "photos", "contact"];
+const STEP_ORDER = ["country", "city", "deal", "type", "address", "geo", "price", "area", "rooms", "floor", "about", "photos", "contact"];
 function showMenu(chat, greet) { return send(chat, greet || "Главное меню Baylux:", MAIN_MENU); }
 async function showMyListings(chat, uid) {
   const STAT = { pending: "⏳ на модерации", approved: "✅ опубликовано", rejected: "🚫 снято" };
@@ -85,17 +95,19 @@ async function showMyListings(chat, uid) {
 }
 
 const STEPS = {
-  deal: { q: "Шаг 1/10. Тип сделки?", kb: [["Продажа", "Аренда", "Посуточно"]] },
-  type: { q: "Шаг 2/10. Тип объекта?", kb: [["Квартира", "Студия", "Дом"], ["Коммерция", "Офис"], ["Участок", "Гараж"]] },
-  address: { q: "Шаг 3/10. Адрес объекта (улица и номер дома). Например: ул. Шерифа Химшиашвили, 1" },
-  geo: { q: "Шаг 4/10. Пришлите точку на карте, чтобы объект точно встал на карте сайта:\n📎 (скрепка) → Геопозиция → отправить.\nЕсли не получается — напишите «пропустить»." },
-  price: { q: "Шаг 5/10. Цена? Например: $74 000 (продажа) или $650 / мес (аренда)" },
-  area: { q: "Шаг 6/10. Площадь в м²? (число, например 56)" },
-  rooms: { q: "Шаг 7/10. Сколько комнат? (число; студия/коммерция — 0)" },
-  floor: { q: "Шаг 8/10. Этаж? Например: 10/22 (этаж/всего этажей). Для дома/участка — поставьте «—»." },
-  about: { q: "Шаг 9/10. Краткое описание объекта." },
-  photos: { q: "Шаг 10/10. Пришлите фото (по одному, до 8). Когда закончите — /done. Можно без фото — сразу /done." },
-  contact: { q: "Последний шаг. Нажмите кнопку «📱 Поделиться номером» ниже — номер подтвердится автоматически. (Или впишите контакт текстом.)" },
+  country: { q: "Шаг 1/12. Страна объекта? (Сейчас работаем в Грузии 🇬🇪)", kb: [["🇬🇪 Грузия"]] },
+  city: { q: "Шаг 2/12. Город?", kb: [["Батуми", "Тбилиси"], ["Кутаиси", "Гонио"], ["Махинджаури", "Чакви"]] },
+  deal: { q: "Шаг 3/12. Тип сделки?", kb: [["Продажа", "Аренда", "Посуточно"]] },
+  type: { q: "Шаг 4/12. Тип объекта?", kb: [["Квартира", "Студия", "Дом"], ["Коммерция", "Офис"], ["Участок", "Гараж"]] },
+  address: { q: "Шаг 5/12. Адрес объекта (улица и номер дома). Например: ул. Шерифа Химшиашвили, 1" },
+  geo: { q: "Шаг 6/12. Пришлите точку на карте — так объект точно встанет на карту сайта.\n📎 (скрепка) → Геопозиция → «Выбрать на карте».\n🛰 Совет: переключите карту в режим «Спутник» (значок слоёв справа) и поставьте точку прямо на нужный дом.\nЕсли не получается — напишите «пропустить»." },
+  price: { q: "Шаг 7/12. Цена? Например: $74 000 (продажа) или $650 / мес (аренда)" },
+  area: { q: "Шаг 8/12. Площадь в м²? (число, например 56)" },
+  rooms: { q: "Шаг 9/12. Сколько комнат? (число; студия/коммерция — 0)" },
+  floor: { q: "Шаг 10/12. Этаж? Например: 10/22 (этаж/всего этажей). Для дома/участка — поставьте «—»." },
+  about: { q: "Шаг 11/12. Краткое описание объекта." },
+  photos: { q: "Шаг 12/12. Пришлите фото (по одному, до 8). Когда закончите — /done. Можно без фото — сразу /done." },
+  contact: { q: "Последний шаг — контактный номер (Грузия, +995).\nПросто напишите номер сообщением, например: +995 555 12 34 56.\n(Или нажмите кнопку ниже, чтобы поделиться своим номером.)" },
 };
 async function ask(chat, step) {
   const kb = [...(STEPS[step].kb || []), ["⬅️ Назад", "✖️ Отмена"]];
@@ -115,8 +127,8 @@ async function onMessage(msg) {
   if (text === "/start" || text === "/menu") { await clearDraft(uid); return showMenu(chat, "👋 Baylux — кабинет владельца объектов. Выберите действие:"); }
   if (text === "/cancel" || text === "/отмена" || text === "✖️ Отмена") { await clearDraft(uid); return showMenu(chat, "Отменено. Выберите действие:"); }
   if (text === "/add" || text === "/добавить" || text === "➕ Добавить объявление") {
-    await saveDraft(uid, "deal", { tg_user_id: uid, tg_username: msg.from.username || "" });
-    return ask(chat, "deal");
+    await saveDraft(uid, "country", { tg_user_id: uid, tg_username: msg.from.username || "" });
+    return ask(chat, "country");
   }
   if (text === "/my" || text === "📋 Мои объявления") return showMyListings(chat, uid);
   if (text === "🌐 Сайт" || text === "/site") return send(chat, "🌐 " + SITE + "/my — ваши объявления и вход на сайт.", MAIN_MENU);
@@ -124,6 +136,16 @@ async function onMessage(msg) {
   const d = await getDraft(uid);
   if (!d.step) return showMenu(chat, "Выберите действие:");
   const data = d.data || {};
+
+  // Модератор исправляет геопозицию объекта
+  if (d.step === "modgeo") {
+    if (msg.location) {
+      await supa.from("listings").update({ lat: msg.location.latitude, lng: msg.location.longitude }).eq("id", data.editId);
+      await clearDraft(uid);
+      return send(chat, `✅ Геопозиция объекта обновлена.\n📍 ${mapsLink(msg.location.latitude, msg.location.longitude)}\nНа сайте обновится в течение нескольких минут.`, MAIN_MENU);
+    }
+    return send(chat, "Пришлите новую точку на карте: 📎 → Геопозиция → «Выбрать на карте» (лучше в режиме «Спутник»). Или /cancel.");
+  }
 
   if (text === "⬅️ Назад" || text === "/back") {
     const idx = STEP_ORDER.indexOf(d.step);
@@ -134,6 +156,11 @@ async function onMessage(msg) {
   }
 
   switch (d.step) {
+    case "country": {
+      if (!/груз|georgia|🇬🇪/i.test(text)) return send(chat, "Пока размещаем объекты только в Грузии 🇬🇪. Нажмите «🇬🇪 Грузия».", [["🇬🇪 Грузия"], ["⬅️ Назад", "✖️ Отмена"]]);
+      data.country = "Грузия"; await saveDraft(uid, "city", data); return ask(chat, "city");
+    }
+    case "city": { data.city = text.replace(/^🇬🇪\s*/, "").trim() || "Батуми"; await saveDraft(uid, "deal", data); return ask(chat, "deal"); }
     case "deal": {
       const deal = DEAL_MAP[text.toLowerCase()];
       if (!deal) return ask(chat, "deal");
@@ -161,19 +188,20 @@ async function onMessage(msg) {
       return send(chat, "Пришлите фото или /done.");
     }
     case "contact": {
-      let verified = false;
-      if (msg.contact && msg.contact.phone_number) {
-        let ph = msg.contact.phone_number; if (!ph.startsWith("+")) ph = "+" + ph;
-        data.phone = ph; data.contact = ph; verified = true;
-      } else {
-        data.contact = text;
-        if (/^\+?\d[\d\s()-]{6,}$/.test(text)) data.phone = text.replace(/[\s()-]/g, "");
+      // Принимаем только грузинский номер (+995)
+      const phone = gePhone(msg.contact && msg.contact.phone_number ? msg.contact.phone_number : text);
+      const verified = !!(msg.contact && msg.contact.phone_number && phone);
+      if (!phone) {
+        await send(chat, "❗ Сейчас принимаем только грузинские номера (+995).\nНапишите номер, например: +995 555 12 34 56.");
+        return sendContact(chat);
       }
+      data.phone = phone; data.contact = phone;
+      const city = data.city || "Батуми";
       const row = {
         status: "pending",
-        building_name: data.address || (data.type ? `${data.type}, Батуми` : "Объект"),
+        building_name: data.address || (data.type ? `${data.type}, ${city}` : "Объект"),
         kind: COMPLEX_TYPES.test(data.type || "") ? "complex" : "house",
-        district: "",
+        district: city,
         lat: data.lat || 41.645, lng: data.lng || 41.642,
         deal: data.deal, type: data.type, rooms: data.rooms || 0, area: data.area || 0,
         floor: data.floor || "—", price: data.price || "—", per: data.deal === "rent" ? "в месяц" : data.deal === "daily" ? "в сутки" : "",
@@ -186,13 +214,16 @@ async function onMessage(msg) {
       await clearDraft(uid);
       if (error) return send(chat, "Ошибка сохранения, попробуйте позже. /start");
       await send(chat, "✅ Спасибо! Объявление отправлено на модерацию. Опубликуем после проверки и сообщим вам.");
-      // CEO: сначала фото, затем текст с кнопками
+      // CEO: фото → пин геопозиции для проверки → текст с кнопками
       if (row.photos.length) {
         await tg("sendMediaGroup", { chat_id: ADMIN, media: row.photos.slice(0, 10).map((u) => ({ type: "photo", media: u })) });
       }
-      const geo = data.lat ? `\n📍 точка на карте: да` : `\n⚠️ точка на карте не указана`;
-      const summary = `🆕 <b>Новое объявление</b>\n${DEAL_RU[row.deal]} · ${row.type}\n🏠 ${row.building_name}\n💰 ${row.price}\n📐 ${row.area} м² · 🛏 ${row.rooms} комн.\n📷 ${row.photos.length} фото${geo}\n📞 ${row.contact}${verified ? " ✅ подтверждён" : ""}\n\n${row.about}`;
-      await tg("sendMessage", { chat_id: ADMIN, text: summary, parse_mode: "HTML", reply_markup: modButtons("pending", ins.id) });
+      if (data.lat) await tg("sendLocation", { chat_id: ADMIN, latitude: data.lat, longitude: data.lng });
+      const geoLine = data.lat
+        ? `\n📍 <a href="${mapsLink(data.lat, data.lng)}">проверить точку на карте</a> (откройте спутник)`
+        : `\n⚠️ точка на карте НЕ указана`;
+      const summary = `🆕 <b>Новое объявление</b>\n${DEAL_RU[row.deal]} · ${row.type}\n🏙 ${esc(city)}\n🏠 ${esc(row.building_name)}\n💰 ${row.price}\n📐 ${row.area} м² · 🛏 ${row.rooms} комн. · 🏢 ${esc(row.floor)}\n📷 ${row.photos.length} фото${geoLine}\n📞 ${row.contact}${verified ? " ✅ подтверждён" : ""}\n\n${esc(row.about)}`;
+      await tg("sendMessage", { chat_id: ADMIN, text: summary, parse_mode: "HTML", disable_web_page_preview: true, reply_markup: modButtons("pending", ins.id) });
       return;
     }
     default: return send(chat, "/start — добавить объект.");
@@ -239,6 +270,15 @@ async function postToChannel(row) {
 async function onCallback(cb) {
   const [action, id] = (cb.data || "").split(":");
   if (!id) return;
+
+  // Модератор хочет исправить геопозицию объекта
+  if (action === "eg") {
+    await saveDraft(cb.from.id, "modgeo", { editId: id });
+    await tg("answerCallbackQuery", { callback_query_id: cb.id, text: "Пришлите новую точку на карте" });
+    await tg("sendMessage", { chat_id: cb.message.chat.id, text: `📍 Исправление геопозиции объекта.\nПришлите новую точку: 📎 → Геопозиция → «Выбрать на карте» (лучше в режиме «Спутник»).\nИли /cancel чтобы отменить.` });
+    return;
+  }
+
   const status = action === "ap" ? "approved" : "rejected"; // un/rj → rejected
   const { data: row } = await supa.from("listings").update({ status }).eq("id", id).select("*").single();
   await tg("answerCallbackQuery", { callback_query_id: cb.id, text: status === "approved" ? "Опубликовано" : "Снято с публикации" });
