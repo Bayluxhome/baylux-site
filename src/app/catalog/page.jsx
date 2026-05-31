@@ -91,7 +91,7 @@ export default async function CatalogPage({ searchParams }) {
             <select name="city" defaultValue={city}><option value="">Любой город</option>{GE_CITIES.map((c) => <option key={c.name} value={c.name}>{c.name}</option>)}</select>
           </label>
           <label>Тип
-            <select name="cat" defaultValue={cat}><option value="">Любой тип</option>{Object.entries(CAT_LABEL).map(([k, v]) => <option key={k} value={k}>{v}</option>)}</select>
+            <select name="cat" defaultValue={cat}><option value="">Любой тип</option>{(isNew ? ["apartment", "house", "commercial", "office", "garage"] : deal === "daily" ? ["apartment", "house"] : Object.keys(CAT_LABEL)).map((k) => <option key={k} value={k}>{CAT_LABEL[k]}</option>)}</select>
           </label>
           <label>Комнат
             <select name="rooms" defaultValue={rooms}><option value="">Любая</option><option value="0">Студия</option><option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4+</option></select>

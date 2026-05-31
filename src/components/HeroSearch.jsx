@@ -4,9 +4,15 @@ import Link from "next/link";
 import { GE_CITIES, CAT_LABEL } from "@/data/data";
 
 const TABS = [["sale", "Продажа"], ["rent", "Аренда"], ["new", "Новостройки"], ["daily", "Посуточно"]];
+// Доступные типы зависят от режима: новостройки — без складов/участков; посуточно — только жильё.
+const TYPE_BY_TAB = {
+  new: ["apartment", "house", "commercial", "office", "garage"],
+  daily: ["apartment", "house"],
+};
 
 export default function HeroSearch() {
   const [tab, setTab] = useState("sale");
+  const typeKeys = TYPE_BY_TAB[tab] || Object.keys(CAT_LABEL);
   return (
     <>
       <div className="tabs">
@@ -22,7 +28,7 @@ export default function HeroSearch() {
         </div>
         <div className="field">
           <label>Тип</label>
-          <select name="cat"><option value="">Любой тип</option>{Object.entries(CAT_LABEL).map(([k, v]) => <option key={k} value={k}>{v}</option>)}</select>
+          <select name="cat" key={tab}><option value="">Любой тип</option>{typeKeys.map((k) => <option key={k} value={k}>{CAT_LABEL[k]}</option>)}</select>
         </div>
         <div className="field"><label>Цена до, $</label><input name="pmax" inputMode="numeric" placeholder="150000" /></div>
         <button className="btn btn-gold" style={{ padding: "0 26px" }} type="submit">Показать объекты</button>
