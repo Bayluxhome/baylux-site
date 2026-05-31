@@ -18,9 +18,11 @@ function shortPrice(s) {
 const esc = (s) => String(s || "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
 
 // buildings: [{ slug, name, district, kind, lat, lng, priceFrom, units:[{slug,deal,type,rooms,area,price,per}] }]
-export default function MapView({ buildings = [], center = [41.642, 41.632], zoom = 13, className = "map-home" }) {
+export default function MapView({ buildings = [], center = [41.642, 41.632], zoom = 13, className = "map-home", onSelect }) {
   const elRef = useRef(null);
   const mapRef = useRef(null);
+  const onSelRef = useRef(onSelect);
+  onSelRef.current = onSelect;
 
   useEffect(() => {
     let cancelled = false;
@@ -55,6 +57,7 @@ export default function MapView({ buildings = [], center = [41.642, 41.632], zoo
         card.style.display = "none";
         if (activeEl) { activeEl.classList.remove("active"); activeEl = null; }
         if (map.getSource("baylux-sel")) map.getSource("baylux-sel").setData({ type: "FeatureCollection", features: [] });
+        if (onSelRef.current) onSelRef.current(null);
       }
       card.addEventListener("click", (e) => { if (e.target.dataset && e.target.dataset.close) closeCard(); });
 
@@ -96,6 +99,7 @@ export default function MapView({ buildings = [], center = [41.642, 41.632], zoo
       function selectBuilding(b, el) {
         if (activeEl) activeEl.classList.remove("active");
         el.classList.add("active"); activeEl = el;
+        if (onSelRef.current) onSelRef.current(b.slug);
         map.flyTo({ center: [b.lng, b.lat], zoom: Math.max(map.getZoom(), 16.5) });
         map.once("idle", () => highlightAt(b.lng, b.lat));
 
