@@ -50,8 +50,8 @@ const NAV = [
 
 export default function Header() {
   const [open, setOpen] = useState(false);
-  const [label, setLabel] = useState("Грузия, Батуми");
-  const [active, setActive] = useState("Батуми");
+  const [label, setLabel] = useState("Вся Грузия");
+  const [active, setActive] = useState(null);
   const [langOpen, setLangOpen] = useState(false);
   const [lang, setLang] = useState("RU");
   const [curr, setCurr] = useState("USD");

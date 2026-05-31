@@ -1,7 +1,7 @@
 import Link from "next/link";
 import CategoryGrid from "@/components/CategoryGrid";
 import PropertyCard from "@/components/PropertyCard";
-import HeroSearch from "@/components/HeroSearch";
+import Hero from "@/components/Hero";
 import HomeExplore from "@/components/HomeExplore";
 import { FilterProvider } from "@/components/FilterContext";
 import { getBuildingsList, getAllUnits } from "@/data/source";
@@ -14,22 +14,7 @@ export default async function HomePage() {
 
   return (
     <FilterProvider>
-      <section className="hero">
-        <div className="wrap hero-inner">
-          <h1>Недвижимость в <span className="accent">Батуми</span> —<br />купить, продать, снять или сдать</h1>
-          <p>
-            Проверенные квартиры, дома и апартаменты у моря — без дублей и фейков. Прозрачные цены,
-            честные условия и помощь местной команды на каждом шаге сделки.
-          </p>
-          <HeroSearch />
-          <div className="stat-row">
-            <div className="stat"><b>100%</b><span>проверенные объекты</span></div>
-            <div className="stat"><b>0%</b><span>скрытых комиссий</span></div>
-            <div className="stat"><b>24/7</b><span>ответ в WhatsApp</span></div>
-            <div className="stat"><b>3</b><span>языка: RU · EN · GE</span></div>
-          </div>
-        </div>
-      </section>
+      <Hero />
 
       <CategoryGrid />
 
