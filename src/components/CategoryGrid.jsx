@@ -1,57 +1,48 @@
 "use client";
 import Link from "next/link";
 import { useState } from "react";
+import { useLang } from "@/components/LangContext";
 
-// Названия = подпункты верхнего меню. Ссылки = фильтры каталога.
+// { d: сделка, c: категория } → ярлык "сделка · категория"; либо lk: прямой ключ перевода
 const CATS = [
-  // Продажа
-  ["Продажа квартир", "/catalog?deal=sale&cat=apartment", "🛋️"],
-  ["Продажа домов", "/catalog?deal=sale&cat=house", "🏠"],
-  ["Продажа коммерческой недвижимости", "/catalog?deal=sale&cat=commercial", "🏬"],
-  ["Продажа офисов", "/catalog?deal=sale&cat=office", "🏢"],
-  ["Продажа складов", "/catalog?deal=sale&cat=warehouse", "📦"],
-  ["Продажа участков", "/catalog?deal=sale&cat=land", "🌳"],
-  ["Продажа гаражей и паркингов", "/catalog?deal=sale&cat=garage", "🚗"],
-  // Аренда
-  ["Аренда квартир", "/catalog?deal=rent&cat=apartment", "🛏️"],
-  ["Аренда домов", "/catalog?deal=rent&cat=house", "🏡"],
-  ["Аренда коммерческой недвижимости", "/catalog?deal=rent&cat=commercial", "🏪"],
-  ["Аренда офисов", "/catalog?deal=rent&cat=office", "💼"],
-  ["Аренда складов", "/catalog?deal=rent&cat=warehouse", "🚛"],
-  ["Аренда гаражей и паркингов", "/catalog?deal=rent&cat=garage", "🅿️"],
-  // Новостройки
-  ["Жилые комплексы", "/catalog?new=1", "🏙️"],
-  ["Коттеджи", "/catalog?cat=house&new=1", "🏘️"],
-  // Посуточно
-  ["Посуточно — квартиры", "/catalog?deal=daily&cat=apartment", "🏖️"],
-  ["Посуточно — дома", "/catalog?deal=daily&cat=house", "🏝️"],
-  // Услуги
-  ["Управление недвижимостью", "/#services", "🔑"],
-  ["Клининг", "/#services", "🧹"],
-  ["Риелторы", "/#services", "🤝"],
+  { d: "sale", c: "apartment", href: "/catalog?deal=sale&cat=apartment", ic: "🛋️" },
+  { d: "sale", c: "house", href: "/catalog?deal=sale&cat=house", ic: "🏠" },
+  { d: "sale", c: "commercial", href: "/catalog?deal=sale&cat=commercial", ic: "🏬" },
+  { d: "sale", c: "office", href: "/catalog?deal=sale&cat=office", ic: "🏢" },
+  { d: "sale", c: "warehouse", href: "/catalog?deal=sale&cat=warehouse", ic: "📦" },
+  { d: "sale", c: "land", href: "/catalog?deal=sale&cat=land", ic: "🌳" },
+  { d: "sale", c: "garage", href: "/catalog?deal=sale&cat=garage", ic: "🚗" },
+  { d: "rent", c: "apartment", href: "/catalog?deal=rent&cat=apartment", ic: "🛏️" },
+  { d: "rent", c: "house", href: "/catalog?deal=rent&cat=house", ic: "🏡" },
+  { d: "rent", c: "commercial", href: "/catalog?deal=rent&cat=commercial", ic: "🏪" },
+  { d: "rent", c: "office", href: "/catalog?deal=rent&cat=office", ic: "💼" },
+  { d: "rent", c: "garage", href: "/catalog?deal=rent&cat=garage", ic: "🅿️" },
+  { lk: "cat_jk", href: "/catalog?new=1", ic: "🏙️" },
+  { d: "daily", c: "apartment", href: "/catalog?deal=daily&cat=apartment", ic: "🏖️" },
+  { d: "daily", c: "house", href: "/catalog?deal=daily&cat=house", ic: "🏝️" },
+  { lk: "foot_mgmt", href: "/#services", ic: "🔑" },
+  { lk: "foot_cleaning", href: "/#services", ic: "🧹" },
+  { lk: "foot_realtors", href: "/#services", ic: "🤝" },
 ];
 
 export default function CategoryGrid() {
+  const { t } = useLang();
   const [all, setAll] = useState(false);
+  const label = (it) => (it.lk ? t(it.lk) : `${t("deal_" + it.d)} · ${t("cat_" + it.c)}`);
   const list = all ? CATS : CATS.slice(0, 8);
   return (
     <section className="cats wrap">
-      <div className="sec-head">
-        <div>
-          <h2>Категории недвижимости</h2>
-          <p>Быстрый переход к нужному разделу — продажа, аренда, посуточно и услуги.</p>
-        </div>
-      </div>
+      <div className="sec-head"><div><h2>{t("cat_title")}</h2><p>{t("cat_subtitle")}</p></div></div>
       <div className="cat-grid">
-        {list.map(([t, h, ic]) => (
-          <Link key={t} href={h} className="cat">
-            <span className="cat-t">{t}</span>
-            <span className="cat-badge" aria-hidden="true">{ic}</span>
+        {list.map((it) => (
+          <Link key={it.href + (it.lk || it.c)} href={it.href} className="cat">
+            <span className="cat-t">{label(it)}</span>
+            <span className="cat-badge" aria-hidden="true">{it.ic}</span>
           </Link>
         ))}
       </div>
       <button className="cat-more" onClick={() => setAll((v) => !v)}>
-        <span className="cm-ic">{all ? "−" : "+"}</span>{all ? "Свернуть" : "Показать все"}
+        <span className="cm-ic">{all ? "−" : "+"}</span>{all ? t("collapse") : t("show_all")}
       </button>
     </section>
   );

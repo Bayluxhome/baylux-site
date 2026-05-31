@@ -33,6 +33,9 @@ export const DICT = {
     bld_objects_here: "объект(ов) в продаже и аренде", bld_about_complex: "О комплексе", bld_about_house: "О доме", bld_units_here: "Объекты в этом доме",
     th_object: "Объект", th_area: "Площадь", th_floor: "Этаж", th_deal: "Сделка", th_price: "Цена",
     bld_cta_title: "Интересует объект в", bld_cta_sub: "Подберём под бюджет и задачу, организуем просмотр.", bld_lead: "Оставить заявку", bld_mgmt: "Сдать квартиру здесь в управление",
+    // категории и подменю
+    cat_apartment: "Квартиры", cat_house: "Дома", cat_commercial: "Коммерция", cat_office: "Офисы", cat_warehouse: "Склады", cat_land: "Участки", cat_garage: "Гаражи и паркинги", cat_jk: "Жилые комплексы", cat_cottage: "Коттеджи",
+    cat_title: "Категории недвижимости", cat_subtitle: "Быстрый переход к нужному разделу — продажа, аренда, посуточно и услуги.", show_all: "Показать все", collapse: "Свернуть",
   },
   en: {
     nav_sale: "Buy", nav_rent: "Rent", nav_new: "New buildings", nav_daily: "Daily", nav_services: "Services",
@@ -61,6 +64,8 @@ export const DICT = {
     bld_objects_here: "object(s) for sale and rent", bld_about_complex: "About the complex", bld_about_house: "About the house", bld_units_here: "Objects in this building",
     th_object: "Object", th_area: "Area", th_floor: "Floor", th_deal: "Deal", th_price: "Price",
     bld_cta_title: "Interested in an object in", bld_cta_sub: "We'll match your budget and arrange a viewing.", bld_lead: "Send request", bld_mgmt: "Put an apartment here under management",
+    cat_apartment: "Apartments", cat_house: "Houses", cat_commercial: "Commercial", cat_office: "Offices", cat_warehouse: "Warehouses", cat_land: "Land plots", cat_garage: "Garages & parking", cat_jk: "Residential complexes", cat_cottage: "Cottages",
+    cat_title: "Property categories", cat_subtitle: "Quick access — sale, rent, daily and services.", show_all: "Show all", collapse: "Collapse",
   },
   ka: {
     nav_sale: "ყიდვა", nav_rent: "ქირა", nav_new: "ახალი კორპუსები", nav_daily: "დღიურად", nav_services: "სერვისები",
@@ -89,6 +94,8 @@ export const DICT = {
     bld_objects_here: "ობიექტი იყიდება და ქირავდება", bld_about_complex: "კომპლექსის შესახებ", bld_about_house: "სახლის შესახებ", bld_units_here: "ობიექტები ამ სახლში",
     th_object: "ობიექტი", th_area: "ფართობი", th_floor: "სართული", th_deal: "გარიგება", th_price: "ფასი",
     bld_cta_title: "გაინტერესებთ ობიექტი —", bld_cta_sub: "შევარჩევთ ბიუჯეტის მიხედვით და მოვაწყობთ ჩვენებას.", bld_lead: "განაცხადის დატოვება", bld_mgmt: "ბინის მართვაში გადაცემა",
+    cat_apartment: "ბინები", cat_house: "სახლები", cat_commercial: "კომერციული", cat_office: "ოფისები", cat_warehouse: "საწყობები", cat_land: "მიწის ნაკვეთები", cat_garage: "გარაჟები და პარკინგი", cat_jk: "საცხოვრებელი კომპლექსები", cat_cottage: "კოტეჯები",
+    cat_title: "უძრავი ქონების კატეგორიები", cat_subtitle: "სწრაფი გადასვლა — გაყიდვა, ქირა, დღიურად და სერვისები.", show_all: "ყველას ჩვენება", collapse: "დაკეცვა",
   },
 };
 

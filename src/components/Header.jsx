@@ -20,34 +20,34 @@ const CURR = [
 // Верхнее меню с выпадающими подменю (как korter, адаптировано под Baylux)
 const NAV = [
   { label: "Продажа", href: "/catalog?deal=sale", sub: [
-    ["Продажа квартир", "/catalog?deal=sale&cat=apartment"],
-    ["Продажа домов", "/catalog?deal=sale&cat=house"],
-    ["Продажа коммерческой недвижимости", "/catalog?deal=sale&cat=commercial"],
-    ["Продажа офисов", "/catalog?deal=sale&cat=office"],
-    ["Продажа складов", "/catalog?deal=sale&cat=warehouse"],
-    ["Продажа участков", "/catalog?deal=sale&cat=land"],
-    ["Продажа гаражей и паркингов", "/catalog?deal=sale&cat=garage"],
+    { d: "sale", c: "apartment", href: "/catalog?deal=sale&cat=apartment" },
+    { d: "sale", c: "house", href: "/catalog?deal=sale&cat=house" },
+    { d: "sale", c: "commercial", href: "/catalog?deal=sale&cat=commercial" },
+    { d: "sale", c: "office", href: "/catalog?deal=sale&cat=office" },
+    { d: "sale", c: "warehouse", href: "/catalog?deal=sale&cat=warehouse" },
+    { d: "sale", c: "land", href: "/catalog?deal=sale&cat=land" },
+    { d: "sale", c: "garage", href: "/catalog?deal=sale&cat=garage" },
   ] },
   { label: "Аренда", href: "/catalog?deal=rent", sub: [
-    ["Аренда квартир", "/catalog?deal=rent&cat=apartment"],
-    ["Аренда домов", "/catalog?deal=rent&cat=house"],
-    ["Аренда коммерческой недвижимости", "/catalog?deal=rent&cat=commercial"],
-    ["Аренда офисов", "/catalog?deal=rent&cat=office"],
-    ["Аренда складов", "/catalog?deal=rent&cat=warehouse"],
-    ["Аренда гаражей и паркингов", "/catalog?deal=rent&cat=garage"],
+    { d: "rent", c: "apartment", href: "/catalog?deal=rent&cat=apartment" },
+    { d: "rent", c: "house", href: "/catalog?deal=rent&cat=house" },
+    { d: "rent", c: "commercial", href: "/catalog?deal=rent&cat=commercial" },
+    { d: "rent", c: "office", href: "/catalog?deal=rent&cat=office" },
+    { d: "rent", c: "warehouse", href: "/catalog?deal=rent&cat=warehouse" },
+    { d: "rent", c: "garage", href: "/catalog?deal=rent&cat=garage" },
   ] },
   { label: "Новостройки", href: "/catalog?new=1", sub: [
-    ["Жилые комплексы", "/catalog?new=1"],
-    ["Коттеджи", "/catalog?cat=house&new=1"],
+    { lk: "cat_jk", href: "/catalog?new=1" },
+    { lk: "cat_cottage", href: "/catalog?cat=house&new=1" },
   ] },
   { label: "Посуточно", href: "/catalog?deal=daily", sub: [
-    ["Посуточная аренда квартир", "/catalog?deal=daily&cat=apartment"],
-    ["Посуточная аренда домов", "/catalog?deal=daily&cat=house"],
+    { d: "daily", c: "apartment", href: "/catalog?deal=daily&cat=apartment" },
+    { d: "daily", c: "house", href: "/catalog?deal=daily&cat=house" },
   ] },
   { label: "Услуги", href: "/#services", sub: [
-    ["Управление недвижимостью", "/#services"],
-    ["Клининг", "/#services"],
-    ["Риелторы", "/#services"],
+    { lk: "foot_mgmt", href: "/#services" },
+    { lk: "foot_cleaning", href: "/#services" },
+    { lk: "foot_realtors", href: "/#services" },
   ] },
 ];
 
@@ -126,7 +126,7 @@ export default function Header() {
             <div className="navitem" key={it.label}>
               <Link className="navtop" href={it.href}>{NAV_KEY[it.label] ? t(NAV_KEY[it.label]) : it.label}<span className="navcar">▾</span></Link>
               <div className="submenu">
-                {it.sub.map(([l, h]) => <Link key={l} href={h}>{l}</Link>)}
+                {it.sub.map((s) => <Link key={s.href + (s.lk || s.c)} href={s.href}>{s.lk ? t(s.lk) : `${t("deal_" + s.d)} · ${t("cat_" + s.c)}`}</Link>)}
               </div>
             </div>
           ))}
