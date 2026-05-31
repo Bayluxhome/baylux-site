@@ -23,6 +23,12 @@ img{display:block;border:0}
 .btn-ghost:hover{border-color:var(--gold);color:var(--navy)}
 .btn-wa{background:#25D366;color:#fff;padding:10px 14px}
 .btn-wa:hover{filter:brightness(.96)}
+.btn-tg{background:#229ED9;color:#fff;padding:10px 14px}
+.btn-tg:hover{filter:brightness(.96)}
+.contact-btns{display:flex;gap:8px;margin-top:8px}
+.contact-btns .btn{flex:1;padding-left:8px;padding-right:8px}
+.seller-phone{display:block;width:100%;margin-top:10px;text-align:center;font-weight:700;font-size:17px;color:var(--navy);letter-spacing:.3px}
+.seller-phone:hover{color:var(--gold-dk)}
 
 header.site{position:sticky;top:0;z-index:1100;background:rgba(255,255,255,.95);backdrop-filter:blur(10px);border-bottom:1px solid var(--line)}
 .hrow{display:flex;align-items:center;gap:22px;height:72px}

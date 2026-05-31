@@ -36,6 +36,11 @@ export default async function PropertyPage({ params }) {
     ["Тип", u.type], ["Площадь", u.area + " м²"], ["Комнат", u.rooms || "—"],
     ["Этаж", u.floor], ["Район", b.district], ["Сделка", DEAL_LABEL[u.deal]],
   ];
+  // Контакт продавца (из объявления): телефон и/или Telegram-ник
+  const cleanPhone = (u.phone || (/^\+?\d[\d\s()\-]{6,}$/.test(u.contact || "") ? u.contact : "")).replace(/[^\d]/g, "");
+  const tgUser = (u.tg_username || (String(u.contact || "").trim().startsWith("@") ? u.contact.trim().slice(1) : "")).replace(/[^A-Za-z0-9_]/g, "");
+  const inquiry = `Здравствуйте! Интересует объект: ${u.type}, ${u.area} м² — ${b.name} (${u.price})`;
+  const waHref = cleanPhone ? `https://wa.me/${cleanPhone}?text=${encodeURIComponent(inquiry)}` : waLink(inquiry);
 
   return (
     <div className="wrap">
@@ -82,7 +87,11 @@ export default async function PropertyPage({ params }) {
             <div className="price">{u.price}</div>
             <div className="perm" style={{ marginBottom: 6 }}>{u.per}</div>
             <LeadButton className="btn btn-gold" type={DEAL_LABEL[u.deal]} object={`${u.type}, ${u.area} м² — ${b.name}`} title={ctaMain}>{ctaMain}</LeadButton>
-            <a className="btn btn-wa" href={waLink(`Здравствуйте! Интересует объект: ${u.type}, ${u.area} м² — ${b.name} (${u.price})`)} target="_blank" rel="noopener">Написать в WhatsApp</a>
+            {cleanPhone && <a className="seller-phone" href={`tel:+${cleanPhone}`}>📞 +{cleanPhone}</a>}
+            <div className="contact-btns">
+              <a className="btn btn-wa" href={waHref} target="_blank" rel="noopener">💬 WhatsApp</a>
+              {tgUser && <a className="btn btn-tg" href={`https://t.me/${tgUser}`} target="_blank" rel="noopener">✈️ Telegram</a>}
+            </div>
             <LeadButton className="btn btn-ghost" type="Управление" object={b.name} title="Отдать квартиру в управление">Отдать похожую в управление</LeadButton>
             <Link href={`/building/${b.slug}`} className="btn btn-ghost" style={{ width: "100%", marginTop: 10 }}>Все объекты в «{b.name}»</Link>
             <div className="agent">

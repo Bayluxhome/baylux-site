@@ -41,6 +41,9 @@ function groupRows(rows) {
       per: r.per || "",
       unit_image: (r.photos && r.photos[0]) || "",
       photos: Array.isArray(r.photos) ? r.photos : [],
+      contact: r.contact || "",
+      phone: r.phone || "",
+      tg_username: r.tg_username || "",
     });
   });
   return Array.from(by.values()).filter((b) => b.units.length > 0);
