@@ -4,7 +4,17 @@ import "maplibre-gl/dist/maplibre-gl.css";
 
 const DEAL = { sale: "Продажа", rent: "Аренда", daily: "Посуточно" };
 const DEALCLASS = { sale: "b-sale", rent: "b-rent", daily: "b-daily" };
-const shortPrice = (s) => String(s || "").replace("от ", "").split(" ")[0] || "•";
+function shortPrice(s) {
+  const str = String(s || "");
+  const sym = /₾/.test(str) ? "₾" : "$";
+  const n = parseInt(str.replace(/[^\d]/g, ""), 10);
+  if (!n) return "•";
+  if (n >= 1000) {
+    const k = n / 1000;
+    return sym + (k >= 100 ? Math.round(k) : Math.round(k * 10) / 10) + "k";
+  }
+  return sym + n;
+}
 const esc = (s) => String(s || "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
 
 // buildings: [{ slug, name, district, kind, lat, lng, priceFrom, units:[{slug,deal,type,rooms,area,price,per}] }]
