@@ -1,25 +1,26 @@
 "use client";
 import { useState } from "react";
-
-const STATUS = { pending: "На модерации", approved: "Опубликовано", rejected: "Снято / отклонено" };
+import { useLang } from "@/components/LangContext";
 
 export default function MyListings({ items }) {
+  const { t } = useLang();
+  const STATUS = { pending: t("my_pending"), approved: t("my_approved"), rejected: t("my_rejected") };
   const [list, setList] = useState(items);
   const [busy, setBusy] = useState(null);
 
   async function del(id) {
-    if (!window.confirm("Удалить это объявление? Действие необратимо.")) return;
+    if (!window.confirm(t("my_del_confirm"))) return;
     setBusy(id);
     try {
       const r = await fetch("/api/my-listing", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ id, action: "delete" }) });
       const j = await r.json();
       if (j.ok) setList(list.filter((x) => x.id !== id));
-      else alert("Не удалось удалить. Попробуйте позже.");
-    } catch (e) { alert("Ошибка сети."); }
+      else alert(t("my_del_fail"));
+    } catch (e) { alert(t("my_neterr")); }
     setBusy(null);
   }
 
-  if (!list.length) return <p style={{ color: "var(--ink-soft)" }}>Пока нет объявлений. Откройте бота и отправьте /start.</p>;
+  if (!list.length) return <p style={{ color: "var(--ink-soft)" }}>{t("my_empty")}</p>;
 
   return (
     <div className="my-list">
@@ -31,9 +32,9 @@ export default function MyListings({ items }) {
               <b>{r.title}</b>
               <span>{r.sub}</span>
               <div className="my-actions">
-                {r.slug ? <a className="my-link" href={"/property/" + r.slug}>Посмотреть →</a> : <span className="my-note">на сайте не виден</span>}
-                <a className="my-link" href={"/my/edit/" + r.id}>✏️ Редактировать</a>
-                <button className="my-del" onClick={() => del(r.id)} disabled={busy === r.id}>{busy === r.id ? "Удаляю…" : "🗑 Удалить"}</button>
+                {r.slug ? <a className="my-link" href={"/property/" + r.slug}>{t("my_view")}</a> : <span className="my-note">{t("my_notvisible")}</span>}
+                <a className="my-link" href={"/my/edit/" + r.id}>{t("my_edit")}</a>
+                <button className="my-del" onClick={() => del(r.id)} disabled={busy === r.id}>{busy === r.id ? t("my_deleting") : t("my_del")}</button>
               </div>
             </div>
           </div>

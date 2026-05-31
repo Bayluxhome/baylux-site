@@ -3,6 +3,8 @@ import { verifySession } from "@/lib/session";
 import BotLogin from "@/components/BotLogin";
 import TelegramLogin from "@/components/TelegramLogin";
 import AddListingForm from "@/components/AddListingForm";
+import { getLang } from "@/lib/serverLang";
+import { t as tr } from "@/lib/dict";
 
 export const dynamic = "force-dynamic";
 export const metadata = {
@@ -11,17 +13,19 @@ export const metadata = {
 };
 
 export default function AddPage() {
+  const lang = getLang();
+  const t = (k) => tr(lang, k);
   const session = verifySession(cookies().get("bx_session")?.value);
 
   if (!session) {
     return (
       <div className="wrap" style={{ padding: "48px 0", maxWidth: 560 }}>
-        <h1 style={{ color: "var(--navy)" }}>Разместить объявление</h1>
+        <h1 style={{ color: "var(--navy)" }}>{t("add_title")}</h1>
         <p style={{ color: "var(--ink-soft)", margin: "12px 0 22px", lineHeight: 1.6 }}>
-          Сначала войдите через Telegram — объявление привяжется к вашему аккаунту, и вы сможете им управлять.
+          {t("add_login_p")}
         </p>
         <BotLogin />
-        <div style={{ margin: "24px 0 12px", color: "var(--ink-soft)", fontSize: 13 }}>или войдите виджетом Telegram:</div>
+        <div style={{ margin: "24px 0 12px", color: "var(--ink-soft)", fontSize: 13 }}>{t("cab_or")}</div>
         <TelegramLogin />
       </div>
     );
@@ -29,9 +33,9 @@ export default function AddPage() {
 
   return (
     <div className="wrap" style={{ padding: "30px 0 50px", maxWidth: 760 }}>
-      <h1 style={{ color: "var(--navy)" }}>Разместить объявление</h1>
+      <h1 style={{ color: "var(--navy)" }}>{t("add_title")}</h1>
       <p style={{ color: "var(--ink-soft)", margin: "8px 0 22px", lineHeight: 1.6 }}>
-        Заполните данные, отметьте точку на карте и добавьте фото. После проверки модератором объявление появится на сайте. Статус — в разделе «Мои объявления».
+        {t("add_intro")}
       </p>
       <AddListingForm />
     </div>
