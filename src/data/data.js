@@ -48,6 +48,7 @@ export function buildingFromNum(b) {
     n: u.priceNum || (parseInt(String(u.price || "").replace(/[^\d]/g, ""), 10) || 0),
     c: u.currency || (/₾|gel|лар/i.test(String(u.price || "")) ? "GEL" : "USD"),
     deal: u.deal,
+    area: u.area || 0,
   }));
   const sale = w.filter((u) => u.deal === "sale" && u.n);
   const pool = sale.length ? sale : w.filter((u) => u.n);
