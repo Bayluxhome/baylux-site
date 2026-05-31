@@ -1,24 +1,19 @@
 import Link from "next/link";
-import MapView from "@/components/MapView";
 import CategoryGrid from "@/components/CategoryGrid";
-import BuildingCard from "@/components/BuildingCard";
 import PropertyCard from "@/components/PropertyCard";
-import { buildingPriceFrom } from "@/data/data";
 import HeroSearch from "@/components/HeroSearch";
+import HomeExplore from "@/components/HomeExplore";
+import { FilterProvider } from "@/components/FilterContext";
 import { getBuildingsList, getAllUnits } from "@/data/source";
 
 export const revalidate = 300;
 
 export default async function HomePage() {
   const BUILDINGS = await getBuildingsList();
-  const mapBuildings = BUILDINGS.map((b) => ({
-    slug: b.slug, name: b.name, district: b.district, kind: b.kind,
-    lat: b.lat, lng: b.lng, priceFrom: buildingPriceFrom(b), units: b.units,
-  }));
   const freshUnits = (await getAllUnits()).slice(0, 6);
 
   return (
-    <>
+    <FilterProvider>
       <section className="hero">
         <div className="wrap hero-inner">
           <h1>Недвижимость в <span className="accent">Батуми</span> —<br />купить, продать, снять или сдать</h1>
@@ -46,12 +41,7 @@ export default async function HomePage() {
           </div>
           <Link className="btn btn-ghost" href="/catalog">Открыть каталог с фильтрами →</Link>
         </div>
-        <div className="split">
-          <div className="cards">
-            {BUILDINGS.map((b) => <BuildingCard key={b.slug} building={b} />)}
-          </div>
-          <MapView buildings={mapBuildings} className="map-home" />
-        </div>
+        <HomeExplore buildings={BUILDINGS} />
       </section>
 
       <section className="wrap" style={{ paddingBlock: "10px 30px" }}>
@@ -78,6 +68,6 @@ export default async function HomePage() {
           <div className="why-i"><b>Быстро</b><p>Заявка и бронь через сайт или WhatsApp — за минуту.</p></div>
         </div>
       </section>
-    </>
+    </FilterProvider>
   );
 }
