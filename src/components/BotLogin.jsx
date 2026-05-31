@@ -31,7 +31,7 @@ export default function BotLogin() {
       </button>
       {waiting && (
         <p style={{ marginTop: 12, color: "var(--ink-soft)", fontSize: 14, lineHeight: 1.5 }}>
-          Открылся бот @baylux_bot — нажмите там <b>«Старт» / Start</b>, и вы автоматически войдёте здесь. Ожидаю подтверждения…
+          Открылся бот @baylux_leads_bot — нажмите там <b>«Старт» / Start</b>, и вы автоматически войдёте здесь. Ожидаю подтверждения…
         </p>
       )}
     </div>

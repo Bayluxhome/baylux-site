@@ -13,7 +13,7 @@ export default function ContactsPage() {
 
       <div className="contact-row">
         <a href={waLink("Здравствуйте! Пишу с сайта Baylux.")} target="_blank" rel="noopener">💬 WhatsApp: +{WA_PHONE}</a>
-        <a href="https://t.me/baylux_bot" target="_blank" rel="noopener">✈️ Telegram: @baylux_bot</a>
+        <a href="https://t.me/baylux_leads_bot" target="_blank" rel="noopener">✈️ Telegram: @baylux_leads_bot</a>
         <a href="mailto:bayluxhome@yahoo.com">✉️ E-mail: bayluxhome@yahoo.com</a>
       </div>
 
@@ -21,7 +21,7 @@ export default function ContactsPage() {
       <p>📍 Батуми, Грузия. Работаем по всему городу и пригородам (Гонио, Махинджаури, Чакви).</p>
 
       <h2>Разместить объект</h2>
-      <p>Сдать или продать недвижимость можно прямо на сайте — кнопка «Сдать / продать», или через нашего Telegram-бота @baylux_bot.</p>
+      <p>Сдать или продать недвижимость можно прямо на сайте — кнопка «Сдать / продать», или через нашего Telegram-бота @baylux_leads_bot.</p>
 
       <p className="muted" style={{ marginTop: 18 }}>Baylux · недвижимость в Батуми, Грузия.</p>
     </div>

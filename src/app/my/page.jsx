@@ -28,7 +28,7 @@ export default async function MyPage() {
         <div style={{ margin: "24px 0 12px", color: "var(--ink-soft)", fontSize: 13 }}>или войдите виджетом Telegram:</div>
         <TelegramLogin />
         <p style={{ color: "var(--ink-soft)", fontSize: 13, marginTop: 20 }}>
-          Объявления добавляются в боте <b>@baylux_bot</b> (команда /start или меню).
+          Объявления добавляются в боте <b>@baylux_leads_bot</b> (команда /start или меню).
         </p>
       </div>
     );
@@ -56,7 +56,7 @@ export default async function MyPage() {
         <a className="btn btn-ghost" href="/api/tg-logout" style={{ padding: "9px 16px" }}>Выйти</a>
       </div>
       <p style={{ color: "var(--ink-soft)", margin: "6px 0 20px" }}>
-        {session.name ? session.name + ", в" : "В"}аши объекты ({rows.length}). Добавить новый — в боте <b>@baylux_bot</b> (/start).
+        {session.name ? session.name + ", в" : "В"}аши объекты ({rows.length}). Добавить новый — в боте <b>@baylux_leads_bot</b> (/start).
       </p>
       <MyListings items={items} />
     </div>
