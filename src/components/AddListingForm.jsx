@@ -4,6 +4,15 @@ import MapPicker from "./MapPicker";
 
 const DEALS = [["sale", "Продажа"], ["rent", "Аренда"], ["daily", "Посуточно"]];
 const TYPES = ["Квартира", "Студия", "Дом", "Коммерция", "Офис", "Участок", "Гараж"];
+const CITIES = ["Батуми", "Тбилиси", "Кутаиси", "Гонио", "Махинджаури", "Чакви"];
+
+// Грузинский номер: +995XXXXXXXXX, 995XXXXXXXXX или локальные 9 цифр. Иначе null.
+function gePhone(raw) {
+  const s = String(raw || "").replace(/[^\d]/g, "");
+  if (s.startsWith("995") && s.length === 12) return "+" + s;
+  if (s.length === 9) return "+995" + s;
+  return null;
+}
 
 function compress(file) {
   return new Promise((resolve) => {
@@ -24,16 +33,34 @@ function compress(file) {
 }
 
 export default function AddListingForm() {
-  const [f, setF] = useState({ deal: "sale", type: "Квартира", address: "", price: "", area: "", rooms: "", floor: "", about: "", contact: "" });
+  const [f, setF] = useState({ country: "Грузия", city: "Батуми", deal: "sale", type: "Квартира", address: "", price: "", area: "", rooms: "", floor: "", about: "", contact: "" });
   const [files, setFiles] = useState([]);
   const [geo, setGeo] = useState(null);
+  const [geoNote, setGeoNote] = useState("");
   const [state, setState] = useState("");
   const upd = (k, v) => setF((s) => ({ ...s, [k]: v }));
+
+  // Геокод адреса → ставим пин на карте автоматически
+  async function geocodeAddress(addr, city) {
+    const key = process.env.NEXT_PUBLIC_MAPTILER_KEY;
+    if (!addr || !addr.trim() || !key) return;
+    try {
+      const q = `${addr}, ${city}, Georgia`;
+      const r = await fetch(`https://api.maptiler.com/geocoding/${encodeURIComponent(q)}.json?key=${key}&limit=1&country=ge`);
+      const j = await r.json();
+      const c = j?.features?.[0]?.center;
+      if (Array.isArray(c) && c.length === 2) {
+        setGeo({ lat: c[1], lng: c[0] });
+        setGeoNote("📍 Точка поставлена по адресу — проверьте и при необходимости передвиньте кликом по карте.");
+      }
+    } catch { /* ignore */ }
+  }
 
   async function submit(e) {
     e.preventDefault();
     if (!f.address.trim()) { alert("Укажите адрес объекта."); return; }
-    if (!f.contact.trim()) { alert("Укажите контакт для связи (телефон или @username)."); return; }
+    const phone = gePhone(f.contact);
+    if (!phone) { alert("Укажите грузинский номер телефона (+995). Например: +995 555 12 34 56."); return; }
     setState("loading");
     try {
       const urls = [];
@@ -45,7 +72,7 @@ export default function AddListingForm() {
         const j = await r.json();
         if (j.ok) urls.push(j.url);
       }
-      const payload = { ...f, lat: geo?.lat, lng: geo?.lng, photos: urls };
+      const payload = { ...f, contact: phone, lat: geo?.lat, lng: geo?.lng, photos: urls };
       const r = await fetch("/api/add-listing", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) });
       const j = await r.json();
       setState(j.ok ? "done" : "error");
@@ -62,19 +89,25 @@ export default function AddListingForm() {
 
   return (
     <form className="addform" onSubmit={submit}>
+      <label>Страна
+        <select value={f.country} onChange={(e) => upd("country", e.target.value)}><option>Грузия</option></select>
+      </label>
+      <label>Город
+        <select value={f.city} onChange={(e) => { upd("city", e.target.value); geocodeAddress(f.address, e.target.value); }}>{CITIES.map((c) => <option key={c} value={c}>{c}</option>)}</select>
+      </label>
       <label>Тип сделки
         <select value={f.deal} onChange={(e) => upd("deal", e.target.value)}>{DEALS.map(([v, n]) => <option key={v} value={v}>{n}</option>)}</select>
       </label>
       <label>Тип объекта
         <select value={f.type} onChange={(e) => upd("type", e.target.value)}>{TYPES.map((t) => <option key={t} value={t}>{t}</option>)}</select>
       </label>
-      <label>Адрес (улица, дом)
-        <input value={f.address} onChange={(e) => upd("address", e.target.value)} placeholder="ул. Шерифа Химшиашвили, 1" />
+      <label className="af-full">Адрес (улица, дом)
+        <input value={f.address} onChange={(e) => upd("address", e.target.value)} onBlur={(e) => geocodeAddress(e.target.value, f.city)} placeholder="ул. Шерифа Химшиашвили, 1" />
       </label>
       <div className="af-full">
-        <div className="af-lbl">Точка на карте — нажмите на карту, где находится объект:</div>
-        <MapPicker onPick={(lat, lng) => setGeo({ lat, lng })} />
-        <div className="af-hint">{geo ? "✓ Точка выбрана" : "Точка не выбрана (можно пропустить)"}</div>
+        <div className="af-lbl">Точка на карте — ставится по адресу автоматически. Можно поправить кликом (включите спутник):</div>
+        <MapPicker point={geo} onPick={(lat, lng) => { setGeo({ lat, lng }); setGeoNote("✓ Точка выбрана вручную."); }} />
+        <div className="af-hint">{geoNote || (geo ? "✓ Точка выбрана" : "Введите адрес — точка встанет сама, либо кликните по карте")}</div>
       </div>
       <label>Цена
         <input value={f.price} onChange={(e) => upd("price", e.target.value)} placeholder="74000 или $650 / мес" />
@@ -91,8 +124,8 @@ export default function AddListingForm() {
       <label className="af-full">Описание
         <textarea value={f.about} onChange={(e) => upd("about", e.target.value)} rows={3} placeholder="Кратко об объекте" />
       </label>
-      <label className="af-full">Контакт для связи (обязательно)
-        <input value={f.contact} onChange={(e) => upd("contact", e.target.value)} placeholder="телефон или @username" required />
+      <label className="af-full">Телефон для связи — Грузия, +995 (обязательно)
+        <input value={f.contact} onChange={(e) => upd("contact", e.target.value)} inputMode="tel" placeholder="+995 555 12 34 56" required />
       </label>
       <div className="af-full">
         <div className="af-lbl">Фото (до 10, сжимаются автоматически)</div>

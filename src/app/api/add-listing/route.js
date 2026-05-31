@@ -8,6 +8,8 @@ export const dynamic = "force-dynamic";
 const TOKEN = process.env.TELEGRAM_BOT_TOKEN;
 const ADMIN = process.env.TELEGRAM_CHAT_ID;
 const DEAL_RU = { sale: "Продажа", rent: "Аренда", daily: "Посуточно" };
+const esc = (s) => String(s == null ? "" : s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+const mapsLink = (lat, lng) => `https://www.google.com/maps?q=${lat},${lng}`;
 
 function tg(method, body) {
   return fetch(`https://api.telegram.org/bot${TOKEN}/${method}`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) }).then((r) => r.json());
@@ -19,6 +21,20 @@ function normPrice(raw) {
   if (!/[$₾€]|usd|gel|lari|лар|eur|евро/i.test(s)) s = "$" + s;
   return s.replace(/\$\s*\$+/g, "$");
 }
+// Грузинский номер: +995XXXXXXXXX, 995XXXXXXXXX или локальные 9 цифр. Иначе null.
+function gePhone(raw) {
+  const s = String(raw || "").replace(/[^\d]/g, "");
+  if (s.startsWith("995") && s.length === 12) return "+" + s;
+  if (s.length === 9) return "+995" + s;
+  return null;
+}
+// Кнопки модерации — те же, что в боте (включая исправление гео)
+function modButtons(id) {
+  return { inline_keyboard: [
+    [{ text: "✅ Опубликовать", callback_data: `ap:${id}` }, { text: "❌ Отклонить", callback_data: `rj:${id}` }],
+    [{ text: "📍 Исправить гео", callback_data: `eg:${id}` }],
+  ] };
+}
 
 export async function POST(req) {
   const session = verifySession(cookies().get("bx_session")?.value);
@@ -27,26 +43,37 @@ export async function POST(req) {
   let b;
   try { b = await req.json(); } catch { return Response.json({ ok: false }); }
 
+  // Только грузинские номера (+995) — синхронно с ботом
+  const phone = gePhone(b.contact);
+  if (!phone) return Response.json({ ok: false, error: "phone" }, { status: 400 });
+
   const deal = ["sale", "rent", "daily"].includes(b.deal) ? b.deal : "sale";
+  const city = (b.city || "Батуми").toString().trim() || "Батуми";
+  const hasGeo = b.lat != null && b.lng != null;
   const row = {
     status: "pending",
-    building_name: (b.address || "").trim() || (b.type ? `${b.type}, Батуми` : "Объект"),
+    building_name: (b.address || "").trim() || (b.type ? `${b.type}, ${city}` : "Объект"),
     kind: /новострой/i.test(b.type || "") ? "complex" : "house",
-    district: "",
+    district: city,
     lat: Number(b.lat) || 41.645, lng: Number(b.lng) || 41.642,
     deal, type: b.type || "Квартира",
     rooms: parseInt(b.rooms, 10) || 0, area: parseInt(b.area, 10) || 0,
     floor: (b.floor || "—").toString(), price: normPrice(b.price), per: deal === "rent" ? "в месяц" : deal === "daily" ? "в сутки" : "",
     about: (b.about || "").toString(), photos: Array.isArray(b.photos) ? b.photos.slice(0, 10) : [],
-    tg_user_id: session.id, tg_username: session.username || "", contact: (b.contact || "").toString(),
+    tg_user_id: session.id, tg_username: session.username || "", contact: phone, phone,
   };
   const { data: ins, error } = await supa.from("listings").insert(row).select("id").single();
   if (error) return Response.json({ ok: false });
+  if (session.id) await supa.from("users").upsert({ tg_user_id: session.id, phone, username: session.username || "" }, { onConflict: "tg_user_id" });
 
   if (ADMIN && TOKEN) {
     if (row.photos.length) await tg("sendMediaGroup", { chat_id: ADMIN, media: row.photos.map((u) => ({ type: "photo", media: u })) });
-    const summary = `🆕 <b>Новое объявление (с сайта)</b>\n${DEAL_RU[deal]} · ${row.type}\n🏠 ${row.building_name}\n💰 ${row.price}\n📐 ${row.area} м² · 🛏 ${row.rooms} комн. · этаж ${row.floor}\n📷 ${row.photos.length} фото\n👤 ${session.name || session.username || session.id}${row.contact ? "\n📞 " + row.contact : ""}\n\n${row.about}`;
-    await tg("sendMessage", { chat_id: ADMIN, text: summary, parse_mode: "HTML", reply_markup: { inline_keyboard: [[{ text: "✅ Опубликовать", callback_data: `ap:${ins.id}` }, { text: "❌ Отклонить", callback_data: `rj:${ins.id}` }]] } });
+    if (hasGeo) await tg("sendLocation", { chat_id: ADMIN, latitude: row.lat, longitude: row.lng });
+    const geoLine = hasGeo
+      ? `\n📍 <a href="${mapsLink(row.lat, row.lng)}">проверить точку на карте</a> (откройте спутник)`
+      : `\n⚠️ точка на карте НЕ указана`;
+    const summary = `🆕 <b>Новое объявление (с сайта)</b>\n${DEAL_RU[deal]} · ${row.type}\n🏙 ${esc(city)}\n🏠 ${esc(row.building_name)}\n💰 ${row.price}\n📐 ${row.area} м² · 🛏 ${row.rooms} комн. · 🏢 ${esc(row.floor)}\n📷 ${row.photos.length} фото${geoLine}\n👤 ${esc(session.name || session.username || session.id)}\n📞 ${phone}\n\n${esc(row.about)}`;
+    await tg("sendMessage", { chat_id: ADMIN, text: summary, parse_mode: "HTML", disable_web_page_preview: true, reply_markup: modButtons(ins.id) });
   }
   return Response.json({ ok: true });
 }
