@@ -73,11 +73,11 @@ function batchButtons(batchId) {
     { text: "❌ Отклонить пачку", callback_data: `brj:${batchId}` },
   ]] };
 }
-// Кнопки модерации одного объекта — те же, что в add-listing/route.js (callback ap/rj/eg обрабатывает tg/route.js).
+// Кнопки модерации одного объекта — те же, что в add-listing/route.js (callback ap/rj/eg/et обрабатывает tg/route.js).
 function modButtons(id) {
   return { inline_keyboard: [
     [{ text: "✅ Опубликовать", callback_data: `ap:${id}` }, { text: "❌ Отклонить", callback_data: `rj:${id}` }],
-    [{ text: "📍 Исправить гео", callback_data: `eg:${id}` }],
+    [{ text: "📍 Исправить гео", callback_data: `eg:${id}` }, { text: "✏️ Редактировать текст", callback_data: `et:${id}` }],
   ] };
 }
 // Не шлём карточки по одному, если объектов больше — только итоговую сводку пачки (защита от флуда).

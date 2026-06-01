@@ -260,10 +260,10 @@ function sendContact(chat, lang) {
   return tg("sendMessage", { chat_id: chat, text: B(lang, "q_contact"), reply_markup: { keyboard: [[{ text: B(lang, "contact_share"), request_contact: true }], [{ text: B(lang, "back") }, { text: B(lang, "cancel") }]], resize_keyboard: true, one_time_keyboard: true } });
 }
 function modButtons(status, id) {
-  const geo = [{ text: "📍 Исправить гео", callback_data: `eg:${id}` }];
-  if (status === "approved") return { inline_keyboard: [[{ text: "🗑 Снять с публикации", callback_data: `un:${id}` }], geo] };
-  if (status === "rejected") return { inline_keyboard: [[{ text: "↩️ Опубликовать", callback_data: `ap:${id}` }], geo] };
-  return { inline_keyboard: [[{ text: "✅ Опубликовать", callback_data: `ap:${id}` }, { text: "❌ Отклонить", callback_data: `rj:${id}` }], geo] };
+  const tools = [{ text: "📍 Исправить гео", callback_data: `eg:${id}` }, { text: "✏️ Редактировать текст", callback_data: `et:${id}` }];
+  if (status === "approved") return { inline_keyboard: [[{ text: "🗑 Снять с публикации", callback_data: `un:${id}` }], tools] };
+  if (status === "rejected") return { inline_keyboard: [[{ text: "↩️ Опубликовать", callback_data: `ap:${id}` }], tools] };
+  return { inline_keyboard: [[{ text: "✅ Опубликовать", callback_data: `ap:${id}` }, { text: "❌ Отклонить", callback_data: `rj:${id}` }], tools] };
 }
 
 // ---- состояние диалога ----
@@ -427,6 +427,23 @@ async function onMessage(msg) {
       return send(chat, `✅ Геопозиция объекта обновлена.\n📍 ${mapsLink(msg.location.latitude, msg.location.longitude)}\nНа сайте обновится в течение нескольких минут.`, mainMenu("ru"));
     }
     return send(chat, "Пришлите новую точку на карте: 📎 → Геопозиция → «Выбрать на карте» (лучше в режиме «Спутник»). Или /cancel.");
+  }
+
+  // Модератор редактирует текст описания
+  if (d.step === "modtext") {
+    if (!text || text.startsWith("/")) return send(chat, "Пришлите новый текст описания (обычным сообщением). Или /cancel чтобы отменить.");
+    const { data: lst } = await supa.from("listings").select("lang, status, tg_post_id").eq("id", data.editId).maybeSingle();
+    const llang = (lst && lst.lang) || "ru";
+    const descCol = { ru: "desc_ru", en: "desc_en", ka: "desc_ka" }[llang] || "desc_ru";
+    // about + desc_<язык объявления> = новый текст; остальные desc-поля обнуляем,
+    // чтобы при одобрении (ap) translateDescriptions перевёл их заново.
+    const upd = { about: text, [descCol]: text };
+    for (const c of ["desc_ru", "desc_en", "desc_ka"]) if (c !== descCol) upd[c] = null;
+    await supa.from("listings").update(upd).eq("id", data.editId);
+    await clearDraft(uid);
+    // Опубликованный пост в канале не переписываем — только запись в БД.
+    const channelNote = (lst && lst.status === "approved" && lst.tg_post_id) ? "\nℹ️ В канале текст не меняется — обновлено на сайте/в БД." : "";
+    return send(chat, "✅ Текст обновлён." + channelNote, mainMenu("ru"));
   }
 
   if (isBack(text)) {
@@ -611,6 +628,13 @@ async function onCallback(cb) {
     await saveDraft(cb.from.id, "modgeo", { editId: id });
     await tg("answerCallbackQuery", { callback_query_id: cb.id, text: "Пришлите новую точку на карте" });
     await tg("sendMessage", { chat_id: cb.message.chat.id, text: `📍 Исправление геопозиции объекта.\nПришлите новую точку: 📎 → Геопозиция → «Выбрать на карте» (лучше в режиме «Спутник»).\nИли /cancel чтобы отменить.` });
+    return;
+  }
+
+  if (action === "et") {
+    await saveDraft(cb.from.id, "modtext", { editId: id });
+    await tg("answerCallbackQuery", { callback_query_id: cb.id, text: "Пришлите новый текст описания" });
+    await tg("sendMessage", { chat_id: cb.message.chat.id, text: `✏️ Пришлите новый текст описания. Или /cancel чтобы отменить.` });
     return;
   }
 

@@ -39,11 +39,11 @@ function cleanTg(raw) {
   const m = String(raw || "").trim().match(/(?:t\.me\/|@)?([A-Za-z0-9_]{3,})/);
   return m ? m[1].replace(/[^A-Za-z0-9_]/g, "") : "";
 }
-// Кнопки модерации — те же, что в боте (включая исправление гео)
+// Кнопки модерации — те же, что в боте (включая исправление гео и редактирование текста)
 function modButtons(id) {
   return { inline_keyboard: [
     [{ text: "✅ Опубликовать", callback_data: `ap:${id}` }, { text: "❌ Отклонить", callback_data: `rj:${id}` }],
-    [{ text: "📍 Исправить гео", callback_data: `eg:${id}` }],
+    [{ text: "📍 Исправить гео", callback_data: `eg:${id}` }, { text: "✏️ Редактировать текст", callback_data: `et:${id}` }],
   ] };
 }
 
