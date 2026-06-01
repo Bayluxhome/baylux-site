@@ -19,9 +19,17 @@ export async function generateStaticParams() {
 export async function generateMetadata({ params }) {
   const b = await findBuilding(params.slug);
   if (!b) return { title: "Объект не найден" };
+  const photo = b.facade_photo || (b.units && b.units[0] && b.units[0].photos && b.units[0].photos[0]) || "/hero-batumi.jpg";
   return {
     title: `${b.name} — ${b.district}, Батуми`,
     description: `${b.name}: ${b.units.length} объект(ов) на продажу и аренду в районе ${b.district}, Батуми. ${b.about.slice(0, 120)}`,
+    alternates: { canonical: `/building/${b.slug}` },
+    openGraph: {
+      title: `${b.name} — ${b.district}, Батуми`,
+      description: `${b.name}: ${b.units.length} объект(ов) в районе ${b.district}, Батуми.`,
+      images: [photo.startsWith("http") ? photo : `https://bayluxhome.com${photo}`],
+      type: "website",
+    },
   };
 }
 

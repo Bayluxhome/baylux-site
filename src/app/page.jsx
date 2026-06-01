@@ -56,6 +56,11 @@ export default async function HomePage() {
           <div className="why-i"><b>{t("why_fast_h")}</b><p>{t("why_fast_p")}</p></div>
         </div>
       </section>
+
+      <section className="wrap" style={{ paddingBlock: "30px 50px" }}>
+        <h2 style={{ color: "var(--navy)", fontSize: 22, marginBottom: 10 }}>{t("seo_home_h")}</h2>
+        <p style={{ color: "var(--ink-soft)", lineHeight: 1.7, maxWidth: 820 }}>{t("seo_home_p")}</p>
+      </section>
     </>
   );
 }

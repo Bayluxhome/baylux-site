@@ -19,9 +19,17 @@ export async function generateStaticParams() {
 export async function generateMetadata({ params }) {
   const u = await findUnit(params.slug);
   if (!u) return { title: "Объект не найден" };
+  const photo = (u.photos && u.photos[0]) || u.img || "/hero-batumi.jpg";
   return {
     title: `${u.type}, ${u.area} м² — ${u.building.district}, Батуми · ${u.price}`,
     description: `${DEAL_LABEL[u.deal]}: ${u.type}${u.rooms ? `, ${u.rooms} комн.` : ""}, ${u.area} м² в ${u.building.name}, район ${u.building.district}, Батуми. Цена ${u.price}.`,
+    alternates: { canonical: `/property/${u.slug}` },
+    openGraph: {
+      title: `${u.type}, ${u.area} м² — ${u.building.district}, Батуми`,
+      description: `${DEAL_LABEL[u.deal]}: ${u.type}, ${u.area} м² в ${u.building.name}, Батуми. Цена ${u.price}.`,
+      images: [photo.startsWith("http") ? photo : `https://bayluxhome.com${photo}`],
+      type: "website",
+    },
   };
 }
 
@@ -50,8 +58,40 @@ export default async function PropertyPage({ params }) {
   const inquiry = `Здравствуйте! Интересует объект: ${u.type}, ${u.area} м² — ${b.name} (${u.price})`;
   const waHref = cleanPhone ? `https://wa.me/${cleanPhone}?text=${encodeURIComponent(inquiry)}` : waLink(inquiry);
 
+  const ldJson = {
+    "@context": "https://schema.org",
+    "@type": "Product",
+    name: `${u.type}, ${u.area} м² — ${b.name}, Батуми`,
+    description: `${DEAL_LABEL[u.deal]}: ${u.type}, ${u.area} м² в ${b.name}, район ${b.district}, Батуми.`,
+    image: photos.map((p) => (p.startsWith("http") ? p : `https://bayluxhome.com${p}`)),
+    category: "Real Estate",
+    ...(u.priceNum
+      ? {
+          offers: {
+            "@type": "Offer",
+            price: u.priceNum,
+            priceCurrency: u.currency || "USD",
+            availability: "https://schema.org/InStock",
+            url: `https://bayluxhome.com/property/${u.slug}`,
+          },
+        }
+      : {}),
+  };
+  const breadcrumbJson = {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: [
+      { "@type": "ListItem", position: 1, name: "Главная", item: "https://bayluxhome.com" },
+      { "@type": "ListItem", position: 2, name: "Каталог", item: "https://bayluxhome.com/catalog" },
+      { "@type": "ListItem", position: 3, name: bname, item: `https://bayluxhome.com/building/${b.slug}` },
+      { "@type": "ListItem", position: 4, name: `${ty}, ${u.area} м²`, item: `https://bayluxhome.com/property/${u.slug}` },
+    ],
+  };
+
   return (
     <div className="wrap">
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(ldJson) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJson) }} />
       <div className="crumbs">
         <Link href="/">{t("crumb_home")}</Link> · <Link href="/catalog">{t("crumb_catalog")}</Link> ·{" "}
         <Link href={`/building/${b.slug}`}>{bname}</Link> · <span>{ty}, {u.area} м²</span>

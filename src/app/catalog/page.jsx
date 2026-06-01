@@ -11,6 +11,7 @@ export const revalidate = 300;
 export const metadata = {
   title: "Каталог недвижимости в Батуми и Грузии",
   description: "Квартиры, дома, новостройки и коммерция — продажа, аренда и посуточно. Фильтры по городу, цене, комнатам, площади и удобствам.",
+  alternates: { canonical: "/catalog" },
 };
 
 const DEAL_CHIPS = [
@@ -137,6 +138,13 @@ export default async function CatalogPage({ searchParams }) {
           </div>
           <MapView buildings={mapBuildings} className="map-full" />
         </div>
+      )}
+
+      {Object.keys(sp).length === 0 && (
+        <section style={{ paddingBlock: "34px 6px" }}>
+          <h2 style={{ color: "var(--navy)", fontSize: 20, marginBottom: 10 }}>{t("seo_cat_h")}</h2>
+          <p style={{ color: "var(--ink-soft)", lineHeight: 1.7, maxWidth: 820 }}>{t("seo_cat_p")}</p>
+        </section>
       )}
     </div>
   );

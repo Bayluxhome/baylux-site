@@ -6,7 +6,7 @@ export const TG_BOT = "baylux_leads_bot"; // имя бота для входа �
 export const OPERATOR = {
   name: "Parshuto Dmitrii", // ФИО оператора-физлица (до регистрации ШПС)
   email: "bayluxhome@yahoo.com",
-  phone: "+995 555 11 24 781",
+  phone: "+995 511 12 47 81",
 };
 
 // Версия и дата юр-документов (Privacy/Terms/Cookies/Rules)
