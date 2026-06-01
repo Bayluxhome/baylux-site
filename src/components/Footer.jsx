@@ -22,7 +22,7 @@ export default function Footer() {
               )}
               {SOCIAL.facebook && (
                 <a href={SOCIAL.facebook} target="_blank" rel="noopener noreferrer" aria-label="Facebook">
-                  <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><path d="M14 8.5h2.2V5.4c-.38-.05-1.3-.16-2.36-.16-2.34 0-3.94 1.43-3.94 4.05V12H7v3.3h2.9V24h3.5v-8.7h2.78L16.6 12h-3.2V9.6c0-.8.22-1.1 1.1-1.1z"/></svg>
+                  <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><path d="M22 12c0-5.52-4.48-10-10-10S2 6.48 2 12c0 4.99 3.66 9.13 8.44 9.88v-6.99H7.9V12h2.54V9.8c0-2.51 1.49-3.9 3.78-3.9 1.1 0 2.24.2 2.24.2v2.46h-1.26c-1.24 0-1.63.77-1.63 1.56V12h2.78l-.44 2.89h-2.34v6.99C18.34 21.13 22 16.99 22 12z"/></svg>
                 </a>
               )}
             </div>
