@@ -21,7 +21,7 @@ export const ADMIN_TG_IDS = []; // при необходимости добав�
 // Соцсети для футера. Пустую строку — иконка скрывается.
 export const SOCIAL = {
   instagram: "https://www.instagram.com/baylux_home",
-  facebook: "", // вставить ссылку, когда страница будет готова
+  facebook: "https://www.facebook.com/profile.php?id=61590347708938",
 };
 
 export const WA_PHONE = process.env.NEXT_PUBLIC_WA_PHONE || "995555000000"; // заменить на реальный номер

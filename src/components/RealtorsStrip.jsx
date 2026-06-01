@@ -9,7 +9,7 @@ export default async function RealtorsStrip() {
   const t = (k) => tr(lang, k);
   let rows = [];
   if (supa) {
-    const { data } = await supa.from("realtors").select("*").order("created_at", { ascending: false }).limit(8);
+    const { data } = await supa.from("realtors").select("*").eq("status", "approved").order("created_at", { ascending: false }).limit(8);
     rows = data || [];
   }
   if (!rows.length) return null;

@@ -580,6 +580,25 @@ async function onCallback(cb) {
     return;
   }
 
+  // Модерация профиля риелтора
+  if (action === "rap" || action === "rrj") {
+    const rstatus = action === "rap" ? "approved" : "rejected";
+    const { data: rr } = await supa.from("realtors").update({ status: rstatus }).eq("id", id).select("*").single();
+    await tg("answerCallbackQuery", { callback_query_id: cb.id, text: rstatus === "approved" ? "Риелтор одобрен" : "Отклонён" });
+    const rtag = rstatus === "approved" ? "✅ ОДОБРЕН" : "❌ ОТКЛОНЁН";
+    if (cb.message.caption != null) {
+      const base = cb.message.caption.replace(/\n\n(✅ ОДОБРЕН|❌ ОТКЛОНЁН).*$/s, "");
+      await tg("editMessageCaption", { chat_id: cb.message.chat.id, message_id: cb.message.message_id, caption: base + `\n\n${rtag}`, parse_mode: "HTML" });
+    } else {
+      const base = (cb.message.text || "").replace(/\n\n(✅ ОДОБРЕН|❌ ОТКЛОНЁН).*$/s, "");
+      await tg("editMessageText", { chat_id: cb.message.chat.id, message_id: cb.message.message_id, text: base + `\n\n${rtag}`, parse_mode: "HTML" });
+    }
+    if (rr && rr.tg_user_id && rstatus === "approved") {
+      await tg("sendMessage", { chat_id: rr.tg_user_id, text: "🎉 Ваш профиль риелтора одобрен и опубликован на сайте Baylux." });
+    }
+    return;
+  }
+
   const status = action === "ap" ? "approved" : "rejected";
   const { data: row } = await supa.from("listings").update({ status }).eq("id", id).select("*").single();
   await tg("answerCallbackQuery", { callback_query_id: cb.id, text: status === "approved" ? "Опубликовано" : "Снято с публикации" });
