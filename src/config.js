@@ -18,6 +18,12 @@ export const DOC_UPDATED = "01.06.2026";
 export const ADMIN_EMAILS = ["bayluxhome@yahoo.com"];
 export const ADMIN_TG_IDS = []; // при необходимости добавить Telegram user id (число)
 
+// Соцсети для футера. Пустую строку — иконка скрывается.
+export const SOCIAL = {
+  instagram: "https://www.instagram.com/baylux_home",
+  facebook: "", // вставить ссылку, когда страница будет готова
+};
+
 export const WA_PHONE = process.env.NEXT_PUBLIC_WA_PHONE || "995555000000"; // заменить на реальный номер
 export function waLink(text) {
   const t = text || "Здравствуйте! Пишу с сайта Baylux по объекту.";

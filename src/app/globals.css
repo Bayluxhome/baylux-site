@@ -372,6 +372,11 @@ footer.site a:hover{color:var(--gold-lt)}
 .consent-row input{margin-top:3px;flex:none;width:18px;height:18px}
 .consent-row a{color:var(--gold-dk);font-weight:600}
 
+/* соцсети в футере */
+.fsocial{display:flex;gap:12px;margin-top:16px}
+.fsocial a{color:#fff;opacity:.8;transition:opacity .15s,color .15s;display:inline-flex}
+.fsocial a:hover{opacity:1;color:var(--gold-lt)}
+
 /* риелторы */
 .realtor-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-top:18px}
 .realtor-card{display:flex;flex-direction:column;align-items:flex-start;border:1px solid var(--line);border-radius:14px;padding:18px;background:#fff;text-decoration:none;transition:box-shadow .15s,transform .15s}

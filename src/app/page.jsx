@@ -12,13 +12,14 @@ export const revalidate = 300;
 
 export default async function HomePage() {
   const BUILDINGS = await getBuildingsList();
-  const freshUnits = (await getAllUnits()).slice(0, 6);
+  const allUnits = await getAllUnits();
+  const freshUnits = allUnits.slice(0, 6);
   const lang = getLang();
   const t = (k) => tr(lang, k);
 
   return (
     <>
-      <Hero />
+      <Hero count={allUnits.length} />
 
       <CategoryGrid />
 

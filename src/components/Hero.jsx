@@ -5,7 +5,7 @@ import { useLang } from "./LangContext";
 
 const CITY_IMG = { "Батуми": "/hero-batumi.webp", "Тбилиси": "/hero-tbilisi.webp" };
 
-export default function Hero() {
+export default function Hero({ count }) {
   const { f } = useFilter();
   const { t } = useLang();
   const city = f.city;
@@ -22,7 +22,7 @@ export default function Hero() {
         <p>{t("hero_sub")}</p>
         <HeroSearch />
         <div className="stat-row">
-          <div className="stat"><b>✓</b><span>{t("st_verified2")}</span></div>
+          {count > 0 && <div className="stat"><b>{count}</b><span>{t("st_objects")}</span></div>}
           <div className="stat"><b>0%</b><span>{t("st_commission")}</span></div>
           <div className="stat"><b>24/7</b><span>{t("st_support")}</span></div>
           <div className="stat"><b>3</b><span>{t("st_langs")}</span></div>

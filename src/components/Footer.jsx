@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { getLang } from "@/lib/serverLang";
 import { t as tr } from "@/lib/dict";
-import { OPERATOR } from "@/config";
+import { OPERATOR, SOCIAL } from "@/config";
 import CookieLink from "@/components/CookieLink";
 
 export default function Footer() {
@@ -14,6 +14,18 @@ export default function Footer() {
           <div>
             <Link className="logo" href="/"><img src="/baylux_logo_white.svg" alt="Baylux" /></Link>
             <p style={{ marginTop: 14, fontSize: 14, maxWidth: 300 }}>{t("foot_about")}</p>
+            <div className="fsocial">
+              {SOCIAL.instagram && (
+                <a href={SOCIAL.instagram} target="_blank" rel="noopener noreferrer" aria-label="Instagram">
+                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><rect x="2" y="2" width="20" height="20" rx="5.5"/><circle cx="12" cy="12" r="4.2"/><circle cx="17.4" cy="6.6" r="1.1" fill="currentColor" stroke="none"/></svg>
+                </a>
+              )}
+              {SOCIAL.facebook && (
+                <a href={SOCIAL.facebook} target="_blank" rel="noopener noreferrer" aria-label="Facebook">
+                  <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><path d="M14 8.5h2.2V5.4c-.38-.05-1.3-.16-2.36-.16-2.34 0-3.94 1.43-3.94 4.05V12H7v3.3h2.9V24h3.5v-8.7h2.78L16.6 12h-3.2V9.6c0-.8.22-1.1 1.1-1.1z"/></svg>
+                </a>
+              )}
+            </div>
           </div>
           <div>
             <h4>{t("foot_realty")}</h4>
