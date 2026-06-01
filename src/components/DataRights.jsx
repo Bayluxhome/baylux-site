@@ -7,6 +7,22 @@ export default function DataRights() {
   const [confirm, setConfirm] = useState(false);
   const [state, setState] = useState("");
 
+  async function download() {
+    try {
+      const r = await fetch("/api/my-data");
+      if (!r.ok) { setState("error"); return; }
+      const blob = await r.blob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "baylux-my-data.json";
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+    } catch { setState("error"); }
+  }
+
   async function remove() {
     setState("loading");
     try {
@@ -23,7 +39,7 @@ export default function DataRights() {
       <p style={{ color: "var(--ink-soft)", fontSize: 14, marginBottom: 16, lineHeight: 1.6, maxWidth: 640 }}>{t("dr_intro")}</p>
 
       <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
-        <a className="btn btn-ghost" href="/api/my-data" style={{ padding: "10px 18px" }}>{t("dr_download")}</a>
+        <button type="button" className="btn btn-ghost" onClick={download} style={{ padding: "10px 18px" }}>{t("dr_download")}</button>
         {!confirm ? (
           <button type="button" className="btn btn-ghost" onClick={() => setConfirm(true)}
             style={{ padding: "10px 18px", color: "#b3261e", borderColor: "#e7b4af" }}>{t("dr_delete")}</button>
