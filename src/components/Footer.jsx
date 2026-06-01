@@ -40,7 +40,7 @@ export default function Footer() {
           </div>
           <div>
             <h4>{t("foot_company")}</h4>
-            <Link href="/about">{t("foot_about_l")}</Link><Link href="/contacts">{t("foot_contacts")}</Link><Link href="/terms">{t("foot_terms")}</Link><Link href="/privacy">{t("foot_privacy")}</Link><Link href="/cookies">{t("ck_title")}</Link><Link href="/rules">{t("rl_title")}</Link><CookieLink />
+            <Link href="/about">{t("foot_about_l")}</Link><Link href="/news">{t("foot_news")}</Link><Link href="/contacts">{t("foot_contacts")}</Link><Link href="/terms">{t("foot_terms")}</Link><Link href="/privacy">{t("foot_privacy")}</Link><Link href="/cookies">{t("ck_title")}</Link><Link href="/rules">{t("rl_title")}</Link><CookieLink />
           </div>
         </div>
         <div className="fbar" style={{ flexWrap: "wrap", gap: 6 }}>

@@ -4,6 +4,7 @@ import PropertyCard from "@/components/PropertyCard";
 import Hero from "@/components/Hero";
 import HomeExplore from "@/components/HomeExplore";
 import RealtorsStrip from "@/components/RealtorsStrip";
+import NewsStrip from "@/components/NewsStrip";
 import { getBuildingsList, getAllUnits } from "@/data/source";
 import { getLang } from "@/lib/serverLang";
 import { t as tr } from "@/lib/dict";
@@ -51,6 +52,8 @@ export default async function HomePage() {
       </section>
 
       <RealtorsStrip />
+
+      <NewsStrip />
 
       <section className="why">
         <div className="wrap why-grid">

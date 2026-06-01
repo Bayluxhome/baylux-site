@@ -137,6 +137,12 @@ export const DICT = {
     rl_strip_h: "Риелторы на Baylux",
     rl_strip_p: "Работайте с проверенными агентами — или станьте одним из них.",
     rl_strip_all: "Все риелторы →",
+    news_h: "Новости",
+    news_p: "Новые проекты и новостройки, обновления сервиса, открытие офисов и выход на новые рынки.",
+    news_strip_p: "Свежие события компании и площадки.",
+    news_all: "Все новости →",
+    news_empty: "Новостей пока нет.",
+    foot_news: "Новости",
     rp_title: "Профиль риелтора",
     rp_intro: "Станьте риелтором Baylux — ваша карточка появится в разделе «Риелторы» и на главной. Привлекайте клиентов через площадку.",
     rp_become: "Стать риелтором",
@@ -283,6 +289,12 @@ export const DICT = {
     rl_strip_h: "Realtors on Baylux",
     rl_strip_p: "Work with verified agents — or become one yourself.",
     rl_strip_all: "All realtors →",
+    news_h: "News",
+    news_p: "New projects and developments, service updates, office openings and entering new markets.",
+    news_strip_p: "Latest company and platform updates.",
+    news_all: "All news →",
+    news_empty: "No news yet.",
+    foot_news: "News",
     rp_title: "Realtor profile",
     rp_intro: "Become a Baylux realtor — your card appears in the “Realtors” section and on the homepage. Attract clients via the platform.",
     rp_become: "Become a realtor",
@@ -429,6 +441,12 @@ export const DICT = {
     rl_strip_h: "რიელტორები Baylux-ზე",
     rl_strip_p: "იმუშავეთ შემოწმებულ აგენტებთან — ან თავად გახდით ერთ-ერთი.",
     rl_strip_all: "ყველა რიელტორი →",
+    news_h: "სიახლეები",
+    news_p: "ახალი პროექტები და კორპუსები, სერვისის განახლებები, ოფისების გახსნა და ახალ ბაზრებზე გასვლა.",
+    news_strip_p: "კომპანიისა და პლატფორმის უახლესი ამბები.",
+    news_all: "ყველა სიახლე →",
+    news_empty: "სიახლეები ჯერ არ არის.",
+    foot_news: "სიახლეები",
     rp_title: "რიელტორის პროფილი",
     rp_intro: "გახდი Baylux-ის რიელტორი — შენი ბარათი გამოჩნდება განყოფილებაში „რიელტორები“ და მთავარ გვერდზე.",
     rp_become: "გახდი რიელტორი",
@@ -454,6 +472,12 @@ export const DICT = {
 export function t(lang, key) {
   const l = DICT[lang] ? lang : "ru";
   return DICT[l][key] || DICT.ru[key] || key;
+}
+
+// Заголовок/текст новости на языке посетителя с откатом на любой заполненный.
+export function newsField(item, field, lang) {
+  if (!item) return "";
+  return item[`${field}_${lang}`] || item[`${field}_ru`] || item[`${field}_en`] || item[`${field}_ka`] || "";
 }
 
 // Названия типов объектов хранятся по-русски; переводим для отображения.
