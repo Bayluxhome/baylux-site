@@ -3,13 +3,13 @@ import HeroSearch from "./HeroSearch";
 import { useFilter } from "./FilterContext";
 import { useLang } from "./LangContext";
 
-const CITY_IMG = { "Батуми": "/hero-batumi.jpg", "Тбилиси": "/hero-tbilisi.jpg" };
+const CITY_IMG = { "Батуми": "/hero-batumi.webp", "Тбилиси": "/hero-tbilisi.webp" };
 
 export default function Hero() {
   const { f } = useFilter();
   const { t } = useLang();
   const city = f.city;
-  const img = CITY_IMG[city] || "/hero-georgia.jpg";
+  const img = CITY_IMG[city] || "/hero-georgia.webp";
   const place = city || t("georgia");
   return (
     <section className="hero">
