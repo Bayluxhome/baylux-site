@@ -6,7 +6,7 @@ import { DOC_VERSION } from "@/config";
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-const SITE = "https://baylux-site.vercel.app";
+const SITE = "https://bayluxhome.com";
 
 export async function POST(req) {
   if (!supa) return Response.json({ ok: false }, { status: 500 });

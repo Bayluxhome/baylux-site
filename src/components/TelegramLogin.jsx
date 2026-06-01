@@ -13,7 +13,7 @@ export default function TelegramLogin() {
     s.setAttribute("data-size", "large");
     s.setAttribute("data-radius", "10");
     s.setAttribute("data-request-access", "write");
-    s.setAttribute("data-auth-url", "https://baylux-site.vercel.app/api/tg-auth");
+    s.setAttribute("data-auth-url", "https://bayluxhome.com/api/tg-auth");
     ref.current.appendChild(s);
   }, []);
   return <div ref={ref} />;

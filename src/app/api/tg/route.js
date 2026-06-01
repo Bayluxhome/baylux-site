@@ -24,7 +24,7 @@ function pickChannel(row) {
 }
 const API = `https://api.telegram.org/bot${TOKEN}`;
 const SECRET = (TOKEN || "").slice(-24).replace(/[^A-Za-z0-9_-]/g, "") || "baylux";
-const SITE = "https://baylux-site.vercel.app";
+const SITE = "https://bayluxhome.com";
 
 const esc = (s) => String(s == null ? "" : s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
 const DEAL_RU = { sale: "Продажа", rent: "Аренда", daily: "Посуточно" };
