@@ -24,6 +24,20 @@ export const SOCIAL = {
   facebook: "https://www.facebook.com/profile.php?id=61590347708938",
 };
 
+// Telegram-каналы недвижимости по регионам (username без @). Пустая строка — кнопка скрыта.
+export const TG_CHANNELS = {
+  batumi: "baylux_batumi",   // побережье/запад Грузии
+  tbilisi: "baylux_tbilisi", // Тбилиси/восток
+};
+// Города восточной Грузии → тбилисский канал; остальные → батумский (та же логика, что у бота).
+const TG_EAST = ["тбилиси", "рустави", "мцхета", "гори", "телави", "гудаури", "бакуриани"];
+export function channelForCity(city) {
+  const c = String(city || "").trim().toLowerCase();
+  const key = TG_EAST.some((e) => c.includes(e)) ? "tbilisi" : "batumi";
+  const username = TG_CHANNELS[key];
+  return username ? { key, username, url: "https://t.me/" + username } : null;
+}
+
 export const WA_PHONE = process.env.NEXT_PUBLIC_WA_PHONE || "995555000000"; // заменить на реальный номер
 export function waLink(text) {
   const t = text || "Здравствуйте! Пишу с сайта Baylux по объекту.";
