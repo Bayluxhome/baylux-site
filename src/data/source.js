@@ -53,6 +53,8 @@ function groupRows(rows) {
       per: r.per || "",
       unit_image: (r.photos && r.photos[0]) || "",
       photos: Array.isArray(r.photos) ? r.photos : [],
+      photo_hashes: Array.isArray(r.photo_hashes) ? r.photo_hashes : [],
+      created_at: r.created_at || "",
       contact: r.contact || "",
       phone: r.phone || "",
       tg_username: r.tg_username || "",
@@ -101,6 +103,56 @@ function mergeBuildings(...lists) {
   return Array.from(map.values());
 }
 
+// Ключ-фолбэк для дублей без фото-хэшей: адрес(дом)+площадь+комнаты+цена.
+function dupeFallbackKey(u, b) {
+  return [b.name || "", u.area || 0, u.rooms || 0, String(u.price || "")].join("|").toLowerCase();
+}
+
+// Объединяем дубли. Главный критерий — совпадение хотя бы одного photo_hash;
+// фолбэк (если у юнита нет хэшей) — адрес+площадь+комнаты+цена.
+// Из группы остаётся один primary (больше фото, затем новее), у него dupeCount и dupes[].
+function dedupeUnits(buildings) {
+  const items = [];
+  buildings.forEach((b) => b.units.forEach((u) => items.push({ u, b })));
+  const n = items.length;
+  if (!n) return buildings;
+  const parent = items.map((_, i) => i);
+  const find = (x) => { while (parent[x] !== x) { parent[x] = parent[parent[x]]; x = parent[x]; } return x; };
+  const union = (a, c) => { const ra = find(a), rc = find(c); if (ra !== rc) parent[ra] = rc; };
+
+  const hashFirst = new Map(); // photo_hash -> индекс первого юнита с ним
+  const fbFirst = new Map();   // фолбэк-ключ -> индекс
+  items.forEach(({ u, b }, i) => {
+    const hashes = Array.isArray(u.photo_hashes) ? u.photo_hashes.filter(Boolean) : [];
+    if (hashes.length) {
+      hashes.forEach((h) => { if (hashFirst.has(h)) union(i, hashFirst.get(h)); else hashFirst.set(h, i); });
+    } else {
+      const k = dupeFallbackKey(u, b);
+      if (fbFirst.has(k)) union(i, fbFirst.get(k)); else fbFirst.set(k, i);
+    }
+  });
+
+  const groups = new Map();
+  for (let i = 0; i < n; i++) { const r = find(i); if (!groups.has(r)) groups.set(r, []); groups.get(r).push(i); }
+
+  const remove = new Set(); // юниты-дубли (объекты), которые не показываем отдельно
+  for (const idxs of groups.values()) {
+    if (idxs.length < 2) continue;
+    idxs.sort((a, c) => {
+      const pa = items[a].u.photos?.length || 0, pc = items[c].u.photos?.length || 0;
+      if (pc !== pa) return pc - pa; // больше фото — главнее
+      return String(items[c].u.created_at || "").localeCompare(String(items[a].u.created_at || "")); // затем новее
+    });
+    const primary = items[idxs[0]].u;
+    const others = idxs.slice(1).map((j) => items[j].u);
+    primary.dupeCount = others.length;
+    primary.dupes = others.map((o) => ({ id: o.id, price: o.price, photo: o.unit_image || (o.photos && o.photos[0]) || "" }));
+    others.forEach((o) => remove.add(o));
+  }
+  if (!remove.size) return buildings;
+  return buildings.map((b) => ({ ...b, units: b.units.filter((u) => !remove.has(u)) }));
+}
+
 async function getBuildings() {
   const fromSupa = await fetchSupabase();
   let fromSheet = [];
@@ -116,13 +168,14 @@ async function getBuildings() {
   const list = merged.length ? merged : LOCAL;
   // Обогащаем цену/валюту/цену за м² для ВСЕХ источников (Sheet/локальные без price_num)
   const enriched = list.map((b) => ({ ...b, units: b.units.map(enrichUnit) }));
-  // Скрываем с сайта объявления без собственных фото, затем убираем дома, оставшиеся без юнитов.
+  // Скрываем с сайта объявления без собственных фото.
   // Действует на все источники сразу (Supabase/Sheet/локальные), т.к. getAllUnits и getBuildingsList идут сюда.
   const withPhotos = enriched
-    .map((b) => ({ ...b, units: b.units.filter((u) => Array.isArray(u.photos) && u.photos.length > 0) }))
-    .filter((b) => b.units.length > 0);
+    .map((b) => ({ ...b, units: b.units.filter((u) => Array.isArray(u.photos) && u.photos.length > 0) }));
+  // Объединяем дубли (по совпадению фото; фолбэк — адрес+площадь+комнаты+цена), затем убираем пустые дома.
+  const deduped = dedupeUnits(withPhotos).filter((b) => b.units.length > 0);
   // Продвигаемые объекты — выше (boost ставится вручную; оплата позже)
-  return withPhotos.sort((a, b) => (b.boost || 0) - (a.boost || 0));
+  return deduped.sort((a, b) => (b.boost || 0) - (a.boost || 0));
 }
 
 export async function getBuildingsList() {

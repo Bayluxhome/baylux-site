@@ -6,10 +6,19 @@ import FavButton from "@/components/FavButton";
 import { useLang } from "@/components/LangContext";
 import { typeLabel, cityLabel, translitAddress } from "@/lib/dict";
 
+// Русское склонение для бейджа дублей: 1 дубль / 2-4 дубля / 5+ дублей (en/ka — формы совпадают).
+function dupePluralKey(n) {
+  const m10 = n % 10, m100 = n % 100;
+  if (m10 === 1 && m100 !== 11) return "dupe_badge_one";
+  if (m10 >= 2 && m10 <= 4 && (m100 < 12 || m100 > 14)) return "dupe_badge_few";
+  return "dupe_badge_many";
+}
+
 export default function PropertyCard({ unit }) {
   const { t, lang } = useLang();
   const b = unit.building;
   const rs = t("rooms_short");
+  const dupeText = unit.dupeCount > 0 ? t(dupePluralKey(unit.dupeCount)).replace("{n}", unit.dupeCount) : "";
   const ty = typeLabel(lang, unit.type);
   const district = cityLabel(lang, b.district || "Батуми");
   const bname = b["name_" + lang] || translitAddress(b.name, lang, b.kind);
@@ -31,6 +40,7 @@ export default function PropertyCard({ unit }) {
           <Image src={unit.img} alt={alt} fill sizes="(max-width:560px) 100vw, 360px" style={{ objectFit: "cover" }} />
         )}
         <span className={"badge " + DEAL_CLASS[unit.deal]}>{t("deal_" + unit.deal)}</span>
+        {dupeText && <span style={{ position: "absolute", left: 10, bottom: 10, zIndex: 2, background: "rgba(1,29,60,.82)", color: "#fff", fontSize: 12, fontWeight: 600, padding: "3px 9px", borderRadius: 20 }}>{dupeText}</span>}
         <FavButton item={fav} />
       </div>
       <div className="body">

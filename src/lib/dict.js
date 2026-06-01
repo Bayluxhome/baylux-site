@@ -21,6 +21,7 @@ export const DICT = {
     // карточки
     rooms_short: "комн.", per_m2: "за м²", deal_sale: "Продажа", deal_rent: "Аренда", deal_daily: "Посуточно",
     badge_jk: "ЖК", badge_house: "Дом", w_from: "от", w_objects: "объект(ов)",
+    dupe_badge_one: "ещё {n} дубль", dupe_badge_few: "ещё {n} дубля", dupe_badge_many: "ещё {n} дублей", dupes_h: "Ещё {n} таких же",
     // страница объекта/дома
     crumb_home: "Главная", crumb_catalog: "Каталог",
     cta_daily: "Забронировать даты", cta_rent: "Снять — оставить заявку", cta_view: "Забронировать просмотр",
@@ -195,6 +196,7 @@ export const DICT = {
     foot_realty: "Real estate", foot_company: "Company", foot_mgmt: "Property management", foot_cleaning: "Cleaning", foot_realtors: "Realtors",
     foot_about_l: "About", foot_contacts: "Contacts", foot_terms: "Terms", foot_privacy: "Privacy",
     rooms_short: "rooms", per_m2: "per m²", deal_sale: "Sale", deal_rent: "Rent", deal_daily: "Daily",
+    dupe_badge_one: "+{n} similar", dupe_badge_few: "+{n} similar", dupe_badge_many: "+{n} similar", dupes_h: "{n} more like this",
     badge_jk: "Complex", badge_house: "House", w_from: "from", w_objects: "object(s)",
     crumb_home: "Home", crumb_catalog: "Catalog",
     cta_daily: "Book dates", cta_rent: "Rent — send request", cta_view: "Book a viewing",
@@ -364,6 +366,7 @@ export const DICT = {
     foot_realty: "უძრავი ქონება", foot_company: "კომპანია", foot_mgmt: "ქონების მართვა", foot_cleaning: "დასუფთავება", foot_realtors: "რიელტორები",
     foot_about_l: "კომპანიის შესახებ", foot_contacts: "კონტაქტი", foot_terms: "პირობები", foot_privacy: "კონფიდენციალურობა",
     rooms_short: "ოთახი", per_m2: "მ²-ზე", deal_sale: "გაყიდვა", deal_rent: "ქირა", deal_daily: "დღიურად",
+    dupe_badge_one: "+{n}", dupe_badge_few: "+{n}", dupe_badge_many: "+{n}", dupes_h: "კიდევ {n} მსგავსი",
     badge_jk: "კომპლექსი", badge_house: "სახლი", w_from: "დან", w_objects: "ობიექტი",
     crumb_home: "მთავარი", crumb_catalog: "კატალოგი",
     cta_daily: "თარიღების დაჯავშნა", cta_rent: "ქირაობა — განაცხადი", cta_view: "დათვალიერების ჯავშანი",

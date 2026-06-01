@@ -80,7 +80,7 @@ export async function POST(req) {
     floor: (b.floor || "—").toString(), year: parseInt(b.year, 10) || null,
     complex: (b.complex || "").toString().trim(), amenities, no_commission: !!b.noCommission,
     price: priceStr, currency, price_num: priceNum, per: deal === "rent" ? "в месяц" : deal === "daily" ? "в сутки" : "",
-    about: (b.about || "").toString(), photos: Array.isArray(b.photos) ? b.photos.slice(0, 10) : [], facade_photo: (b.facade || "").toString() || null,
+    about: (b.about || "").toString(), photos: Array.isArray(b.photos) ? b.photos.slice(0, 10) : [], photo_hashes: Array.isArray(b.photo_hashes) ? b.photo_hashes.slice(0, 10) : [], facade_photo: (b.facade || "").toString() || null,
     tg_user_id: session.id ?? null, owner_email: session.email || null, tg_username: cleanTg(b.tg) || session.username || "", contact: phone, phone,
   };
   const { data: ins, error } = await supa.from("listings").insert(row).select("id").single();

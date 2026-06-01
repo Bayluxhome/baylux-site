@@ -13,6 +13,11 @@ function gePhone(raw) {
   if (s.length === 9) return "+995" + s;
   return null;
 }
+// SHA-256 (hex) от ОРИГИНАЛА файла (до сжатия) — отпечаток фото для поиска дублей.
+async function sha256Hex(file) {
+  const digest = await crypto.subtle.digest("SHA-256", await file.arrayBuffer());
+  return Array.from(new Uint8Array(digest)).map((b) => b.toString(16).padStart(2, "0")).join("");
+}
 function compress(file) {
   return new Promise((resolve) => {
     const img = new Image();
@@ -138,8 +143,14 @@ export default function BulkUpload() {
       for (const r of valid) {
         const files = (photos[r.id] || []).slice(0, 10);
         const urls = [];
-        for (const { file } of files) { const u = await uploadOne(file); if (u) urls.push(u); }
+        const hashes = [];
+        for (const { file } of files) {
+          const hash = await sha256Hex(file);       // хэш оригинала ДО сжатия
+          const u = await uploadOne(file);
+          if (u) { urls.push(u); hashes.push(hash); }
+        }
         r.photos = urls;
+        r.photo_hashes = hashes;                     // порядок/число = числу загруженных фото
         done++;
         setProg(t("bulk_p_upload").replace("{n}", done).replace("{total}", valid.length));
       }

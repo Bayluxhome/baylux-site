@@ -115,6 +115,20 @@ export default async function PropertyPage({ params }) {
         {gallery.map((g, i) => <div key={i}><Image src={g} alt={`${u.type} — фото ${i + 1}`} fill sizes="(max-width:560px) 100vw, 50vw" style={{ objectFit: "cover" }} /></div>)}
       </div>
 
+      {u.dupeCount > 0 && u.dupes?.length > 0 && (
+        <div style={{ margin: "18px 0 4px" }}>
+          <h3 style={{ color: "var(--navy)", margin: "0 0 10px" }}>{t("dupes_h").replace("{n}", u.dupeCount)}</h3>
+          <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
+            {u.dupes.map((d, i) => (
+              <div key={d.id || i} style={{ position: "relative", width: 120, height: 90, borderRadius: 8, overflow: "hidden", border: "1px solid var(--line)", flex: "0 0 auto" }}>
+                {d.photo && <img src={d.photo} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} />}
+                <span style={{ position: "absolute", left: 0, right: 0, bottom: 0, background: "rgba(1,29,60,.72)", color: "#fff", fontSize: 12, padding: "2px 6px" }}>{d.price}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
       <div className="pp-grid">
         <div>
           <div className="spec">

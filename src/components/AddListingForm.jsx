@@ -15,6 +15,11 @@ function gePhone(raw) {
   if (s.length === 9) return "+995" + s;
   return null;
 }
+// SHA-256 (hex) от ОРИГИНАЛА файла (до сжатия) — отпечаток фото для поиска дублей.
+async function sha256Hex(file) {
+  const digest = await crypto.subtle.digest("SHA-256", await file.arrayBuffer());
+  return Array.from(new Uint8Array(digest)).map((b) => b.toString(16).padStart(2, "0")).join("");
+}
 
 function compress(file) {
   return new Promise((resolve) => {
@@ -69,15 +74,18 @@ export default function AddListingForm({ initial, editId }) {
     setState("loading");
     try {
       const newUrls = [];
+      const newHashes = [];
       for (const file of files.slice(0, 10)) {
+        const hash = await sha256Hex(file);     // хэш оригинала ДО сжатия
         const blob = await compress(file);
         const fd = new FormData();
         fd.append("photo", blob, "photo.jpg");
         const r = await fetch("/api/upload-photo", { method: "POST", body: fd });
         const j = await r.json();
-        if (j.ok) newUrls.push(j.url);
+        if (j.ok) { newUrls.push(j.url); newHashes.push(hash); }
       }
       const photos = [...existingPhotos, ...newUrls].slice(0, 10);
+      const photo_hashes = newHashes.slice(0, 10);
       let facadeUrl = facade;
       if (facadeFile) {
         const blob = await compress(facadeFile);
@@ -87,7 +95,7 @@ export default function AddListingForm({ initial, editId }) {
         const j = await r.json();
         if (j.ok) facadeUrl = j.url;
       }
-      const payload = { ...f, contact: phone, amenities, lat: geo?.lat, lng: geo?.lng, photos, lang, facade: facadeUrl };
+      const payload = { ...f, contact: phone, amenities, lat: geo?.lat, lng: geo?.lng, photos, photo_hashes, lang, facade: facadeUrl };
       if (editId) payload.id = editId;
       const r = await fetch(editId ? "/api/edit-listing" : "/api/add-listing", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) });
       const j = await r.json();

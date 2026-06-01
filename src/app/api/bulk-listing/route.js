@@ -151,6 +151,7 @@ export async function POST(req) {
       per: deal === "rent" ? "в месяц" : deal === "daily" ? "в сутки" : "",
       about,
       photos: Array.isArray(r.photos) ? r.photos.slice(0, 10) : [],
+      photo_hashes: Array.isArray(r.photo_hashes) ? r.photo_hashes.slice(0, 10) : [],
       tg_user_id: session.id ?? null, owner_email: session.email || null,
       // Публикуем номер загрузившего на всех объектах; чужой телефон/Telegram из таблицы не показываем.
       tg_username: "", contact: uploaderPhone, phone: uploaderPhone,
@@ -172,13 +173,30 @@ export async function POST(req) {
         if (row.photos.length) {
           await tg("sendMediaGroup", { chat_id: ADMIN, media: row.photos.map((u) => ({ type: "photo", media: u })) });
         }
+        // Дубль по фото: совпадение хотя бы одного хэша с другим объектом этой пачки ИЛИ с любым в БД.
+        const hashes = Array.isArray(row.photo_hashes) ? row.photo_hashes.filter(Boolean) : [];
+        let dupNote = "";
+        if (hashes.length) {
+          const inBatch = inserted.find((y) => y !== x && Array.isArray(y.row.photo_hashes) && y.row.photo_hashes.some((h) => hashes.includes(h)));
+          let inDb = null;
+          if (!inBatch) {
+            try {
+              const { data: dups } = await supa.from("listings").select("id").overlaps("photo_hashes", hashes).neq("id", x.dbId).limit(1);
+              inDb = dups && dups[0] ? dups[0] : null;
+            } catch (e) { console.error("dup check:", e?.message); }
+          }
+          if (inBatch || inDb) {
+            const ref = inBatch ? `#${esc(inBatch.refId)}` : `#${esc(inDb.id)}`;
+            dupNote = `\n⚠️ Возможный дубль — совпадают фото (объект ${ref})`;
+          }
+        }
         const geoLine = x.geoOk ? "" : `\n⚠️ гео неточное (центр города)`;
         const card =
           `🆕 <b>Объект из пачки #${esc(x.refId)}</b>\n` +
           `${DEAL_RU[row.deal]} · ${esc(row.type)}\n` +
           `🏙 ${esc(row.district)}\n🏠 ${esc(row.building_name)}\n` +
           `💰 ${esc(row.price)}\n📐 ${row.area} м² · 🛏 ${row.rooms} комн. · 🏢 ${esc(row.floor)}\n` +
-          `📷 ${row.photos.length} фото\n📞 ${esc(row.contact)}${geoLine}` +
+          `📷 ${row.photos.length} фото\n📞 ${esc(row.contact)}${geoLine}${dupNote}` +
           (row.about ? `\n\n${esc(row.about)}` : "");
         await tg("sendMessage", { chat_id: ADMIN, text: card, parse_mode: "HTML", disable_web_page_preview: true, reply_markup: modButtons(x.dbId) });
       }
