@@ -73,6 +73,15 @@ function batchButtons(batchId) {
     { text: "❌ Отклонить пачку", callback_data: `brj:${batchId}` },
   ]] };
 }
+// Кнопки модерации одного объекта — те же, что в add-listing/route.js (callback ap/rj/eg обрабатывает tg/route.js).
+function modButtons(id) {
+  return { inline_keyboard: [
+    [{ text: "✅ Опубликовать", callback_data: `ap:${id}` }, { text: "❌ Отклонить", callback_data: `rj:${id}` }],
+    [{ text: "📍 Исправить гео", callback_data: `eg:${id}` }],
+  ] };
+}
+// Не шлём карточки по одному, если объектов больше — только итоговую сводку пачки (защита от флуда).
+const PER_OBJECT_LIMIT = 25;
 
 export async function POST(req) {
   const session = verifySession(cookies().get("bx_session")?.value);
@@ -148,20 +157,44 @@ export async function POST(req) {
     };
     const { data: ins, error } = await supa.from("listings").insert(row).select("id").single();
     if (error) { errors.push({ id: refId, reason: "БД" }); continue; }
-    inserted.push({ dbId: ins.id, refId, deal, type: row.type, city, price: row.price, geoOk });
+    // Храним весь row — он нужен для подробной карточки модерации каждого объекта.
+    inserted.push({ dbId: ins.id, refId, deal, type: row.type, city, price: row.price, geoOk, row });
   }
 
-  // Одно сообщение модерации на всю пачку.
+  // Модерация. Небольшую пачку (≤ PER_OBJECT_LIMIT) шлём по объектам — отдельной
+  // карточкой с фото и кнопками ✅/❌/📍 (callback ap/rj/eg), чтобы одобрять по одному.
+  // В конце — всегда итоговое сообщение пачки с кнопками «одобрить/отклонить всю пачку».
   if (ADMIN && TOKEN && inserted.length) {
+    if (inserted.length <= PER_OBJECT_LIMIT) {
+      for (const x of inserted) {
+        const row = x.row;
+        // У медиагруппы кнопок не бывает — фото отдельно, кнопки на тексте после неё.
+        if (row.photos.length) {
+          await tg("sendMediaGroup", { chat_id: ADMIN, media: row.photos.map((u) => ({ type: "photo", media: u })) });
+        }
+        const geoLine = x.geoOk ? "" : `\n⚠️ гео неточное (центр города)`;
+        const card =
+          `🆕 <b>Объект из пачки #${esc(x.refId)}</b>\n` +
+          `${DEAL_RU[row.deal]} · ${esc(row.type)}\n` +
+          `🏙 ${esc(row.district)}\n🏠 ${esc(row.building_name)}\n` +
+          `💰 ${esc(row.price)}\n📐 ${row.area} м² · 🛏 ${row.rooms} комн. · 🏢 ${esc(row.floor)}\n` +
+          `📷 ${row.photos.length} фото\n📞 ${esc(row.contact)}${geoLine}` +
+          (row.about ? `\n\n${esc(row.about)}` : "");
+        await tg("sendMessage", { chat_id: ADMIN, text: card, parse_mode: "HTML", disable_web_page_preview: true, reply_markup: modButtons(x.dbId) });
+      }
+    }
+
+    // Итоговая сводка пачки — для быстрого одобрения/отклонения всех сразу.
     const lines = inserted.slice(0, 40).map((x) =>
       `${x.geoOk ? "•" : "⚠️"} #${esc(x.refId)} ${DEAL_RU[x.deal]} · ${esc(x.type)} · ${esc(x.city)} · ${esc(x.price)}`).join("\n");
     const more = inserted.length > 40 ? `\n…и ещё ${inserted.length - 40}` : "";
     const who = esc(session.name || session.username || session.email || session.id);
     const warn = geoFails.length ? `\n⚠️ Неточное гео (центр города): ${geoFails.length} шт. — проверьте на карте в /admin.` : "";
     const skipped = errors.length ? `\n⏭ Пропущено строк: ${errors.length} (${errors.slice(0, 8).map((e) => `#${esc(e.id)}:${e.reason}`).join(", ")}).` : "";
+    const note = inserted.length > PER_OBJECT_LIMIT ? `\nℹ️ Объектов больше ${PER_OBJECT_LIMIT} — карточки по одному не слались; разбирайте в админке или одобрите всю пачку.` : "";
     const text =
       `📦 <b>Массовая загрузка — на модерации</b>\n` +
-      `👤 ${who}\n📋 Объектов в пачке: <b>${inserted.length}</b>${warn}${skipped}\n\n${lines}${more}\n\n` +
+      `👤 ${who}\n📋 Объектов в пачке: <b>${inserted.length}</b>${warn}${skipped}${note}\n\n${lines}${more}\n\n` +
       `🔗 <a href="${SITE}/admin">Разобрать в админке</a>`;
     await tg("sendMessage", { chat_id: ADMIN, text, parse_mode: "HTML", disable_web_page_preview: true, reply_markup: batchButtons(batchId) });
   }
