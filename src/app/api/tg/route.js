@@ -64,7 +64,7 @@ function canon(catL, catC, text) {
 
 const T = {
   ru: {
-    menu_greet: "👋 Baylux — кабинет владельца объектов. Выберите действие:",
+    menu_greet: "👋 Baylux — кабинет владельца объектов.\n🌐 Сайт: " + SITE + "\nВыберите действие:",
     menu_choose: "Выберите действие:", menu_title: "Главное меню Baylux:",
     btn_add: "➕ Добавить объявление", btn_my: "📋 Мои объявления", btn_site: "🌐 Сайт",
     back: "⬅️ Назад", cancel: "✖️ Отмена", skip: "Пропустить",
@@ -110,7 +110,7 @@ const T = {
     published: (type, name) => `🎉 Ваш объект (${type} · ${name}) опубликован: ${SITE}`,
   },
   en: {
-    menu_greet: "👋 Baylux — owner's dashboard. Choose an action:",
+    menu_greet: "👋 Baylux — owner's dashboard.\n🌐 Website: " + SITE + "\nChoose an action:",
     menu_choose: "Choose an action:", menu_title: "Baylux main menu:",
     btn_add: "➕ Add a listing", btn_my: "📋 My listings", btn_site: "🌐 Website",
     back: "⬅️ Back", cancel: "✖️ Cancel", skip: "Skip",
@@ -156,7 +156,7 @@ const T = {
     published: (type, name) => `🎉 Your property (${type} · ${name}) is published: ${SITE}`,
   },
   ka: {
-    menu_greet: "👋 Baylux — მფლობელის კაბინეტი. აირჩიეთ მოქმედება:",
+    menu_greet: "👋 Baylux — მფლობელის კაბინეტი.\n🌐 საიტი: " + SITE + "\nაირჩიეთ მოქმედება:",
     menu_choose: "აირჩიეთ მოქმედება:", menu_title: "Baylux მთავარი მენიუ:",
     btn_add: "➕ განცხადების დამატება", btn_my: "📋 ჩემი განცხადებები", btn_site: "🌐 საიტი",
     back: "⬅️ უკან", cancel: "✖️ გაუქმება", skip: "გამოტოვება",
