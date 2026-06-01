@@ -573,6 +573,40 @@ async function onCallback(cb) {
   const [action, id] = (cb.data || "").split(":");
   if (!id) return;
 
+  // ---- Модерация ПАЧКИ (массовая загрузка): одна кнопка на все объекты batch_id ----
+  if (action === "bap" || action === "brj") {
+    const bstatus = action === "bap" ? "approved" : "rejected";
+    const { data: list } = await supa.from("listings").select("*").eq("batch_id", id);
+    const rows = list || [];
+    await supa.from("listings").update({ status: bstatus }).eq("batch_id", id);
+    await tg("answerCallbackQuery", { callback_query_id: cb.id, text: bstatus === "approved" ? `Одобрено: ${rows.length}` : `Отклонено: ${rows.length}` });
+
+    let posted = 0;
+    for (const row of rows) {
+      if (action === "bap") {
+        try {
+          const upd = {};
+          if (row.about && (!row.desc_ru || !row.desc_en || !row.desc_ka)) Object.assign(upd, await translateDescriptions(row.about, row.lang || "ru"));
+          if (row.building_name && (!row.name_ru || !row.name_en || !row.name_ka)) Object.assign(upd, await translateNames(row.building_name, row.lang || "ru"));
+          if (Object.keys(upd).length) { await supa.from("listings").update(upd).eq("id", row.id); Object.assign(row, upd); }
+        } catch (e) { console.error("batch translate:", e?.message); }
+        if ((CH_BATUMI || CH_TBILISI) && !row.tg_post_id) {
+          const ch = pickChannel(row);
+          const ids = await postToChannel(row, ch);
+          if (ids.length) { await supa.from("listings").update({ tg_post_id: ids.join(","), tg_channel: ch }).eq("id", row.id); posted++; }
+        }
+      } else if (row.tg_post_id) {
+        const ch = row.tg_channel || CH_BATUMI;
+        for (const mid of String(row.tg_post_id).split(",")) await tg("deleteMessage", { chat_id: ch, message_id: Number(mid) });
+        await supa.from("listings").update({ tg_post_id: null }).eq("id", row.id);
+      }
+    }
+    const btag = bstatus === "approved" ? `✅ ОДОБРЕНА ПАЧКА (${rows.length}, в каналы: ${posted})` : `❌ ПАЧКА ОТКЛОНЕНА (${rows.length})`;
+    const bbase = (cb.message.text || "").replace(/\n\n(✅ ОДОБРЕНА ПАЧКА|❌ ПАЧКА ОТКЛОНЕНА).*$/s, "");
+    await tg("editMessageText", { chat_id: cb.message.chat.id, message_id: cb.message.message_id, text: bbase + `\n\n${btag}`, parse_mode: "HTML", disable_web_page_preview: true, reply_markup: { inline_keyboard: [] } });
+    return;
+  }
+
   if (action === "eg") {
     await saveDraft(cb.from.id, "modgeo", { editId: id });
     await tg("answerCallbackQuery", { callback_query_id: cb.id, text: "Пришлите новую точку на карте" });

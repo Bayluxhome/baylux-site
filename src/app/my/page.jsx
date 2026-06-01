@@ -61,7 +61,8 @@ export default async function MyPage() {
     <div className="wrap" style={{ paddingBlock: "30px 50px" }}>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 12, flexWrap: "wrap" }}>
         <h1 style={{ color: "var(--navy)" }}>{t("my_title")}</h1>
-        <div style={{ display: "flex", gap: 8 }}>
+        <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+          <a className="btn btn-ghost" href="/my/bulk" style={{ padding: "9px 16px" }}>{t("cab_bulk")}</a>
           {isAdmin(session) && <a className="btn btn-gold" href="/admin" style={{ padding: "9px 16px" }}>⚙️ Админка</a>}
           <a className="btn btn-ghost" href="/api/tg-logout" style={{ padding: "9px 16px" }}>{t("my_logout")}</a>
         </div>
