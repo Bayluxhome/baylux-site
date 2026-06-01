@@ -5,6 +5,7 @@ import { useLang } from "@/components/LangContext";
 export default function BotLogin() {
   const { t } = useLang();
   const [waiting, setWaiting] = useState(false);
+  const [botUrl, setBotUrl] = useState("");
   const timer = useRef(null);
 
   async function start() {
@@ -12,6 +13,7 @@ export default function BotLogin() {
       const r = await fetch("/api/tg-login-init");
       const { token, url } = await r.json();
       if (!token) return;
+      setBotUrl(url);
       window.open(url, "_blank");
       setWaiting(true);
       let tries = 0;
@@ -34,6 +36,14 @@ export default function BotLogin() {
       {waiting && (
         <p style={{ marginTop: 12, color: "var(--ink-soft)", fontSize: 14, lineHeight: 1.5 }}>
           {t("bl_wait")}
+          {botUrl && (
+            <>
+              {" "}
+              <a href={botUrl} target="_blank" rel="noopener noreferrer" style={{ color: "var(--gold-dk)", fontWeight: 600 }}>
+                {t("bl_open")}
+              </a>
+            </>
+          )}
         </p>
       )}
     </div>
