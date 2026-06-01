@@ -43,11 +43,12 @@ export default async function HomePage() {
       </section>
 
       <section className="services wrap" id="services">
-        <div className="sec-head"><div><h2>{t("svc_h")}</h2><p>{t("svc_p")}</p></div></div>
-        <div className="svc-grid">
-          <div className="svc"><div className="ic">🔑</div><h3>{t("svc_mgmt_h")}</h3><p>{t("svc_mgmt_p")}</p><Link href="/contacts">{t("svc_mgmt_btn")}</Link></div>
-          <div className="svc"><div className="ic">🏠</div><h3>{t("svc_rent_h")}</h3><p>{t("svc_rent_p")}</p><Link href="/catalog?deal=rent">{t("svc_rent_btn")}</Link></div>
-          <div className="svc"><div className="ic">📈</div><h3>{t("svc_sale_h")}</h3><p>{t("svc_sale_p")}</p><Link href="/catalog?deal=sale">{t("svc_sale_btn")}</Link></div>
+        <div className="sec-head"><div><h2>{t("who_h")}</h2><p>{t("who_p")}</p></div></div>
+        <div className="who-grid">
+          <Link href="/catalog" className="who"><img src="/icons/audience-buy.png" alt="" width={60} height={60} loading="lazy" /><h3>{t("who_buy_h")}</h3><p>{t("who_buy_p")}</p><span>{t("who_buy_btn")}</span></Link>
+          <Link href="/add" className="who"><img src="/icons/audience-sell.png" alt="" width={60} height={60} loading="lazy" /><h3>{t("who_sell_h")}</h3><p>{t("who_sell_p")}</p><span>{t("who_sell_btn")}</span></Link>
+          <Link href="/contacts" className="who"><img src="/icons/audience-manage.png" alt="" width={60} height={60} loading="lazy" /><h3>{t("who_mng_h")}</h3><p>{t("who_mng_p")}</p><span>{t("who_mng_btn")}</span></Link>
+          <Link href="/realtors" className="who"><img src="/icons/audience-realtor.png" alt="" width={60} height={60} loading="lazy" /><h3>{t("who_rlt_h")}</h3><p>{t("who_rlt_p")}</p><span>{t("who_rlt_btn")}</span></Link>
         </div>
       </section>
 

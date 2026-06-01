@@ -255,6 +255,15 @@ nav.main{display:flex;gap:2px;font-weight:500;font-size:15px}
 .svc h3{font-size:19px;font-weight:700;color:var(--navy)}
 .svc p{color:var(--ink-soft);font-size:14px;margin-top:8px;line-height:1.5}
 .svc a{display:inline-flex;margin-top:14px;color:var(--gold-dk);font-weight:700;font-size:14px;gap:6px}
+.who-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:18px}
+.who{display:flex;flex-direction:column;align-items:flex-start;border:1px solid var(--line);border-radius:18px;padding:24px;background:#fff;text-decoration:none;transition:.18s}
+.who:hover{box-shadow:var(--shadow);border-color:var(--gold);transform:translateY(-2px)}
+.who img{width:60px;height:60px;object-fit:contain;margin-bottom:14px}
+.who h3{font-size:17px;font-weight:700;color:var(--navy)}
+.who p{color:var(--ink-soft);font-size:13px;margin-top:6px;line-height:1.5;flex:1}
+.who span{display:inline-flex;margin-top:14px;color:var(--gold-dk);font-weight:700;font-size:13px}
+@media(max-width:920px){.who-grid{grid-template-columns:1fr 1fr}}
+@media(max-width:560px){.who-grid{grid-template-columns:1fr}}
 .why{background:var(--cream);padding:48px 0}
 .why-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:24px}
 .why-i b{font-size:26px;font-weight:800;color:var(--navy)}
