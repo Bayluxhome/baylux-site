@@ -3,6 +3,7 @@ import CategoryGrid from "@/components/CategoryGrid";
 import PropertyCard from "@/components/PropertyCard";
 import Hero from "@/components/Hero";
 import HomeExplore from "@/components/HomeExplore";
+import RealtorsStrip from "@/components/RealtorsStrip";
 import { getBuildingsList, getAllUnits } from "@/data/source";
 import { getLang } from "@/lib/serverLang";
 import { t as tr } from "@/lib/dict";
@@ -47,6 +48,8 @@ export default async function HomePage() {
           <div className="svc"><div className="ic">📈</div><h3>{t("svc_sale_h")}</h3><p>{t("svc_sale_p")}</p><Link href="/catalog?deal=sale">{t("svc_sale_btn")}</Link></div>
         </div>
       </section>
+
+      <RealtorsStrip />
 
       <section className="why">
         <div className="wrap why-grid">

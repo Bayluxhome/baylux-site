@@ -6,6 +6,7 @@ import { slugify } from "@/data/sheet";
 import LoginBlock from "@/components/LoginBlock";
 import MyListings from "@/components/MyListings";
 import DataRights from "@/components/DataRights";
+import RealtorPanel from "@/components/RealtorPanel";
 import { getLang } from "@/lib/serverLang";
 import { t as tr, typeLabel } from "@/lib/dict";
 
@@ -34,11 +35,17 @@ export default async function MyPage() {
   }
 
   let rows = [];
+  let realtor = null;
   if (supa) {
     let q = supa.from("listings").select("*");
     q = session.id != null ? q.eq("tg_user_id", session.id) : q.eq("owner_email", session.email);
     const { data } = await q.order("created_at", { ascending: false });
     rows = data || [];
+
+    let rq = supa.from("realtors").select("*");
+    rq = session.id != null ? rq.eq("tg_user_id", session.id) : rq.eq("email", session.email);
+    const { data: rd } = await rq.maybeSingle();
+    realtor = rd || null;
   }
 
   const items = rows.map((r) => ({
@@ -63,6 +70,7 @@ export default async function MyPage() {
         {session.name ? session.name + " — " : ""}{t("cab_objs")} ({rows.length}). {t("cab_addnew")}
       </p>
       <MyListings items={items} />
+      <RealtorPanel initial={realtor} />
       <DataRights />
     </div>
   );
