@@ -116,8 +116,13 @@ async function getBuildings() {
   const list = merged.length ? merged : LOCAL;
   // Обогащаем цену/валюту/цену за м² для ВСЕХ источников (Sheet/локальные без price_num)
   const enriched = list.map((b) => ({ ...b, units: b.units.map(enrichUnit) }));
+  // Скрываем с сайта объявления без собственных фото, затем убираем дома, оставшиеся без юнитов.
+  // Действует на все источники сразу (Supabase/Sheet/локальные), т.к. getAllUnits и getBuildingsList идут сюда.
+  const withPhotos = enriched
+    .map((b) => ({ ...b, units: b.units.filter((u) => Array.isArray(u.photos) && u.photos.length > 0) }))
+    .filter((b) => b.units.length > 0);
   // Продвигаемые объекты — выше (boost ставится вручную; оплата позже)
-  return enriched.sort((a, b) => (b.boost || 0) - (a.boost || 0));
+  return withPhotos.sort((a, b) => (b.boost || 0) - (a.boost || 0));
 }
 
 export async function getBuildingsList() {
