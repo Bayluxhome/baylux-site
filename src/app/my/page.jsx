@@ -5,6 +5,7 @@ import { supa } from "@/lib/supabase";
 import { slugify } from "@/data/sheet";
 import LoginBlock from "@/components/LoginBlock";
 import MyListings from "@/components/MyListings";
+import DataRights from "@/components/DataRights";
 import { getLang } from "@/lib/serverLang";
 import { t as tr, typeLabel } from "@/lib/dict";
 
@@ -59,6 +60,7 @@ export default async function MyPage() {
         {session.name ? session.name + " — " : ""}{t("cab_objs")} ({rows.length}). {t("cab_addnew")}
       </p>
       <MyListings items={items} />
+      <DataRights />
     </div>
   );
 }
