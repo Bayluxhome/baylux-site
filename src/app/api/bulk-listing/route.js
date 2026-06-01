@@ -1,7 +1,8 @@
 import { cookies } from "next/headers";
 import { randomUUID } from "crypto";
-import { verifySession } from "@/lib/session";
+import { verifySession, isAdmin } from "@/lib/session";
 import { supa } from "@/lib/supabase";
+import { OPERATOR } from "@/config";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -34,6 +35,21 @@ function gePhone(raw) {
 function cleanTg(raw) {
   const m = String(raw || "").trim().match(/(?:t\.me\/|@)?([A-Za-z0-9_]{3,})/);
   return m ? m[1].replace(/[^A-Za-z0-9_]/g, "") : "";
+}
+// Номер агентства (один на все объявления из таблицы). Чужие телефоны не публикуем.
+const AGENCY_PHONE = gePhone(OPERATOR.phone) || "+995511124781";
+// Чистим описание: убираем ссылки, чужие @ник, призывы «в личку / в профиле», телефонные строки и пустые эмодзи-строки.
+function cleanAbout(raw) {
+  // Флаг u обязателен: без него класс [📞☎] ловит суррогатные половины других эмодзи.
+  const drop = /(https?:\/\/|t\.me\/|www\.|@[a-z0-9_]{3,}|в\s*личк|в\s*описани|профил|канал|подбор|по\s*всем\s*вопрос|[📞☎])/iu;
+  return String(raw || "")
+    .replace(/ /g, " ")
+    .split(/\r?\n/)
+    .map((l) => l.replace(/#[\p{L}][^\s#]*/gu, "").trim())       // убрать буквенные хэштеги (#11 — номер дома — сохраняем)
+    .filter((l) => l && /[\p{L}\p{N}]/u.test(l) && !drop.test(l)) // только строки с буквами/цифрами и без «мусора»
+    .join("\n")
+    .replace(/\n{3,}/g, "\n\n")
+    .trim();
 }
 function fmtPrice(num, currency) {
   if (!num) return null;
@@ -68,6 +84,23 @@ export async function POST(req) {
   const rows = Array.isArray(b.rows) ? b.rows.slice(0, 500) : [];
   if (!rows.length) return Response.json({ ok: false, error: "empty" }, { status: 400 });
 
+  // Телефон, который покажется на ВСЕХ объектах пачки — это номер ЗАГРУЖАЮЩЕГО (а не из строк таблицы).
+  // Источник: профиль риелтора → users (Telegram) → для админа фолбэк на номер агентства.
+  let uploaderPhone = null;
+  try {
+    const rq = session.id != null
+      ? supa.from("realtors").select("phone").eq("tg_user_id", session.id)
+      : supa.from("realtors").select("phone").eq("email", session.email);
+    const { data: rp } = await rq.maybeSingle();
+    uploaderPhone = gePhone(rp?.phone);
+    if (!uploaderPhone && session.id != null) {
+      const { data: up } = await supa.from("users").select("phone").eq("tg_user_id", session.id).maybeSingle();
+      uploaderPhone = gePhone(up?.phone);
+    }
+  } catch (e) { console.error("uploader phone lookup:", e?.message); }
+  if (!uploaderPhone && isAdmin(session)) uploaderPhone = AGENCY_PHONE;
+  if (!uploaderPhone) return Response.json({ ok: false, error: "no_phone" }, { status: 400 });
+
   const batchId = randomUUID();
   const inserted = [];
   const errors = [];   // { id, reason }
@@ -75,8 +108,6 @@ export async function POST(req) {
 
   for (const r of rows) {
     const refId = r.id != null ? String(r.id) : "?";
-    const phone = gePhone(r.phone);
-    if (!phone) { errors.push({ id: refId, reason: "телефон" }); continue; }
     const address = (r.address || "").toString().trim();
     if (!address) { errors.push({ id: refId, reason: "адрес" }); continue; }
     if (!(parseInt(String(r.price || "").replace(/[^\d]/g, ""), 10) || 0)) { errors.push({ id: refId, reason: "цена" }); continue; }
@@ -88,6 +119,7 @@ export async function POST(req) {
     const lang = ["ru", "en", "ka"].includes(r.lang) ? r.lang : "ru";
     const amenities = Array.isArray(r.amenities) ? r.amenities.filter(Boolean).join(", ") : (r.amenities || "").toString();
     const buildingName = address || (r.type ? `${r.type}, ${city}` : "Объект");
+    const about = cleanAbout(r.about); // чистим текст от ссылок/чужих контактов
 
     // Геокодинг адреса; фолбэк — центр города (geo_ok=false).
     const g = await geocode(`${address}, ${city}, Georgia`);
@@ -97,7 +129,7 @@ export async function POST(req) {
 
     const row = {
       status: "pending", batch_id: batchId, geo_ok: geoOk,
-      lang, ["desc_" + lang]: (r.about || "").toString(), ["name_" + lang]: buildingName,
+      lang, ["desc_" + lang]: about, ["name_" + lang]: buildingName,
       building_name: buildingName,
       kind: /новострой/i.test(r.type || "") || (r.complex || "").toString().trim() ? "complex" : "house",
       district: city, lat: pt.lat, lng: pt.lng,
@@ -108,10 +140,11 @@ export async function POST(req) {
       complex: (r.complex || "").toString().trim(), amenities, no_commission: !!r.no_commission,
       price: fmtPrice(priceNum, currency), currency, price_num: priceNum,
       per: deal === "rent" ? "в месяц" : deal === "daily" ? "в сутки" : "",
-      about: (r.about || "").toString(),
+      about,
       photos: Array.isArray(r.photos) ? r.photos.slice(0, 10) : [],
       tg_user_id: session.id ?? null, owner_email: session.email || null,
-      tg_username: cleanTg(r.tg) || session.username || "", contact: phone, phone,
+      // Публикуем номер загрузившего на всех объектах; чужой телефон/Telegram из таблицы не показываем.
+      tg_username: "", contact: uploaderPhone, phone: uploaderPhone,
     };
     const { data: ins, error } = await supa.from("listings").insert(row).select("id").single();
     if (error) { errors.push({ id: refId, reason: "БД" }); continue; }
@@ -131,11 +164,6 @@ export async function POST(req) {
       `👤 ${who}\n📋 Объектов в пачке: <b>${inserted.length}</b>${warn}${skipped}\n\n${lines}${more}\n\n` +
       `🔗 <a href="${SITE}/admin">Разобрать в админке</a>`;
     await tg("sendMessage", { chat_id: ADMIN, text, parse_mode: "HTML", disable_web_page_preview: true, reply_markup: batchButtons(batchId) });
-  }
-  if (session.id != null && inserted[0]) {
-    // запомним телефон владельца (как в одиночном добавлении)
-    const ph = gePhone(rows.find((r) => gePhone(r.phone))?.phone);
-    if (ph) await supa.from("users").upsert({ tg_user_id: session.id, phone: ph, username: session.username || "" }, { onConflict: "tg_user_id" });
   }
 
   return Response.json({ ok: true, batchId, count: inserted.length, geoFails, errors });

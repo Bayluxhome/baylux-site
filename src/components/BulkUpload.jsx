@@ -71,12 +71,11 @@ export default function BulkUpload() {
     const mapped = raw.map((o, idx) => {
       const refId = o.id != null && String(o.id).trim() ? String(o.id).trim() : String(idx + 1);
       const deal = DEAL_MAP[String(o.deal || "").trim().toLowerCase()] || "sale";
-      const phone = gePhone(o.phone);
       const problems = [];
       if (!String(o.address || "").trim()) problems.push(t("bulk_e_addr"));
       if (!(parseInt(String(o.price || "").replace(/[^\d]/g, ""), 10) || 0)) problems.push(t("bulk_e_price"));
-      if (!phone) problems.push(t("bulk_e_phone"));
       if (problems.length) errs.push({ id: refId, problems });
+      // Телефон владельца и его Telegram НЕ отправляем — на сайте публикуется номер агентства.
       return {
         id: refId, deal, type: String(o.type || "Квартира").trim() || "Квартира",
         city: String(o.city || "Батуми").trim() || "Батуми",
@@ -85,7 +84,7 @@ export default function BulkUpload() {
         area: o.area, rooms: o.rooms, bathrooms: o.bathrooms, floor: o.floor, year: o.year,
         amenities: String(o.amenities || "").trim(),
         no_commission: ["да", "yes", "true", "1"].includes(String(o.no_commission || "").trim().toLowerCase()),
-        about: String(o.about || "").trim(), phone, tg: String(o.tg || "").trim(),
+        about: String(o.about || "").trim(),
         lang: ["ru", "en", "ka"].includes(String(o.lang || "").trim().toLowerCase()) ? String(o.lang).trim().toLowerCase() : "ru",
         _valid: problems.length === 0, photos: [],
       };
@@ -149,7 +148,8 @@ export default function BulkUpload() {
       const payload = { rows: valid.map(({ _valid, ...r }) => r) };
       const res = await fetch("/api/bulk-listing", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) });
       const j = await res.json();
-      if (j.ok) { setResult(j); setState("done"); } else { setState("error"); setProg(t("bulk_send_fail")); }
+      if (j.ok) { setResult(j); setState("done"); }
+      else { setState("error"); setProg(j.error === "no_phone" ? t("bulk_no_phone") : t("bulk_send_fail")); }
     } catch (err) { console.error(err); setState("error"); setProg(t("bulk_send_fail")); }
   }
 
@@ -171,6 +171,9 @@ export default function BulkUpload() {
   return (
     <form className="addform" onSubmit={run}>
       <div className="af-full" style={{ color: "var(--ink-soft)", lineHeight: 1.6 }}>{t("bulk_intro")}</div>
+      <div className="af-full">
+        <a className="btn btn-gold" href="/baylux-template.xlsx" download style={{ padding: "11px 20px", display: "inline-flex" }}>⬇️ {t("bulk_template")}</a>
+      </div>
       <label className="af-full">{t("bulk_xlsx")}
         <input type="file" accept=".xlsx" onChange={(e) => setXlsx(e.target.files[0] || null)} />
       </label>
