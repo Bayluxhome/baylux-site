@@ -13,6 +13,11 @@ export const OPERATOR = {
 export const DOC_VERSION = "1.0";
 export const DOC_UPDATED = "01.06.2026";
 
+// Главные администраторы сайта (по email сессии или Telegram-id).
+// Имеют доступ к /admin: новости, удаление любых объявлений.
+export const ADMIN_EMAILS = ["bayluxhome@yahoo.com"];
+export const ADMIN_TG_IDS = []; // при необходимости добавить Telegram user id (число)
+
 export const WA_PHONE = process.env.NEXT_PUBLIC_WA_PHONE || "995555000000"; // заменить на реальный номер
 export function waLink(text) {
   const t = text || "Здравствуйте! Пишу с сайта Baylux по объекту.";

@@ -1,4 +1,5 @@
 import crypto from "crypto";
+import { ADMIN_EMAILS, ADMIN_TG_IDS } from "@/config";
 
 // Секрет для подписи cookie сессии — производный от токена бота (только сервер).
 const SECRET = crypto.createHash("sha256").update(process.env.TELEGRAM_BOT_TOKEN || "baylux-dev").digest();
@@ -29,6 +30,14 @@ export function owns(session, row) {
   if (!session || !row) return false;
   if (session.id != null && row.tg_user_id != null && Number(row.tg_user_id) === Number(session.id)) return true;
   if (session.email && row.owner_email && String(row.owner_email).toLowerCase() === String(session.email).toLowerCase()) return true;
+  return false;
+}
+
+// Является ли текущая сессия администратором.
+export function isAdmin(session) {
+  if (!session) return false;
+  if (session.email && ADMIN_EMAILS.map((e) => e.toLowerCase()).includes(String(session.email).toLowerCase())) return true;
+  if (session.id != null && ADMIN_TG_IDS.map(Number).includes(Number(session.id))) return true;
   return false;
 }
 

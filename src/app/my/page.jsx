@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { cookies } from "next/headers";
-import { verifySession } from "@/lib/session";
+import { verifySession, isAdmin } from "@/lib/session";
 import { supa } from "@/lib/supabase";
 import { slugify } from "@/data/sheet";
 import LoginBlock from "@/components/LoginBlock";
@@ -54,7 +54,10 @@ export default async function MyPage() {
     <div className="wrap" style={{ paddingBlock: "30px 50px" }}>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 12, flexWrap: "wrap" }}>
         <h1 style={{ color: "var(--navy)" }}>{t("my_title")}</h1>
-        <a className="btn btn-ghost" href="/api/tg-logout" style={{ padding: "9px 16px" }}>{t("my_logout")}</a>
+        <div style={{ display: "flex", gap: 8 }}>
+          {isAdmin(session) && <a className="btn btn-gold" href="/admin" style={{ padding: "9px 16px" }}>⚙️ Админка</a>}
+          <a className="btn btn-ghost" href="/api/tg-logout" style={{ padding: "9px 16px" }}>{t("my_logout")}</a>
+        </div>
       </div>
       <p style={{ color: "var(--ink-soft)", margin: "6px 0 20px" }}>
         {session.name ? session.name + " — " : ""}{t("cab_objs")} ({rows.length}). {t("cab_addnew")}
