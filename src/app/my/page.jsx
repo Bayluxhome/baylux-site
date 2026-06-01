@@ -20,7 +20,7 @@ export default async function MyPage() {
 
   if (!session) {
     return (
-      <div className="wrap" style={{ padding: "48px 0", maxWidth: 560 }}>
+      <div className="wrap" style={{ padding: "48px 24px", maxWidth: 560 }}>
         <h1 style={{ color: "var(--navy)" }}>{t("cab_title")}</h1>
         <p style={{ color: "var(--ink-soft)", margin: "12px 0 22px", lineHeight: 1.6 }}>
           {t("cab_login_p")}

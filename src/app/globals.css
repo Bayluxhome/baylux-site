@@ -105,8 +105,9 @@ nav.main{display:flex;gap:2px;font-weight:500;font-size:15px}
 .field label{display:block;font-size:11px;text-transform:uppercase;letter-spacing:.5px;color:var(--ink-soft);font-weight:600}
 .field select,.field input{border:none;outline:none;font-family:inherit;font-size:15px;font-weight:600;color:var(--ink);width:100%;background:transparent;margin-top:3px}
 .stat-row{display:flex;gap:38px;margin-top:34px;flex-wrap:wrap}
-.stat b{display:block;font-size:26px;font-weight:800;color:var(--gold-lt)}
-.stat span{font-size:13px;color:#BBD0E6}
+.stat{display:flex;flex-direction:column}
+.stat b{display:flex;align-items:center;height:34px;font-size:26px;font-weight:800;color:var(--gold-lt);line-height:1}
+.stat span{font-size:13px;color:#BBD0E6;margin-top:2px}
 
 .sec-head{display:flex;align-items:flex-end;justify-content:space-between;margin-bottom:18px;gap:16px;flex-wrap:wrap}
 .sec-head h2{font-size:28px;font-weight:800;letter-spacing:-.4px;color:var(--navy)}
