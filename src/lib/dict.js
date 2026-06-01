@@ -126,6 +126,8 @@ export const DICT = {
     dr_deleting: "Удаляю…",
     dr_cancel: "Отмена",
     dr_error: "Не удалось выполнить. Попробуйте позже.",
+    bl_btn: "Войти через бота Telegram",
+    bl_wait: "Открылся бот @baylux_leads_bot — нажмите там «Старт» / Start, и вы автоматически войдёте здесь. Ожидаю подтверждения…",
   },
   en: {
     nav_sale: "Buy", nav_rent: "Rent", nav_new: "New buildings", nav_daily: "Daily", nav_services: "Services",
@@ -242,6 +244,8 @@ export const DICT = {
     dr_deleting: "Deleting…",
     dr_cancel: "Cancel",
     dr_error: "Could not complete. Please try later.",
+    bl_btn: "Sign in via Telegram bot",
+    bl_wait: "The @baylux_leads_bot bot has opened — tap «Start» there and you'll be signed in here automatically. Waiting for confirmation…",
   },
   ka: {
     nav_sale: "ყიდვა", nav_rent: "ქირა", nav_new: "ახალი კორპუსები", nav_daily: "დღიურად", nav_services: "სერვისები",
@@ -358,6 +362,8 @@ export const DICT = {
     dr_deleting: "იშლება…",
     dr_cancel: "გაუქმება",
     dr_error: "ვერ შესრულდა. სცადეთ მოგვიანებით.",
+    bl_btn: "შესვლა Telegram ბოტით",
+    bl_wait: "გაიხსნა ბოტი @baylux_leads_bot — დააჭირეთ იქ «Start»-ს და ავტომატურად შეხვალთ აქ. ველოდები დადასტურებას…",
   },
 };
 

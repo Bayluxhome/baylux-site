@@ -1,7 +1,9 @@
 "use client";
 import { useRef, useState } from "react";
+import { useLang } from "@/components/LangContext";
 
 export default function BotLogin() {
+  const { t } = useLang();
   const [waiting, setWaiting] = useState(false);
   const timer = useRef(null);
 
@@ -27,11 +29,11 @@ export default function BotLogin() {
   return (
     <div>
       <button className="btn btn-gold" onClick={start} style={{ padding: "13px 24px", fontSize: 15 }}>
-        Войти через бота Telegram
+        {t("bl_btn")}
       </button>
       {waiting && (
         <p style={{ marginTop: 12, color: "var(--ink-soft)", fontSize: 14, lineHeight: 1.5 }}>
-          Открылся бот @baylux_leads_bot — нажмите там <b>«Старт» / Start</b>, и вы автоматически войдёте здесь. Ожидаю подтверждения…
+          {t("bl_wait")}
         </p>
       )}
     </div>
