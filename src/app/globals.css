@@ -180,6 +180,16 @@ nav.main{display:flex;gap:2px;font-weight:500;font-size:15px}
 .ms-count{font-weight:600;color:var(--navy);font-size:15px}
 .map-screen{position:relative;width:100%;height:calc(100vh - 72px - 58px);min-height:440px}
 .my-list{display:flex;flex-direction:column;gap:10px}
+/* Массовый выбор/удаление объявлений в кабинете */
+.my-bulkbar{display:flex;align-items:center;gap:14px;margin-bottom:12px;min-height:34px;flex-wrap:wrap}
+.my-selall{display:inline-flex;align-items:center;gap:8px;font-size:14px;color:var(--navy);font-weight:600;cursor:pointer}
+.my-selcount{font-size:14px;color:var(--ink-soft)}
+.my-del-bulk{background:#9A4B4B;color:#fff;border:0;border-radius:9px;padding:8px 16px;font-size:14px;font-weight:600;cursor:pointer;font-family:inherit}
+.my-del-bulk:hover{background:#7e3b3b}
+.my-del-bulk:disabled{opacity:.55;cursor:default}
+.my-check{width:18px;height:18px;flex:0 0 auto;cursor:pointer;accent-color:var(--navy)}
+.my-left>.my-check{align-self:center}
+.my-item.sel{outline:2px solid var(--gold);outline-offset:-2px}
 .my-item{display:flex;justify-content:space-between;align-items:center;gap:12px;background:#fff;border:1px solid var(--line);border-radius:12px;padding:14px 16px}
 .my-main{display:flex;flex-direction:column;gap:3px}
 .my-main b{color:var(--navy)}

@@ -12,7 +12,23 @@ export async function POST(req) {
 
   let body;
   try { body = await req.json(); } catch { return Response.json({ ok: false }); }
-  const { id, action } = body || {};
+  const { id, ids, action } = body || {};
+
+  // Пакетное удаление: ids[] — удаляем только то, что принадлежит вошедшему пользователю.
+  if (action === "delete" && Array.isArray(ids) && ids.length) {
+    const list = ids.slice(0, 500);
+    const { data: rows } = await supa.from("listings").select("id,tg_user_id,owner_email,photos").in("id", list);
+    const owned = (rows || []).filter((r) => owns(session, r));
+    const ownedIds = owned.map((r) => r.id);
+    if (!ownedIds.length) return Response.json({ ok: false, error: "forbidden" }, { status: 403 });
+    try {
+      const names = owned.flatMap((r) => (r.photos || []).map((u) => String(u).split("/listing-photos/")[1]).filter(Boolean));
+      if (names.length) await supa.storage.from("listing-photos").remove(names);
+    } catch (e) { /* ignore */ }
+    await supa.from("listings").delete().in("id", ownedIds);
+    return Response.json({ ok: true, deleted: ownedIds });
+  }
+
   if (!id) return Response.json({ ok: false });
 
   // проверяем, что объявление принадлежит вошедшему пользователю

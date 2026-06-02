@@ -76,6 +76,7 @@ export const DICT = {
     my_pending: "На модерации", my_approved: "Опубликовано", my_rejected: "Снято / отклонено",
     my_view: "Посмотреть →", my_notvisible: "на сайте не виден", my_edit: "✏️ Редактировать", my_del: "🗑 Удалить", my_deleting: "Удаляю…",
     my_empty: "Пока нет объявлений. Откройте бота и отправьте /start.", my_del_confirm: "Удалить это объявление? Действие необратимо.", my_del_fail: "Не удалось удалить. Попробуйте позже.", my_neterr: "Ошибка сети.",
+    my_sel_all: "Выбрать все", my_sel_count: "Выбрано: {n}", my_del_selected: "🗑 Удалить выбранные", my_del_sel_confirm: "Удалить выбранные объявления ({n})? Действие необратимо.",
     // статические страницы
     ab_title: "О компании Baylux",
     ab_p1: "Baylux — компания по недвижимости в Батуми (Грузия). Мы помогаем купить, продать, снять и сдать жильё, а также берём объекты в управление под ключ. Работаем как местная команда — приезжаем, показываем и сопровождаем сделку на месте, а не из колл-центра.",
@@ -249,6 +250,7 @@ export const DICT = {
     my_pending: "Under review", my_approved: "Published", my_rejected: "Removed / rejected",
     my_view: "View →", my_notvisible: "not visible on the site", my_edit: "✏️ Edit", my_del: "🗑 Delete", my_deleting: "Deleting…",
     my_empty: "No listings yet. Open the bot and send /start.", my_del_confirm: "Delete this listing? This cannot be undone.", my_del_fail: "Couldn't delete. Try again later.", my_neterr: "Network error.",
+    my_sel_all: "Select all", my_sel_count: "Selected: {n}", my_del_selected: "🗑 Delete selected", my_del_sel_confirm: "Delete selected listings ({n})? This cannot be undone.",
     ab_title: "About Baylux",
     ab_p1: "Baylux is a real-estate company in Batumi, Georgia. We help you buy, sell, rent and let property, and we also take properties under full management. We work as a local team — we come, show the property and handle the deal on the spot, not from a call center.",
     ab_h_do: "What we do", ab_do1: "Property sales — new builds (primary) and resale (secondary).", ab_do2: "Rentals — long-term and daily.", ab_do3: "Property management — guests, cleaning, repairs, reports.", ab_do4: "Cleaning and related services.",
@@ -420,6 +422,7 @@ export const DICT = {
     my_pending: "მოდერაციაზე", my_approved: "გამოქვეყნებული", my_rejected: "მოხსნილი / უარყოფილი",
     my_view: "ნახვა →", my_notvisible: "საიტზე არ ჩანს", my_edit: "✏️ რედაქტირება", my_del: "🗑 წაშლა", my_deleting: "ვშლი…",
     my_empty: "ჯერ არ არის განცხადებები. გახსენით ბოტი და გაგზავნეთ /start.", my_del_confirm: "წავშალო ეს განცხადება? ქმედება შეუქცევადია.", my_del_fail: "ვერ წაიშალა. სცადეთ მოგვიანებით.", my_neterr: "ქსელის შეცდომა.",
+    my_sel_all: "ყველას მონიშვნა", my_sel_count: "მონიშნულია: {n}", my_del_selected: "🗑 მონიშნულის წაშლა", my_del_sel_confirm: "წავშალო მონიშნული განცხადებები ({n})? ქმედება შეუქცევადია.",
     ab_title: "Baylux-ის შესახებ",
     ab_p1: "Baylux — უძრავი ქონების კომპანია ბათუმში (საქართველო). ჩვენ გეხმარებით ბინის ყიდვაში, გაყიდვაში, ქირაობასა და გაქირავებაში, ასევე ვიღებთ ობიექტებს სრულ მართვაში. ვმუშაობთ როგორც ადგილობრივი გუნდი — მოვდივართ, ვაჩვენებთ და გარიგებას ადგილზე ვუძღვებით, და არა ქოლ-ცენტრიდან.",
     ab_h_do: "რას ვაკეთებთ", ab_do1: "უძრავი ქონების გაყიდვა — ახალი (პირველადი) და მეორადი.", ab_do2: "ქირა — გრძელვადიანი და დღიური.", ab_do3: "ქონების მართვა — სტუმრები, დასუფთავება, რემონტი, ანგარიშები.", ab_do4: "დასუფთავება და თანმხლები სერვისები.",
