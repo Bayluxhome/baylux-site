@@ -161,6 +161,11 @@ nav.main{display:flex;gap:2px;font-weight:500;font-size:15px}
 .map-full{height:calc(100vh - 170px);border-radius:16px;box-shadow:var(--shadow);border:1px solid var(--line);position:sticky;top:88px;align-self:start;overflow:hidden}
 /* MapLibre ставит .maplibregl-map{position:relative} на контейнер — перекрываем, чтобы sticky работал */
 .map-home.maplibregl-map,.map-full.maplibregl-map{position:sticky;top:88px}
+.pager{display:flex;justify-content:center;align-items:center;gap:6px;flex-wrap:wrap;margin-top:28px}
+.pg-num,.pg-arrow{display:inline-flex;align-items:center;justify-content:center;min-width:40px;height:40px;padding:0 10px;border:1px solid var(--line);border-radius:10px;color:var(--navy);font-weight:600;font-size:15px;text-decoration:none;background:#fff;transition:border-color .15s}
+.pg-num:hover,.pg-arrow:hover{border-color:var(--navy)}
+.pg-num.active{background:var(--navy);color:#fff;border-color:var(--navy);pointer-events:none}
+.pg-dots{color:var(--ink-soft);padding:0 2px}
 .mapscreen-bar{display:flex;align-items:center;gap:14px;padding:12px 24px;border-bottom:1px solid var(--line);background:#fff;flex-wrap:wrap}
 .ms-count{font-weight:600;color:var(--navy);font-size:15px}
 .map-screen{position:relative;width:100%;height:calc(100vh - 72px - 58px);min-height:440px}

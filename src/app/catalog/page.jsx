@@ -8,11 +8,19 @@ import { t as tr, cityLabel } from "@/lib/dict";
 
 export const revalidate = 300;
 
-export const metadata = {
-  title: "Каталог недвижимости в Батуми и Грузии",
-  description: "Квартиры, дома, новостройки и коммерция — продажа, аренда и посуточно. Фильтры по городу, цене, комнатам, площади и удобствам.",
-  alternates: { canonical: "/catalog" },
-};
+const PAGE_SIZE = 48;
+
+export function generateMetadata({ searchParams }) {
+  const page = Math.max(1, parseInt(searchParams?.page, 10) || 1);
+  // Само-ссылающийся canonical: страница ?page=N указывает на саму себя (а не на page 1),
+  // иначе Google схлопнул бы пагинацию в одну страницу и не проиндексировал бы глубокие объекты.
+  const canonical = page > 1 ? `/catalog?page=${page}` : "/catalog";
+  return {
+    title: "Каталог недвижимости в Батуми и Грузии",
+    description: "Квартиры, дома, новостройки и коммерция — продажа, аренда и посуточно. Фильтры по городу, цене, комнатам, площади и удобствам.",
+    alternates: { canonical },
+  };
+}
 
 const DEAL_CHIPS = [
   { key: "", lk: "chip_all" },
@@ -57,8 +65,15 @@ export default async function CatalogPage({ searchParams }) {
   if (nc) units = units.filter((u) => u.noCommission);
   if (amenSel.length) units = units.filter((u) => amenSel.every((a) => (u.amenities || []).includes(a)));
 
+  // Пагинация: total — все отфильтрованные, на странице — срез по PAGE_SIZE.
+  const total = units.length;
+  const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
+  const page = Math.min(totalPages, Math.max(1, parseInt(sp.page, 10) || 1));
+  const pageUnits = units.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
+
+  // Карта показывает объекты ТЕКУЩЕЙ страницы (а не все) — чтобы не перегружать при росте каталога.
   const bmap = new Map();
-  for (const u of units) {
+  for (const u of pageUnits) {
     const b = u.building;
     if (!bmap.has(b.slug)) bmap.set(b.slug, { slug: b.slug, name: b.name, district: b.district, kind: b.kind, lat: b.lat, lng: b.lng, priceFrom: u.price, units: [] });
     bmap.get(b.slug).units.push({ slug: u.slug, deal: u.deal, type: u.type, rooms: u.rooms, area: u.area, price: u.price, per: u.per });
@@ -69,15 +84,27 @@ export default async function CatalogPage({ searchParams }) {
     const p = new URLSearchParams();
     for (const [key, val] of Object.entries(sp)) { if (Array.isArray(val)) val.forEach((x) => p.append(key, x)); else if (val != null) p.set(key, val); }
     if (v) p.set(k, v); else p.delete(k);
+    if (k !== "page") p.delete("page"); // смена любого фильтра возвращает на 1-ю страницу
     const s = p.toString(); return "/catalog" + (s ? "?" + s : "");
   };
+
+  // Номера страниц с многоточием: 1 … (page-1) page (page+1) … last
+  const pageNums = [];
+  if (totalPages <= 7) { for (let i = 1; i <= totalPages; i++) pageNums.push(i); }
+  else {
+    const add = (n) => { if (n >= 1 && n <= totalPages && !pageNums.includes(n)) pageNums.push(n); };
+    add(1); add(2);
+    for (let i = page - 1; i <= page + 1; i++) add(i);
+    add(totalPages - 1); add(totalPages);
+    pageNums.sort((a, b) => a - b);
+  }
 
   return (
     <div className="wrap" style={{ paddingTop: 22, paddingBottom: 40 }}>
       <div className="sec-head">
         <div>
           <h2>{t("foot_realty")}{deal ? ` — ${t("deal_" + deal).toLowerCase()}` : ""}{cat && CAT_LABEL[cat] ? ` · ${CAT_LABEL[cat].toLowerCase()}` : ""}</h2>
-          <p>{t("cat_found")} {units.length} {t("cat_objects")}{isNew ? ` · ${t("nav_new").toLowerCase()}` : ""}{city ? ` · ${city}` : ""}</p>
+          <p>{t("cat_found")} {total} {t("cat_objects")}{isNew ? ` · ${t("nav_new").toLowerCase()}` : ""}{city ? ` · ${city}` : ""}</p>
         </div>
       </div>
 
@@ -129,12 +156,29 @@ export default async function CatalogPage({ searchParams }) {
         </div>
       </form>
 
-      {units.length === 0 ? (
+      {total === 0 ? (
         <p style={{ color: "var(--ink-soft)", padding: "30px 0" }}>{t("cat_empty")} <Link href="/catalog" style={{ color: "var(--navy)", fontWeight: 600 }}>{t("f_reset")}</Link></p>
       ) : (
         <div className="split">
-          <div className="cards">
-            {units.map((u) => <PropertyCard key={u.id} unit={u} />)}
+          <div>
+            <div className="cards">
+              {pageUnits.map((u) => <PropertyCard key={u.id} unit={u} />)}
+            </div>
+            {totalPages > 1 && (
+              <nav className="pager" aria-label="Pagination">
+                {page > 1 && <Link className="pg-arrow" href={qs("page", page - 1 > 1 ? String(page - 1) : "")} rel="prev" aria-label="prev">‹</Link>}
+                {pageNums.map((n, i) => {
+                  const gap = i > 0 && n - pageNums[i - 1] > 1;
+                  return (
+                    <span key={n} style={{ display: "contents" }}>
+                      {gap && <span className="pg-dots">…</span>}
+                      <Link className={"pg-num" + (n === page ? " active" : "")} href={qs("page", n > 1 ? String(n) : "")} aria-current={n === page ? "page" : undefined}>{n}</Link>
+                    </span>
+                  );
+                })}
+                {page < totalPages && <Link className="pg-arrow" href={qs("page", String(page + 1))} rel="next" aria-label="next">›</Link>}
+              </nav>
+            )}
           </div>
           <MapView buildings={mapBuildings} className="map-full" />
         </div>
