@@ -1,5 +1,5 @@
 import { supa } from "@/lib/supabase";
-import { slugify } from "@/data/sheet";
+import { slugify, cleanAddress } from "@/data/sheet";
 import { translateDescriptions, translateNames } from "@/lib/translate";
 
 export const runtime = "nodejs";
@@ -358,7 +358,7 @@ async function finalizeListing(chat, uid, data, author) {
   const descCol = { ru: "desc_ru", en: "desc_en", ka: "desc_ka" }[lang];
   const row = {
     status: "pending", lang,
-    building_name: data.address || (data.type ? `${data.type}, ${city}` : "Объект"),
+    building_name: cleanAddress(data.address) || (data.type ? `${data.type}, ${city}` : "Объект"),
     kind: COMPLEX_TYPES.test(data.type || "") || data.complex ? "complex" : "house",
     district: city,
     lat: data.lat || 41.645, lng: data.lng || 41.642,

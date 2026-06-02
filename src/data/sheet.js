@@ -24,6 +24,21 @@ function parseCSV(text) {
   return rows.filter((r) => r.some((v) => v && v.trim() !== ""));
 }
 
+// Нормализуем адрес/название улицы: убираем markdown-мусор (**, __, # и т.п.),
+// чиним пробелы и запятые ("Химшиашвили,1" → "Химшиашвили, 1"), делаем первую букву заглавной.
+// Применяется и при импорте, и при чтении — поэтому старые «грязные» записи тоже показываются чисто.
+export function cleanAddress(raw) {
+  let s = String(raw == null ? "" : raw);
+  s = s.replace(/[*_~`#]+/g, " ");      // markdown/спецсимволы → пробел
+  s = s.replace(/\s+/g, " ");            // схлопнуть пробелы
+  s = s.replace(/\s*,\s*/g, ", ");       // нормализовать запятые
+  s = s.replace(/^[\s,.\-–—•]+/, "");    // мусор в начале строки
+  s = s.replace(/[\s,]+$/, "");          // мусор в конце
+  s = s.trim();
+  if (!s) return "";
+  return s.charAt(0).toUpperCase() + s.slice(1);
+}
+
 export function slugify(s) {
   const map = { а:"a",б:"b",в:"v",г:"g",д:"d",е:"e",ё:"e",ж:"zh",з:"z",и:"i",й:"y",к:"k",л:"l",м:"m",н:"n",о:"o",п:"p",р:"r",с:"s",т:"t",у:"u",ф:"f",х:"h",ц:"ts",ч:"ch",ш:"sh",щ:"sch",ъ:"",ы:"y",ь:"",э:"e",ю:"yu",я:"ya"," ":"-" };
   return String(s).toLowerCase().split("").map((ch) => map[ch] ?? ch).join("")

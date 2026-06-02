@@ -2,7 +2,7 @@ import Link from "next/link";
 import { cookies } from "next/headers";
 import { verifySession, isAdmin } from "@/lib/session";
 import { supa } from "@/lib/supabase";
-import { slugify } from "@/data/sheet";
+import { slugify, cleanAddress } from "@/data/sheet";
 import LoginBlock from "@/components/LoginBlock";
 import MyListings from "@/components/MyListings";
 import DataRights from "@/components/DataRights";
@@ -48,14 +48,17 @@ export default async function MyPage() {
     realtor = rd || null;
   }
 
-  const items = rows.map((r) => ({
-    id: r.id,
-    title: `${t("deal_" + r.deal)} · ${typeLabel(lang, r.type)}`,
-    sub: `${r.building_name} · ${r.price}${r.area ? ` · ${r.area} м²` : ""}`,
-    status: r.status,
-    photo: (Array.isArray(r.photos) && r.photos[0]) || "/placeholder-baylux.jpg",
-    slug: r.status === "approved" ? slugify(`${r.building_name}-${r.type || ""}-${r.price || ""}`) : null,
-  }));
+  const items = rows.map((r) => {
+    const bn = cleanAddress(r.building_name);
+    return {
+      id: r.id,
+      title: `${t("deal_" + r.deal)} · ${typeLabel(lang, r.type)}`,
+      sub: `${bn} · ${r.price}${r.area ? ` · ${r.area} м²` : ""}`,
+      status: r.status,
+      photo: (Array.isArray(r.photos) && r.photos[0]) || "/placeholder-baylux.jpg",
+      slug: r.status === "approved" ? slugify(`${bn}-${r.type || ""}-${r.price || ""}`) : null,
+    };
+  });
 
   return (
     <div className="wrap" style={{ paddingBlock: "30px 50px" }}>

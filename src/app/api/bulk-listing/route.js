@@ -3,6 +3,7 @@ import { randomUUID } from "crypto";
 import { verifySession, isAdmin } from "@/lib/session";
 import { supa } from "@/lib/supabase";
 import { OPERATOR } from "@/config";
+import { cleanAddress } from "@/data/sheet";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -117,7 +118,7 @@ export async function POST(req) {
 
   for (const r of rows) {
     const refId = r.id != null ? String(r.id) : "?";
-    const address = (r.address || "").toString().trim();
+    const address = cleanAddress(r.address); // нормализуем адрес сразу при импорте
     if (!address) { errors.push({ id: refId, reason: "адрес" }); continue; }
     if (!(parseInt(String(r.price || "").replace(/[^\d]/g, ""), 10) || 0)) { errors.push({ id: refId, reason: "цена" }); continue; }
 

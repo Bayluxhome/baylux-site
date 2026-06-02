@@ -1,6 +1,6 @@
 // Единая точка данных: Supabase (одобренные объявления) + Google-таблица (ручной ввод) + локальный фолбэк.
 import { BUILDINGS as LOCAL } from "./data";
-import { fetchSheet, slugify } from "./sheet";
+import { fetchSheet, slugify, cleanAddress } from "./sheet";
 import { supa } from "@/lib/supabase";
 
 const KIND_COMPLEX = /жк|новострой|комплекс|complex/i;
@@ -9,7 +9,7 @@ const KIND_COMPLEX = /жк|новострой|комплекс|complex/i;
 function groupRows(rows) {
   const by = new Map();
   rows.forEach((r) => {
-    const name = r.building_name || "Объект";
+    const name = cleanAddress(r.building_name) || "Объект";
     const slug = slugify(name);
     if (!by.has(slug)) {
       by.set(slug, {
