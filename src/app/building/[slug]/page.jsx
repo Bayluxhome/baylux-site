@@ -40,7 +40,15 @@ export default async function BuildingPage({ params }) {
   const t = (k) => tr(lang, k);
   const bname = b["name_" + lang] || translitAddress(b.name, lang, b.kind);
 
-  const gallery = Array(5).fill(b.image || "/placeholder-baylux.jpg");
+  // Галерея дома — из реальных фото всех объектов (обложка первой), а не 5 копий обложки.
+  // Повтор по кругу включается только если уникальных фото меньше 5 (раскладка ждёт 5 слотов).
+  const photoPool = [];
+  const seenPhotos = new Set();
+  const pushPhoto = (p) => { if (p && !seenPhotos.has(p)) { seenPhotos.add(p); photoPool.push(p); } };
+  pushPhoto(b.image);
+  for (const u of b.units) for (const p of (u.photos || [])) pushPhoto(p);
+  if (!photoPool.length) pushPhoto("/placeholder-baylux.jpg");
+  const gallery = Array.from({ length: 5 }, (_, i) => photoPool[i % photoPool.length]);
   const mapBuildings = [{ slug: b.slug, name: b.name, district: b.district, kind: b.kind, lat: b.lat, lng: b.lng, priceFrom: buildingPriceFrom(b), units: b.units }];
 
   return (
