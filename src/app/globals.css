@@ -314,7 +314,9 @@ footer.site a:hover{color:var(--gold-lt)}
 .cta-card .btn{width:100%;margin-top:10px;padding:13px}
 .agent{display:flex;gap:12px;align-items:center;margin-top:18px;padding-top:16px;border-top:1px solid var(--line)}
 .agent .av{width:46px;height:46px;border-radius:50%;background:var(--grad-gold)}
-.map-sm{height:280px;border-radius:14px;border:1px solid var(--line);margin-top:18px;overflow:hidden}
+.map-sm{aspect-ratio:4/3;max-height:440px;border-radius:14px;border:1px solid var(--line);margin-top:18px;overflow:hidden}
+/* MapView рендерит вложенный .map-sm как сам контейнер карты — он просто заполняет обёртку */
+.map-sm .map-sm{aspect-ratio:auto;max-height:none;height:100%;margin-top:0;border:0;border-radius:0}
 
 /* building units table */
 .units{margin-top:14px;border:1px solid var(--line);border-radius:16px;overflow:hidden}
