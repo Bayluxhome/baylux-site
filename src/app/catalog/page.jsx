@@ -28,6 +28,14 @@ const DEAL_CHIPS = [
   { key: "rent", lk: "deal_rent" },
   { key: "daily", lk: "deal_daily" },
 ];
+const SORTS = [
+  { key: "rec", lk: "sort_rec" },
+  { key: "new", lk: "sort_new" },
+  { key: "price_asc", lk: "sort_price_asc" },
+  { key: "price_desc", lk: "sort_price_desc" },
+  { key: "area_asc", lk: "sort_area_asc" },
+  { key: "area_desc", lk: "sort_area_desc" },
+];
 const AMENITIES = ["Мебель", "Балкон", "Терраса", "Парковка", "Ремонт «евро»", "Кондиционер", "Лифт"];
 const priceVal = (u) => u.priceNum || (parseInt(String(u.price || "").replace(/[^\d]/g, ""), 10) || 0);
 
@@ -48,6 +56,7 @@ export default async function CatalogPage({ searchParams }) {
   const ymin = parseInt(sp.ymin, 10) || 0;
   const nc = sp.nc === "1";
   const amenSel = [].concat(sp.amen || []).filter(Boolean);
+  const sort = SORTS.some((s) => s.key === sp.sort) ? sp.sort : "rec";
 
   let units = await getAllUnits();
   if (deal) units = units.filter((u) => u.deal === deal);
@@ -64,6 +73,14 @@ export default async function CatalogPage({ searchParams }) {
   if (ymin) units = units.filter((u) => u.year && parseInt(u.year, 10) >= ymin);
   if (nc) units = units.filter((u) => u.noCommission);
   if (amenSel.length) units = units.filter((u) => amenSel.every((a) => (u.amenities || []).includes(a)));
+
+  // Сортировка. "rec" — порядок по умолчанию (boost desc из источника). Остальные — чистые,
+  // без учёта boost. Пустые цены/площади уходят в конец при возрастании.
+  if (sort === "new") units = [...units].sort((a, b) => String(b.created_at || "").localeCompare(String(a.created_at || "")));
+  else if (sort === "price_asc") units = [...units].sort((a, b) => (priceVal(a) || Infinity) - (priceVal(b) || Infinity));
+  else if (sort === "price_desc") units = [...units].sort((a, b) => (priceVal(b) || 0) - (priceVal(a) || 0));
+  else if (sort === "area_asc") units = [...units].sort((a, b) => (a.area || Infinity) - (b.area || Infinity));
+  else if (sort === "area_desc") units = [...units].sort((a, b) => (b.area || 0) - (a.area || 0));
 
   // Пагинация: total — все отфильтрованные, на странице — срез по PAGE_SIZE.
   const total = units.length;
@@ -84,7 +101,7 @@ export default async function CatalogPage({ searchParams }) {
     const p = new URLSearchParams();
     for (const [key, val] of Object.entries(sp)) { if (Array.isArray(val)) val.forEach((x) => p.append(key, x)); else if (val != null) p.set(key, val); }
     if (v) p.set(k, v); else p.delete(k);
-    if (k !== "page") p.delete("page"); // смена любого фильтра возвращает на 1-ю страницу
+    if (k !== "page") p.delete("page"); // смена любого фильтра/сортировки возвращает на 1-ю страницу
     const s = p.toString(); return "/catalog" + (s ? "?" + s : "");
   };
 
@@ -99,6 +116,8 @@ export default async function CatalogPage({ searchParams }) {
     pageNums.sort((a, b) => a - b);
   }
 
+  const sortCur = SORTS.find((s) => s.key === sort) || SORTS[0];
+
   return (
     <div className="wrap" style={{ paddingTop: 22, paddingBottom: 40 }}>
       <div className="sec-head">
@@ -106,6 +125,14 @@ export default async function CatalogPage({ searchParams }) {
           <h2>{t("foot_realty")}{deal ? ` — ${t("deal_" + deal).toLowerCase()}` : ""}{cat && CAT_LABEL[cat] ? ` · ${CAT_LABEL[cat].toLowerCase()}` : ""}</h2>
           <p>{t("cat_found")} {total} {t("cat_objects")}{isNew ? ` · ${t("nav_new").toLowerCase()}` : ""}{city ? ` · ${city}` : ""}</p>
         </div>
+        <details className="sortbox">
+          <summary><span className="sort-cur">{t("sort_label")}: {t(sortCur.lk)}</span><span className="sort-caret">⌄</span></summary>
+          <div className="sort-menu">
+            {SORTS.map((s) => (
+              <Link key={s.key} href={qs("sort", s.key === "rec" ? "" : s.key)} className={"sort-opt" + (s.key === sort ? " active" : "")}>{t(s.lk)}</Link>
+            ))}
+          </div>
+        </details>
       </div>
 
       <div className="filterbar">
@@ -118,6 +145,7 @@ export default async function CatalogPage({ searchParams }) {
       <form className="cat-filters" action="/catalog" method="get">
         <input type="hidden" name="deal" value={deal} />
         {isNew && <input type="hidden" name="new" value="1" />}
+        {sort !== "rec" && <input type="hidden" name="sort" value={sort} />}
         <div className="cf-grid">
           <label>{t("f_city")}
             <select name="city" defaultValue={city}><option value="">{t("f_anyCity")}</option>{GE_CITIES.map((c) => <option key={c.name} value={c.name}>{cityLabel(lang, c.name)}</option>)}</select>

@@ -127,6 +127,16 @@ nav.main{display:flex;gap:2px;font-weight:500;font-size:15px}
 .sec-head p{color:var(--ink-soft);font-size:14px;margin-top:4px}
 
 .filterbar{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:18px}
+/* Сортировка каталога (Korter-style выпадашка на чистом <details>) */
+.sortbox{position:relative;flex:0 0 auto}
+.sortbox>summary{list-style:none;cursor:pointer;display:inline-flex;align-items:center;gap:10px;background:#f3f5f8;border:1px solid var(--line);border-radius:12px;padding:11px 16px;font-size:14px;font-weight:600;color:var(--navy);white-space:nowrap;user-select:none}
+.sortbox>summary::-webkit-details-marker{display:none}
+.sort-caret{font-size:12px;transition:transform .15s}
+.sortbox[open]>summary .sort-caret{transform:rotate(180deg)}
+.sort-menu{position:absolute;right:0;top:calc(100% + 6px);z-index:40;background:#fff;border:1px solid var(--line);border-radius:14px;box-shadow:var(--shadow-lg);padding:6px;min-width:260px;display:flex;flex-direction:column}
+.sort-opt{padding:11px 14px;border-radius:9px;color:var(--ink);font-size:14px;text-decoration:none;white-space:nowrap}
+.sort-opt:hover{background:#f3f5f8}
+.sort-opt.active{background:#eef1f6;color:var(--navy);font-weight:700}
 .chip{padding:9px 15px;border:1px solid var(--line);border-radius:999px;font-size:14px;font-weight:600;color:var(--ink-soft);background:#fff;cursor:pointer;display:inline-flex;gap:7px;align-items:center;font-family:inherit}
 .chip:hover,.chip.active{border-color:var(--gold);color:var(--navy);background:rgba(201,169,97,.1)}
 
