@@ -1,6 +1,6 @@
 // Единая точка данных: Supabase (одобренные объявления) + Google-таблица (ручной ввод) + локальный фолбэк.
 import { BUILDINGS as LOCAL } from "./data";
-import { fetchSheet, slugify, cleanAddress } from "./sheet";
+import { fetchSheet, slugify, cleanAddress, cleanDesc } from "./sheet";
 import { supa } from "@/lib/supabase";
 
 const KIND_COMPLEX = /жк|новострой|комплекс|complex/i;
@@ -22,9 +22,9 @@ function groupRows(rows) {
         lat: Number(r.lat) || 41.64,
         lng: Number(r.lng) || 41.63,
         image: r.facade_photo || (r.photos && r.photos[0]) || "/placeholder-baylux.jpg",
-        about: r.about || "",
+        about: cleanDesc(r.about),
         lang: r.lang || "ru",
-        desc_ru: r.desc_ru || "", desc_en: r.desc_en || "", desc_ka: r.desc_ka || "",
+        desc_ru: cleanDesc(r.desc_ru), desc_en: cleanDesc(r.desc_en), desc_ka: cleanDesc(r.desc_ka),
         // Чистим и переведённые названия: карточки/страницы показывают name_<lang> в первую очередь,
         // а они в базе хранятся с тем же markdown-мусором, что и адрес.
         name_ru: cleanAddress(r.name_ru), name_en: cleanAddress(r.name_en), name_ka: cleanAddress(r.name_ka),
@@ -69,9 +69,9 @@ function groupRows(rows) {
       priceNum: pNum,
       perM2,
       boost,
-      about: r.about || "",
+      about: cleanDesc(r.about),
       lang: r.lang || "ru",
-      desc_ru: r.desc_ru || "", desc_en: r.desc_en || "", desc_ka: r.desc_ka || "",
+      desc_ru: cleanDesc(r.desc_ru), desc_en: cleanDesc(r.desc_en), desc_ka: cleanDesc(r.desc_ka),
     });
   });
   return Array.from(by.values()).filter((b) => b.units.length > 0);

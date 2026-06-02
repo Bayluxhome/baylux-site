@@ -3,7 +3,7 @@ import { randomUUID } from "crypto";
 import { verifySession, isAdmin } from "@/lib/session";
 import { supa } from "@/lib/supabase";
 import { OPERATOR } from "@/config";
-import { cleanAddress } from "@/data/sheet";
+import { cleanAddress, cleanDesc } from "@/data/sheet";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -129,7 +129,7 @@ export async function POST(req) {
     const lang = ["ru", "en", "ka"].includes(r.lang) ? r.lang : "ru";
     const amenities = Array.isArray(r.amenities) ? r.amenities.filter(Boolean).join(", ") : (r.amenities || "").toString();
     const buildingName = address || (r.type ? `${r.type}, ${city}` : "Объект");
-    const about = cleanAbout(r.about); // чистим текст от ссылок/чужих контактов
+    const about = cleanDesc(r.about); // чистим текст: ссылки, контакты, markdown [текст](url), скобки
 
     // Геокодинг адреса; фолбэк — центр города (geo_ok=false).
     const g = await geocode(`${address}, ${city}, Georgia`);
