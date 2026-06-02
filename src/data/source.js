@@ -25,7 +25,9 @@ function groupRows(rows) {
         about: r.about || "",
         lang: r.lang || "ru",
         desc_ru: r.desc_ru || "", desc_en: r.desc_en || "", desc_ka: r.desc_ka || "",
-        name_ru: r.name_ru || "", name_en: r.name_en || "", name_ka: r.name_ka || "",
+        // Чистим и переведённые названия: карточки/страницы показывают name_<lang> в первую очередь,
+        // а они в базе хранятся с тем же markdown-мусором, что и адрес.
+        name_ru: cleanAddress(r.name_ru), name_en: cleanAddress(r.name_en), name_ka: cleanAddress(r.name_ka),
         units: [],
       });
     }
