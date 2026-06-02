@@ -27,6 +27,27 @@ export default async function AdminPage() {
     rows = data || [];
   }
 
+  // Поиск дублей: по совпадению фото-хэшей ИЛИ по адрес+площадь+комнаты+цена.
+  const hashOwners = new Map();
+  const fbOwners = new Map();
+  const fbKey = (r) => {
+    const bn = String(r.building_name || "").toLowerCase().trim();
+    if (!bn || !(r.area > 0)) return null;
+    return [bn, r.area, r.rooms || 0, String(r.price || "")].join("|");
+  };
+  rows.forEach((r) => {
+    (Array.isArray(r.photo_hashes) ? r.photo_hashes : []).forEach((h) => {
+      if (!h) return; if (!hashOwners.has(h)) hashOwners.set(h, []); hashOwners.get(h).push(r.id);
+    });
+    const k = fbKey(r); if (k) { if (!fbOwners.has(k)) fbOwners.set(k, []); fbOwners.get(k).push(r.id); }
+  });
+  const dupesOf = (r) => {
+    const set = new Set();
+    (Array.isArray(r.photo_hashes) ? r.photo_hashes : []).forEach((h) => (hashOwners.get(h) || []).forEach((id) => { if (id !== r.id) set.add(id); }));
+    const k = fbKey(r); if (k) (fbOwners.get(k) || []).forEach((id) => { if (id !== r.id) set.add(id); });
+    return [...set];
+  };
+
   const items = rows.map((r) => ({
     id: r.id,
     title: `${r.deal} · ${r.type}`,
@@ -35,6 +56,7 @@ export default async function AdminPage() {
     owner: r.owner_email || (r.tg_user_id ? `tg:${r.tg_user_id}` : ""),
     photo: (Array.isArray(r.photos) && r.photos[0]) || "/placeholder-baylux.jpg",
     slug: r.status === "approved" ? slugify(`${r.building_name}-${r.type || ""}-${r.price || ""}`) : null,
+    dupes: dupesOf(r),
   }));
 
   const counts = rows.reduce((a, r) => { a[r.status] = (a[r.status] || 0) + 1; return a; }, {});

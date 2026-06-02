@@ -19,7 +19,11 @@ export async function POST(req) {
   const { data: row } = await supa.from("listings").select("id,photos").eq("id", id).single();
   if (!row) return Response.json({ ok: false, error: "not_found" }, { status: 404 });
 
-  if (action === "unpublish") {
+  if (action === "approve") {
+    // Публикация админом: объект становится виден на сайте (source.js показывает approved).
+    // Постинг в Telegram-канал здесь НЕ делаем (это отдельный поток бота).
+    await supa.from("listings").update({ status: "approved" }).eq("id", id);
+  } else if (action === "unpublish") {
     await supa.from("listings").update({ status: "rejected" }).eq("id", id);
   } else {
     // удаление с очисткой фото из storage

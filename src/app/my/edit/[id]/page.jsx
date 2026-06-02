@@ -1,7 +1,7 @@
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import Link from "next/link";
-import { verifySession } from "@/lib/session";
+import { verifySession, isAdmin } from "@/lib/session";
 import { supa } from "@/lib/supabase";
 import AddListingForm from "@/components/AddListingForm";
 
@@ -12,7 +12,8 @@ export default async function EditListingPage({ params }) {
   const session = verifySession(cookies().get("bx_session")?.value);
   if (!session) redirect("/my");
   const { data: r } = await supa.from("listings").select("*").eq("id", params.id).single();
-  if (!r || String(r.tg_user_id) !== String(session.id)) redirect("/my");
+  // Владелец — по tg_user_id; админ может редактировать любое объявление.
+  if (!r || (String(r.tg_user_id) !== String(session.id) && !isAdmin(session))) redirect("/my");
 
   const initial = {
     f: {

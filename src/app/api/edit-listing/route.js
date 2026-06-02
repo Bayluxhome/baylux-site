@@ -1,5 +1,5 @@
 import { cookies } from "next/headers";
-import { verifySession, owns } from "@/lib/session";
+import { verifySession, owns, isAdmin } from "@/lib/session";
 import { supa } from "@/lib/supabase";
 
 export const runtime = "nodejs";
@@ -46,7 +46,7 @@ export async function POST(req) {
 
   // Проверка владельца
   const { data: existing } = await supa.from("listings").select("id, tg_user_id, owner_email, tg_post_id, tg_channel").eq("id", b.id).single();
-  if (!owns(session, existing)) return Response.json({ ok: false, error: "forbidden" }, { status: 403 });
+  if (!owns(session, existing) && !isAdmin(session)) return Response.json({ ok: false, error: "forbidden" }, { status: 403 });
 
   const phone = gePhone(b.contact);
   if (!phone) return Response.json({ ok: false, error: "phone" }, { status: 400 });
