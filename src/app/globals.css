@@ -127,6 +127,20 @@ nav.main{display:flex;gap:2px;font-weight:500;font-size:15px}
 .sec-head p{color:var(--ink-soft);font-size:14px;margin-top:4px}
 
 .filterbar{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:18px}
+/* Строка поиска по адресу/улице/дому/ЖК над каталогом (Korter-style) */
+.catsearch{display:flex;gap:10px;align-items:center;margin-bottom:16px;position:relative}
+.catsearch-ic{position:absolute;left:15px;top:50%;transform:translateY(-50%);color:var(--ink-soft);pointer-events:none;display:flex}
+.catsearch input{flex:1;min-width:0;height:52px;border:1px solid var(--line);border-radius:13px;padding:0 16px 0 44px;font-size:15px;font-family:inherit;color:var(--ink);background:#fff}
+.catsearch input:focus{outline:none;border-color:var(--navy);box-shadow:0 0 0 3px rgba(1,39,75,.08)}
+.catsearch-clear{position:absolute;right:128px;top:50%;transform:translateY(-50%);width:26px;height:26px;display:flex;align-items:center;justify-content:center;border-radius:50%;background:#eef1f6;color:var(--ink-soft);text-decoration:none;font-size:13px}
+.catsearch-clear:hover{background:#e2e7ef}
+.catsearch button{height:52px;padding:0 26px;white-space:nowrap;flex:0 0 auto}
+@media(max-width:560px){
+  .catsearch{flex-wrap:wrap}
+  .catsearch input{flex:1 1 100%}
+  .catsearch button{flex:1 1 100%}
+  .catsearch-clear{right:14px}
+}
 /* Сортировка каталога (Korter-style выпадашка на чистом <details>) */
 .sortbox{position:relative;flex:0 0 auto}
 .sortbox>summary{list-style:none;cursor:pointer;display:inline-flex;align-items:center;gap:10px;background:#f3f5f8;border:1px solid var(--line);border-radius:12px;padding:11px 16px;font-size:14px;font-weight:600;color:var(--navy);white-space:nowrap;user-select:none}

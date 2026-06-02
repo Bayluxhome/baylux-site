@@ -57,8 +57,17 @@ export default async function CatalogPage({ searchParams }) {
   const nc = sp.nc === "1";
   const amenSel = [].concat(sp.amen || []).filter(Boolean);
   const sort = SORTS.some((s) => s.key === sp.sort) ? sp.sort : "rec";
+  const q = (sp.q || "").toString().trim();
 
   let units = await getAllUnits();
+  // Текстовый поиск по адресу/улице/дому/ЖК/району — все слова запроса должны встретиться.
+  if (q) {
+    const needles = q.toLowerCase().split(/\s+/).filter(Boolean);
+    units = units.filter((u) => {
+      const hay = [u.building?.name, u.building?.district, u.complex, u.type].filter(Boolean).join(" ").toLowerCase();
+      return needles.every((n) => hay.includes(n));
+    });
+  }
   if (deal) units = units.filter((u) => u.deal === deal);
   if (deal === "daily") units = units.filter((u) => ["apartment", "house"].includes(unitCat(u.type)));
   if (isNew) units = units.filter((u) => unitIsNew(u));
@@ -101,9 +110,13 @@ export default async function CatalogPage({ searchParams }) {
     const p = new URLSearchParams();
     for (const [key, val] of Object.entries(sp)) { if (Array.isArray(val)) val.forEach((x) => p.append(key, x)); else if (val != null) p.set(key, val); }
     if (v) p.set(k, v); else p.delete(k);
-    if (k !== "page") p.delete("page"); // смена любого фильтра/сортировки возвращает на 1-ю страницу
+    if (k !== "page") p.delete("page"); // смена любого фильтра/сортировки/поиска возвращает на 1-ю страницу
     const s = p.toString(); return "/catalog" + (s ? "?" + s : "");
   };
+
+  // Скрытые поля для формы поиска/фильтров — переносят текущие параметры (кроме q/page, их задаёт сама форма).
+  const hidden = (skip) => Object.entries(sp).flatMap(([k, v]) =>
+    skip.includes(k) ? [] : (Array.isArray(v) ? v : [v]).map((val, i) => <input key={k + i} type="hidden" name={k} value={val} />));
 
   // Номера страниц с многоточием: 1 … (page-1) page (page+1) … last
   const pageNums = [];
@@ -120,10 +133,21 @@ export default async function CatalogPage({ searchParams }) {
 
   return (
     <div className="wrap" style={{ paddingTop: 22, paddingBottom: 40 }}>
+      {/* Поиск по адресу/улице/дому/ЖК — переносит текущие фильтры через скрытые поля */}
+      <form className="catsearch" action="/catalog" method="get">
+        {hidden(["q", "page"])}
+        <span className="catsearch-ic" aria-hidden="true">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="7" /><path d="m21 21-4.3-4.3" /></svg>
+        </span>
+        <input name="q" defaultValue={q} placeholder={t("search_ph")} aria-label={t("search_ph")} />
+        {q && <Link className="catsearch-clear" href={qs("q", "")} aria-label="clear">✕</Link>}
+        <button className="btn btn-gold" type="submit">{t("search")}</button>
+      </form>
+
       <div className="sec-head">
         <div>
           <h2>{t("foot_realty")}{deal ? ` — ${t("deal_" + deal).toLowerCase()}` : ""}{cat && CAT_LABEL[cat] ? ` · ${CAT_LABEL[cat].toLowerCase()}` : ""}</h2>
-          <p>{t("cat_found")} {total} {t("cat_objects")}{isNew ? ` · ${t("nav_new").toLowerCase()}` : ""}{city ? ` · ${city}` : ""}</p>
+          <p>{t("cat_found")} {total} {t("cat_objects")}{q ? ` · «${q}»` : ""}{isNew ? ` · ${t("nav_new").toLowerCase()}` : ""}{city ? ` · ${city}` : ""}</p>
         </div>
         <details className="sortbox">
           <summary><span className="sort-cur">{t("sort_label")}: {t(sortCur.lk)}</span><span className="sort-caret">⌄</span></summary>
@@ -146,6 +170,7 @@ export default async function CatalogPage({ searchParams }) {
         <input type="hidden" name="deal" value={deal} />
         {isNew && <input type="hidden" name="new" value="1" />}
         {sort !== "rec" && <input type="hidden" name="sort" value={sort} />}
+        {q && <input type="hidden" name="q" value={q} />}
         <div className="cf-grid">
           <label>{t("f_city")}
             <select name="city" defaultValue={city}><option value="">{t("f_anyCity")}</option>{GE_CITIES.map((c) => <option key={c.name} value={c.name}>{cityLabel(lang, c.name)}</option>)}</select>

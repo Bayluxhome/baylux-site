@@ -14,6 +14,7 @@ export const DICT = {
     // каталог
     cat_found: "Найдено", cat_objects: "объект(ов)", chip_all: "Все", f_rooms: "Комнат", f_anyRooms: "Любая", f_studio: "Студия",
     sort_label: "Сортировать", sort_rec: "по рекомендации", sort_new: "сначала новые", sort_price_asc: "сначала дешевле", sort_price_desc: "сначала дороже", sort_area_asc: "площадь: меньше", sort_area_desc: "площадь: больше",
+    search_ph: "Поиск: улица, дом или ЖК…",
     f_yearFrom: "Год от", f_priceFrom: "Цена от, $", f_areaFrom: "Площадь от, м²", f_areaTo: "Площадь до, м²", f_reset: "Сбросить", f_noCommission: "Без комиссии", cat_empty: "По этому фильтру пока нет объектов.",
     // футер
     foot_about: "Управление, аренда и продажа недвижимости в Грузии. Скоро — новые города и мобильное приложение.",
@@ -194,6 +195,7 @@ export const DICT = {
     st_verified: "verified objects", st_commission: "hidden fees", st_support: "support", st_langs: "languages: RU · EN · GE", st_objects: "listings in base",
     cat_found: "Found", cat_objects: "object(s)", chip_all: "All", f_rooms: "Rooms", f_anyRooms: "Any", f_studio: "Studio",
     sort_label: "Sort", sort_rec: "Recommended", sort_new: "Newest first", sort_price_asc: "Price: low to high", sort_price_desc: "Price: high to low", sort_area_asc: "Area: small to large", sort_area_desc: "Area: large to small",
+    search_ph: "Search: street, house or complex…",
     f_yearFrom: "Year from", f_priceFrom: "Price from, $", f_areaFrom: "Area from, m²", f_areaTo: "Area to, m²", f_reset: "Reset", f_noCommission: "No commission", cat_empty: "No objects match this filter yet.",
     foot_about: "Property management, rent and sale in Georgia. New cities and a mobile app coming soon.",
     foot_realty: "Real estate", foot_company: "Company", foot_mgmt: "Property management", foot_cleaning: "Cleaning", foot_realtors: "Realtors",
@@ -366,6 +368,7 @@ export const DICT = {
     st_verified: "შემოწმებული ობიექტი", st_commission: "ფარული საკომისიო", st_support: "მხარდაჭერა", st_langs: "ენა: RU · EN · GE", st_objects: "ობიექტი ბაზაში",
     cat_found: "ნაპოვნია", cat_objects: "ობიექტი", chip_all: "ყველა", f_rooms: "ოთახები", f_anyRooms: "ნებისმიერი", f_studio: "სტუდია",
     sort_label: "დალაგება", sort_rec: "რეკომენდებული", sort_new: "ჯერ ახალი", sort_price_asc: "ჯერ იაფი", sort_price_desc: "ჯერ ძვირი", sort_area_asc: "ფართობი: ნაკლები", sort_area_desc: "ფართობი: მეტი",
+    search_ph: "ძებნა: ქუჩა, სახლი ან კომპლექსი…",
     f_yearFrom: "წელი დან", f_priceFrom: "ფასი დან, $", f_areaFrom: "ფართობი დან, მ²", f_areaTo: "ფართობი მდე, მ²", f_reset: "გასუფთავება", f_noCommission: "უსაკომისიო", cat_empty: "ამ ფილტრით ობიექტები ჯერ არ არის.",
     foot_about: "უძრავი ქონების მართვა, ქირა და გაყიდვა საქართველოში. მალე — ახალი ქალაქები და მობილური აპლიკაცია.",
     foot_realty: "უძრავი ქონება", foot_company: "კომპანია", foot_mgmt: "ქონების მართვა", foot_cleaning: "დასუფთავება", foot_realtors: "რიელტორები",
