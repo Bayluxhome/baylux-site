@@ -349,7 +349,7 @@ async function askAmenities(chat, data, lang) {
 }
 
 // ---- Финал ----
-async function finalizeListing(chat, uid, data) {
+async function finalizeListing(chat, uid, data, author) {
   const lang = data.lang || "ru";
   const city = data.city || "Батуми";
   const currency = data.currency === "GEL" ? "GEL" : "USD";
@@ -387,8 +387,21 @@ async function finalizeListing(chat, uid, data) {
   const amenLine = (data.amenities && data.amenities.length) ? `\n🏷 ${esc(data.amenities.join(", "))}` : "";
   const ncLine = data.no_commission ? `\n✅ без комиссии` : "";
   const langLine = `\n🌐 язык: ${lang.toUpperCase()}`;
-  const summary = `🆕 <b>Новое объявление</b>${langLine}\n${DEAL_RU[row.deal]} · ${row.type}\n🏙 ${esc(city)}${complexLine}\n🏠 ${esc(row.building_name)}\n💰 ${row.price}\n📐 ${row.area} м² · 🛏 ${row.rooms} комн. · 🏢 ${esc(row.floor)}${extra ? "\n" + extra : ""}\n📷 ${row.photos.length} фото${geoLine}${amenLine}${ncLine}\n📞 ${row.contact}${data.verified ? " ✅ подтверждён" : ""}${tgLine}\n\n${esc(row.about)}`;
-  await tg("sendMessage", { chat_id: ADMIN, text: summary, parse_mode: "HTML", disable_web_page_preview: true, reply_markup: modButtons("pending", ins.id) });
+  // Блок «Связаться с автором» (отправитель в боте) — отдельно от публичного контакта на сайте.
+  const au = author || {};
+  const auName = au.name || au.username || (au.id != null ? String(au.id) : "");
+  const authorRows = [];
+  let authorLine = "";
+  if (au.username) {
+    authorRows.push([{ text: "💬 Связаться с автором", url: `https://t.me/${au.username}` }]);
+    authorLine = `\n👤 Автор: ${esc(auName)} (@${esc(au.username)})`;
+  } else if (au.id != null) {
+    authorLine = `\n👤 Автор: ${esc(auName)} (Telegram id ${esc(au.id)})`;
+  }
+  const summary = `🆕 <b>Новое объявление</b>${langLine}\n${DEAL_RU[row.deal]} · ${row.type}\n🏙 ${esc(city)}${complexLine}\n🏠 ${esc(row.building_name)}\n💰 ${row.price}\n📐 ${row.area} м² · 🛏 ${row.rooms} комн. · 🏢 ${esc(row.floor)}${extra ? "\n" + extra : ""}\n📷 ${row.photos.length} фото${geoLine}${amenLine}${ncLine}\n📞 ${row.contact}${data.verified ? " ✅ подтверждён" : ""}${tgLine}${authorLine}\n\n${esc(row.about)}`;
+  const kb = modButtons("pending", ins.id);
+  if (authorRows.length) kb.inline_keyboard = [...kb.inline_keyboard, ...authorRows];
+  await tg("sendMessage", { chat_id: ADMIN, text: summary, parse_mode: "HTML", disable_web_page_preview: true, reply_markup: kb });
 }
 
 async function onMessage(msg) {
@@ -545,7 +558,7 @@ async function onMessage(msg) {
     }
     case "tg": {
       if (!isSkip(text)) { const t = cleanTg(text); if (t) data.tg_username = t; }
-      return finalizeListing(chat, uid, data);
+      return finalizeListing(chat, uid, data, { id: uid, username: msg.from.username || "", name: msg.from.first_name || "" });
     }
     default: return send(chat, "/start");
   }

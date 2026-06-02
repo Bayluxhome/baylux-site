@@ -166,6 +166,20 @@ export async function POST(req) {
   // карточкой с фото и кнопками ✅/❌/📍 (callback ap/rj/eg), чтобы одобрять по одному.
   // В конце — всегда итоговое сообщение пачки с кнопками «одобрить/отклонить всю пачку».
   if (ADMIN && TOKEN && inserted.length) {
+    // Блок «Связаться с автором» (тот, кто загрузил пачку) — отдельно от публичного контакта на сайте.
+    const authorRows = [];
+    let authorLine = "";
+    const auName = session.name || session.username || session.email || (session.id != null ? String(session.id) : "");
+    if (session.username) {
+      authorRows.push([{ text: "💬 Связаться с автором", url: `https://t.me/${session.username}` }]);
+      authorLine = `\n👤 Автор: ${esc(auName)} (@${esc(session.username)})`;
+    } else if (session.id != null) {
+      authorLine = `\n👤 Автор: ${esc(auName)} (Telegram id ${esc(session.id)})`;
+    } else if (session.email) {
+      authorLine = `\n👤 Автор: ${esc(session.email)}${uploaderPhone ? ` · ${esc(uploaderPhone)}` : ""}`;
+    }
+    const withAuthor = (kb) => (authorRows.length ? { inline_keyboard: [...kb.inline_keyboard, ...authorRows] } : kb);
+
     if (inserted.length <= PER_OBJECT_LIMIT) {
       for (const x of inserted) {
         const row = x.row;
@@ -196,9 +210,9 @@ export async function POST(req) {
           `${DEAL_RU[row.deal]} · ${esc(row.type)}\n` +
           `🏙 ${esc(row.district)}\n🏠 ${esc(row.building_name)}\n` +
           `💰 ${esc(row.price)}\n📐 ${row.area} м² · 🛏 ${row.rooms} комн. · 🏢 ${esc(row.floor)}\n` +
-          `📷 ${row.photos.length} фото\n📞 ${esc(row.contact)}${geoLine}${dupNote}` +
+          `📷 ${row.photos.length} фото\n📞 ${esc(row.contact)}${geoLine}${dupNote}${authorLine}` +
           (row.about ? `\n\n${esc(row.about)}` : "");
-        await tg("sendMessage", { chat_id: ADMIN, text: card, parse_mode: "HTML", disable_web_page_preview: true, reply_markup: modButtons(x.dbId) });
+        await tg("sendMessage", { chat_id: ADMIN, text: card, parse_mode: "HTML", disable_web_page_preview: true, reply_markup: withAuthor(modButtons(x.dbId)) });
       }
     }
 
@@ -206,15 +220,14 @@ export async function POST(req) {
     const lines = inserted.slice(0, 40).map((x) =>
       `${x.geoOk ? "•" : "⚠️"} #${esc(x.refId)} ${DEAL_RU[x.deal]} · ${esc(x.type)} · ${esc(x.city)} · ${esc(x.price)}`).join("\n");
     const more = inserted.length > 40 ? `\n…и ещё ${inserted.length - 40}` : "";
-    const who = esc(session.name || session.username || session.email || session.id);
     const warn = geoFails.length ? `\n⚠️ Неточное гео (центр города): ${geoFails.length} шт. — проверьте на карте в /admin.` : "";
     const skipped = errors.length ? `\n⏭ Пропущено строк: ${errors.length} (${errors.slice(0, 8).map((e) => `#${esc(e.id)}:${e.reason}`).join(", ")}).` : "";
     const note = inserted.length > PER_OBJECT_LIMIT ? `\nℹ️ Объектов больше ${PER_OBJECT_LIMIT} — карточки по одному не слались; разбирайте в админке или одобрите всю пачку.` : "";
     const text =
-      `📦 <b>Массовая загрузка — на модерации</b>\n` +
-      `👤 ${who}\n📋 Объектов в пачке: <b>${inserted.length}</b>${warn}${skipped}${note}\n\n${lines}${more}\n\n` +
+      `📦 <b>Массовая загрузка — на модерации</b>${authorLine}\n` +
+      `📋 Объектов в пачке: <b>${inserted.length}</b>${warn}${skipped}${note}\n\n${lines}${more}\n\n` +
       `🔗 <a href="${SITE}/admin">Разобрать в админке</a>`;
-    await tg("sendMessage", { chat_id: ADMIN, text, parse_mode: "HTML", disable_web_page_preview: true, reply_markup: batchButtons(batchId) });
+    await tg("sendMessage", { chat_id: ADMIN, text, parse_mode: "HTML", disable_web_page_preview: true, reply_markup: withAuthor(batchButtons(batchId)) });
   }
 
   return Response.json({ ok: true, batchId, count: inserted.length, geoFails, errors });

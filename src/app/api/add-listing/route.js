@@ -93,8 +93,28 @@ export async function POST(req) {
     const geoLine = hasGeo
       ? `\n📍 <a href="${mapsLink(row.lat, row.lng)}">проверить точку на карте</a> (откройте спутник)`
       : `\n⚠️ точка на карте НЕ указана`;
-    const summary = `🆕 <b>Новое объявление (с сайта)</b>\n${DEAL_RU[deal]} · ${row.type}\n🏙 ${esc(city)}\n🏠 ${esc(row.building_name)}\n💰 ${row.price}\n📐 ${row.area} м² · 🛏 ${row.rooms} комн. · 🏢 ${esc(row.floor)}\n📷 ${row.photos.length} фото${geoLine}\n👤 ${esc(session.name || session.username || session.id)}\n📞 ${phone}\n\n${esc(row.about)}`;
-    await tg("sendMessage", { chat_id: ADMIN, text: summary, parse_mode: "HTML", disable_web_page_preview: true, reply_markup: modButtons(ins.id) });
+    // Блок «Связаться с автором» (создатель объявления) — отдельно от публичного контакта на сайте.
+    const authorRows = [];
+    let authorLine = "";
+    const auName = session.name || session.username || session.email || (session.id != null ? String(session.id) : "");
+    if (session.username) {
+      authorRows.push([{ text: "💬 Связаться с автором", url: `https://t.me/${session.username}` }]);
+      authorLine = `\n👤 Автор: ${esc(auName)} (@${esc(session.username)})`;
+    } else if (session.id != null) {
+      authorLine = `\n👤 Автор: ${esc(auName)} (Telegram id ${esc(session.id)})`;
+    } else if (session.email) {
+      // вход по email — телефон автора берём из профиля риелтора (как в bulk-listing)
+      let authorPhone = null;
+      try {
+        const { data: rp } = await supa.from("realtors").select("phone").eq("email", session.email).maybeSingle();
+        authorPhone = gePhone(rp?.phone);
+      } catch (e) { console.error("author phone:", e?.message); }
+      authorLine = `\n👤 Автор: ${esc(session.email)}${authorPhone ? ` · ${esc(authorPhone)}` : ""}`;
+    }
+    const summary = `🆕 <b>Новое объявление (с сайта)</b>\n${DEAL_RU[deal]} · ${row.type}\n🏙 ${esc(city)}\n🏠 ${esc(row.building_name)}\n💰 ${row.price}\n📐 ${row.area} м² · 🛏 ${row.rooms} комн. · 🏢 ${esc(row.floor)}\n📷 ${row.photos.length} фото${geoLine}${authorLine}\n📞 ${phone}\n\n${esc(row.about)}`;
+    const kb = modButtons(ins.id);
+    if (authorRows.length) kb.inline_keyboard = [...kb.inline_keyboard, ...authorRows];
+    await tg("sendMessage", { chat_id: ADMIN, text: summary, parse_mode: "HTML", disable_web_page_preview: true, reply_markup: kb });
   }
   return Response.json({ ok: true });
 }
