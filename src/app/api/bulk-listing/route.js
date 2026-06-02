@@ -7,6 +7,7 @@ import { cleanAddress, cleanDesc } from "@/data/sheet";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
+export const maxDuration = 60; // запас времени для геокодинга больших пачек (до 100+ объектов)
 
 const TOKEN = process.env.TELEGRAM_BOT_TOKEN;
 const ADMIN = process.env.TELEGRAM_CHAT_ID;
@@ -116,6 +117,22 @@ export async function POST(req) {
   const errors = [];   // { id, reason }
   const geoFails = []; // локальные id с неточным гео
 
+  // Предварительный ПАРАЛЛЕЛЬНЫЙ геокодинг (по 8 запросов за раз) — иначе 100 адресов
+  // последовательно упёрлись бы в таймаут функции. Ключ = тот же запрос, что в цикле вставки.
+  const geoKey = (r) => {
+    const a = cleanAddress(r.address);
+    const c = (r.city || "Батуми").toString().trim() || "Батуми";
+    return a ? `${a}, ${c}, Georgia` : null;
+  };
+  const uniqKeys = [...new Set(rows.map(geoKey).filter(Boolean))];
+  const geoMap = new Map();
+  const GEO_CONC = 8;
+  for (let i = 0; i < uniqKeys.length; i += GEO_CONC) {
+    const chunk = uniqKeys.slice(i, i + GEO_CONC);
+    const res = await Promise.all(chunk.map((k) => geocode(k)));
+    chunk.forEach((k, j) => geoMap.set(k, res[j]));
+  }
+
   for (const r of rows) {
     const refId = r.id != null ? String(r.id) : "?";
     const address = cleanAddress(r.address); // нормализуем адрес сразу при импорте
@@ -131,8 +148,8 @@ export async function POST(req) {
     const buildingName = address || (r.type ? `${r.type}, ${city}` : "Объект");
     const about = cleanDesc(r.about); // чистим текст: ссылки, контакты, markdown [текст](url), скобки
 
-    // Геокодинг адреса; фолбэк — центр города (geo_ok=false).
-    const g = await geocode(`${address}, ${city}, Georgia`);
+    // Геокодинг берём из пред-рассчитанной параллельной карты; фолбэк — центр города (geo_ok=false).
+    const g = geoMap.get(`${address}, ${city}, Georgia`) || null;
     const geoOk = !!g;
     const pt = g || CITY_CENTER[city] || CITY_CENTER["Батуми"];
     if (!geoOk) geoFails.push(refId);
