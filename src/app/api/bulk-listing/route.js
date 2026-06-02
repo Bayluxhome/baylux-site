@@ -25,8 +25,18 @@ const CITY_CENTER = {
   "Махинджаури": { lat: 41.6708, lng: 41.6428 },
 };
 
-function tg(method, body) {
-  return fetch(`https://api.telegram.org/bot${TOKEN}/${method}`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) }).then((r) => r.json());
+const sleep = (ms) => new Promise((res) => setTimeout(res, ms));
+// При флуд-лимите Telegram (429) ждём retry_after и повторяем — иначе при больших пачках часть карточек теряется.
+async function tg(method, body) {
+  for (let attempt = 0; attempt < 4; attempt++) {
+    const j = await fetch(`https://api.telegram.org/bot${TOKEN}/${method}`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) }).then((r) => r.json()).catch(() => ({ ok: false }));
+    if (j && j.ok === false && j.error_code === 429 && j.parameters?.retry_after) {
+      await sleep((j.parameters.retry_after + 0.3) * 1000);
+      continue;
+    }
+    return j;
+  }
+  return { ok: false };
 }
 function gePhone(raw) {
   const s = String(raw || "").replace(/[^\d]/g, "");
@@ -83,7 +93,7 @@ function modButtons(id) {
   ] };
 }
 // Не шлём карточки по одному, если объектов больше — только итоговую сводку пачки (защита от флуда).
-const PER_OBJECT_LIMIT = 25;
+const PER_OBJECT_LIMIT = 100;
 
 export async function POST(req) {
   const session = verifySession(cookies().get("bx_session")?.value);
@@ -198,6 +208,21 @@ export async function POST(req) {
     }
     const withAuthor = (kb) => (authorRows.length ? { inline_keyboard: [...kb.inline_keyboard, ...authorRows] } : kb);
 
+    // Сначала — итоговая сводка с кнопкой «Одобрить/Отклонить всю пачку». Приходит ПЕРВОЙ,
+    // чтобы даже при большой пачке у CEO сразу была кнопка одобрения, до карточек по одному.
+    const lines = inserted.slice(0, 40).map((x) =>
+      `${x.geoOk ? "•" : "⚠️"} #${esc(x.refId)} ${DEAL_RU[x.deal]} · ${esc(x.type)} · ${esc(x.city)} · ${esc(x.price)}`).join("\n");
+    const more = inserted.length > 40 ? `\n…и ещё ${inserted.length - 40}` : "";
+    const warn = geoFails.length ? `\n⚠️ Неточное гео (центр города): ${geoFails.length} шт. — проверьте на карте в /admin.` : "";
+    const skipped = errors.length ? `\n⏭ Пропущено строк: ${errors.length} (${errors.slice(0, 8).map((e) => `#${esc(e.id)}:${e.reason}`).join(", ")}).` : "";
+    const note = inserted.length > PER_OBJECT_LIMIT ? `\nℹ️ Объектов больше ${PER_OBJECT_LIMIT} — карточки по одному не слались; разбирайте в админке или одобрите всю пачку.` : "";
+    const summaryText =
+      `📦 <b>Массовая загрузка — на модерации</b>${authorLine}\n` +
+      `📋 Объектов в пачке: <b>${inserted.length}</b>${warn}${skipped}${note}\n\n${lines}${more}\n\n` +
+      `🔗 <a href="${SITE}/admin">Разобрать в админке</a>`;
+    await tg("sendMessage", { chat_id: ADMIN, text: summaryText, parse_mode: "HTML", disable_web_page_preview: true, reply_markup: withAuthor(batchButtons(batchId)) });
+
+    // Затем — подробные карточки по одному (если объектов ≤ PER_OBJECT_LIMIT).
     if (inserted.length <= PER_OBJECT_LIMIT) {
       for (const x of inserted) {
         const row = x.row;
@@ -211,7 +236,8 @@ export async function POST(req) {
         if (hashes.length) {
           const inBatch = inserted.find((y) => y !== x && Array.isArray(y.row.photo_hashes) && y.row.photo_hashes.some((h) => hashes.includes(h)));
           let inDb = null;
-          if (!inBatch) {
+          // Запрос дублей в БД делаем только для небольших пачек (он медленный); в больших — лишь проверка внутри пачки.
+          if (!inBatch && inserted.length <= 30) {
             try {
               const { data: dups } = await supa.from("listings").select("id").overlaps("photo_hashes", hashes).neq("id", x.dbId).limit(1);
               inDb = dups && dups[0] ? dups[0] : null;
@@ -231,21 +257,9 @@ export async function POST(req) {
           `📷 ${row.photos.length} фото\n📞 ${esc(row.contact)}${geoLine}${dupNote}${authorLine}` +
           (row.about ? `\n\n${esc(row.about)}` : "");
         await tg("sendMessage", { chat_id: ADMIN, text: card, parse_mode: "HTML", disable_web_page_preview: true, reply_markup: withAuthor(modButtons(x.dbId)) });
+        await sleep(120); // троттлинг между объектами, чтобы не упереться во флуд-лимит Telegram
       }
     }
-
-    // Итоговая сводка пачки — для быстрого одобрения/отклонения всех сразу.
-    const lines = inserted.slice(0, 40).map((x) =>
-      `${x.geoOk ? "•" : "⚠️"} #${esc(x.refId)} ${DEAL_RU[x.deal]} · ${esc(x.type)} · ${esc(x.city)} · ${esc(x.price)}`).join("\n");
-    const more = inserted.length > 40 ? `\n…и ещё ${inserted.length - 40}` : "";
-    const warn = geoFails.length ? `\n⚠️ Неточное гео (центр города): ${geoFails.length} шт. — проверьте на карте в /admin.` : "";
-    const skipped = errors.length ? `\n⏭ Пропущено строк: ${errors.length} (${errors.slice(0, 8).map((e) => `#${esc(e.id)}:${e.reason}`).join(", ")}).` : "";
-    const note = inserted.length > PER_OBJECT_LIMIT ? `\nℹ️ Объектов больше ${PER_OBJECT_LIMIT} — карточки по одному не слались; разбирайте в админке или одобрите всю пачку.` : "";
-    const text =
-      `📦 <b>Массовая загрузка — на модерации</b>${authorLine}\n` +
-      `📋 Объектов в пачке: <b>${inserted.length}</b>${warn}${skipped}${note}\n\n${lines}${more}\n\n` +
-      `🔗 <a href="${SITE}/admin">Разобрать в админке</a>`;
-    await tg("sendMessage", { chat_id: ADMIN, text, parse_mode: "HTML", disable_web_page_preview: true, reply_markup: withAuthor(batchButtons(batchId)) });
   }
 
   return Response.json({ ok: true, batchId, count: inserted.length, geoFails, errors });
