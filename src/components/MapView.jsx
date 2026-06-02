@@ -1,6 +1,7 @@
 "use client";
 import { useEffect, useRef } from "react";
-import "maplibre-gl/dist/maplibre-gl.css";
+import "mapbox-gl/dist/mapbox-gl.css";
+import { MAPBOX_TOKEN } from "@/config";
 
 const DEAL = { sale: "Продажа", rent: "Аренда", daily: "Посуточно" };
 const DEALCLASS = { sale: "b-sale", rent: "b-rent", daily: "b-daily" };
@@ -16,16 +17,6 @@ function shortPrice(s) {
   return sym + n;
 }
 const esc = (s) => String(s || "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
-// Подписи карты на русский (fallback: латиница → английский → локальное имя), иначе MapTiler даёт грузинский.
-function localizeMap(map) {
-  try {
-    for (const l of (map.getStyle().layers || [])) {
-      if (l.type === "symbol" && l.layout && l.layout["text-field"]) {
-        map.setLayoutProperty(l.id, "text-field", ["coalesce", ["get", "name:ru"], ["get", "name:latin"], ["get", "name:en"], ["get", "name"]]);
-      }
-    }
-  } catch (e) { /* стиль не готов — игнор */ }
-}
 
 // buildings: [{ slug, name, district, kind, lat, lng, priceFrom, units:[{slug,deal,type,rooms,area,price,per}] }]
 export default function MapView({ buildings = [], center = [41.642, 41.632], zoom = 13, className = "map-home", onSelect }) {
@@ -37,17 +28,13 @@ export default function MapView({ buildings = [], center = [41.642, 41.632], zoo
   useEffect(() => {
     let cancelled = false;
     (async () => {
-      const maplibregl = (await import("maplibre-gl")).default;
+      const mapboxgl = (await import("mapbox-gl")).default;
       if (cancelled || !elRef.current || mapRef.current) return;
+      mapboxgl.accessToken = MAPBOX_TOKEN;
 
-      const key = process.env.NEXT_PUBLIC_MAPTILER_KEY;
-      const style = key
-        ? `https://api.maptiler.com/maps/streets-v2/style.json?key=${key}`
-        : "https://demotiles.maplibre.org/style.json";
-
-      const map = new maplibregl.Map({
+      const map = new mapboxgl.Map({
         container: elRef.current,
-        style,
+        style: "mapbox://styles/mapbox/streets-v12",
         center: [center[1], center[0]],
         zoom,
         attributionControl: { compact: true },
@@ -55,8 +42,8 @@ export default function MapView({ buildings = [], center = [41.642, 41.632], zoo
         cooperativeGestures: className !== "map-screen",
       });
       mapRef.current = map;
-      map.addControl(new maplibregl.NavigationControl({ showCompass: false }), "top-left");
-      map.addControl(new maplibregl.FullscreenControl(), "top-right");
+      map.addControl(new mapboxgl.NavigationControl({ showCompass: false }), "top-left");
+      map.addControl(new mapboxgl.FullscreenControl(), "top-right");
 
       const card = document.createElement("div");
       card.className = "map-card";
@@ -72,7 +59,7 @@ export default function MapView({ buildings = [], center = [41.642, 41.632], zoo
       card.addEventListener("click", (e) => { if (e.target.dataset && e.target.dataset.close) closeCard(); });
 
       map.on("load", () => {
-        localizeMap(map); // подписи на русский
+        try { map.setLanguage("ru"); } catch (e) { /* подписи останутся по умолчанию */ }
         // слой подсветки выбранного здания
         map.addSource("baylux-sel", { type: "geojson", data: { type: "FeatureCollection", features: [] } });
         map.addLayer({ id: "baylux-sel-fill", type: "fill", source: "baylux-sel",
@@ -84,7 +71,7 @@ export default function MapView({ buildings = [], center = [41.642, 41.632], zoo
           const el = document.createElement("div");
           el.className = "price-pin jk";
           el.textContent = shortPrice(b.priceFrom);
-          new maplibregl.Marker({ element: el, anchor: "center" }).setLngLat([b.lng, b.lat]).addTo(map);
+          new mapboxgl.Marker({ element: el, anchor: "center" }).setLngLat([b.lng, b.lat]).addTo(map);
           el.addEventListener("click", (ev) => {
             ev.stopPropagation();
             selectBuilding(b, el);
@@ -92,7 +79,7 @@ export default function MapView({ buildings = [], center = [41.642, 41.632], zoo
         });
 
         if (buildings.length > 1) {
-          const b = new maplibregl.LngLatBounds();
+          const b = new mapboxgl.LngLatBounds();
           buildings.forEach((x) => b.extend([x.lng, x.lat]));
           map.fitBounds(b, { padding: 60, maxZoom: 15, duration: 0 });
         }

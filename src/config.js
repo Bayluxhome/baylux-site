@@ -38,6 +38,10 @@ export function channelForCity(city) {
   return username ? { key, username, url: "https://t.me/" + username } : null;
 }
 
+// Mapbox public token — задаётся переменной окружения NEXT_PUBLIC_MAPBOX_TOKEN (Vercel + .env.local).
+// В коде не храним: GitHub push protection блокирует токены Mapbox даже публичные.
+export const MAPBOX_TOKEN = process.env.NEXT_PUBLIC_MAPBOX_TOKEN || "";
+
 export const WA_PHONE = process.env.NEXT_PUBLIC_WA_PHONE || "995555000000"; // заменить на реальный номер
 export function waLink(text) {
   const t = text || "Здравствуйте! Пишу с сайта Baylux по объекту.";
