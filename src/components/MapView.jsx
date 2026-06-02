@@ -16,6 +16,16 @@ function shortPrice(s) {
   return sym + n;
 }
 const esc = (s) => String(s || "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+// Подписи карты на русский (fallback: латиница → английский → локальное имя), иначе MapTiler даёт грузинский.
+function localizeMap(map) {
+  try {
+    for (const l of (map.getStyle().layers || [])) {
+      if (l.type === "symbol" && l.layout && l.layout["text-field"]) {
+        map.setLayoutProperty(l.id, "text-field", ["coalesce", ["get", "name:ru"], ["get", "name:latin"], ["get", "name:en"], ["get", "name"]]);
+      }
+    }
+  } catch (e) { /* стиль не готов — игнор */ }
+}
 
 // buildings: [{ slug, name, district, kind, lat, lng, priceFrom, units:[{slug,deal,type,rooms,area,price,per}] }]
 export default function MapView({ buildings = [], center = [41.642, 41.632], zoom = 13, className = "map-home", onSelect }) {
@@ -62,6 +72,7 @@ export default function MapView({ buildings = [], center = [41.642, 41.632], zoo
       card.addEventListener("click", (e) => { if (e.target.dataset && e.target.dataset.close) closeCard(); });
 
       map.on("load", () => {
+        localizeMap(map); // подписи на русский
         // слой подсветки выбранного здания
         map.addSource("baylux-sel", { type: "geojson", data: { type: "FeatureCollection", features: [] } });
         map.addLayer({ id: "baylux-sel-fill", type: "fill", source: "baylux-sel",
