@@ -4,7 +4,7 @@ import Image from "next/image";
 import { buildingPriceFrom, buildingFromNum, fmtMoney } from "@/data/data";
 import FavButton from "@/components/FavButton";
 import { useLang } from "@/components/LangContext";
-import { cityLabel, translitAddress } from "@/lib/dict";
+import { cityLabel, translitAddress, typeLabel } from "@/lib/dict";
 
 export default function BuildingCard({ building }) {
   const { t, lang } = useLang();
@@ -15,12 +15,17 @@ export default function BuildingCard({ building }) {
   const counts = {};
   building.units.forEach((u) => { counts[u.deal] = (counts[u.deal] || 0) + 1; });
   const summary = Object.entries(counts).map(([d, n]) => `${t("deal_" + d)}: ${n}`).join(" · ");
+  // Бейдж: ЖК/комплекс → «ЖК»; иначе реальный тип, если он один на весь дом; разные типы → общий «Дом».
+  const types = [...new Set(building.units.map((u) => u.type).filter(Boolean))];
+  const badge = building.kind === "complex"
+    ? t("badge_jk")
+    : types.length === 1 ? typeLabel(lang, types[0]) : t("badge_house");
   const fav = { slug: "b-" + building.slug, href: `/building/${building.slug}`, title: bname, sub: `📍 ${district}`, price: t("w_from") + " " + buildingPriceFrom(building), img: building.image };
   return (
     <Link className="card" href={`/building/${building.slug}`}>
       <div className="ph">
         <Image src={building.image} alt={bname} fill sizes="(max-width:560px) 100vw, 360px" style={{ objectFit: "cover" }} />
-        <span className="badge b-jk">{t(building.kind === "complex" ? "badge_jk" : "badge_house")}</span>
+        <span className="badge b-jk">{badge}</span>
         <FavButton item={fav} />
       </div>
       <div className="body">
