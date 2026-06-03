@@ -423,7 +423,12 @@ footer.site a:hover{color:var(--gold-lt)}
   .pp-grid{grid-template-columns:1fr}
   .gallery{grid-template-columns:1fr 1fr;height:320px}
   .cta-card{position:relative;top:0}
-  .units .urow{grid-template-columns:1fr 1fr;font-size:14px}
+  .units .urow{grid-template-columns:auto auto auto 1fr;grid-template-areas:"utype utype utype uprice" "uarea ufloor udeal uprice";column-gap:10px;row-gap:4px;font-size:14px;align-items:center;padding:13px 14px}
+  .units .urow>*:nth-child(1){grid-area:utype}
+  .units .urow>*:nth-child(2){grid-area:uarea;color:var(--ink-soft);font-size:13px}
+  .units .urow>*:nth-child(3){grid-area:ufloor;color:var(--ink-soft);font-size:13px}
+  .units .urow>*:nth-child(4){grid-area:udeal;color:var(--ink-soft);font-size:13px}
+  .units .urow .uprice{grid-area:uprice;text-align:right;align-self:center}
   .units .uhead{display:none}
 }
 @media(max-width:560px){ .cards,.cards.three,.loc-cities,.spec{grid-template-columns:1fr} .gallery{display:flex;grid-template-columns:none;aspect-ratio:4/5;height:auto;overflow-x:auto;scroll-snap-type:x mandatory;-webkit-overflow-scrolling:touch;scrollbar-width:none} .gallery>div{flex:0 0 100%;scroll-snap-align:center} .gallery div:first-child{grid-row:auto} }
