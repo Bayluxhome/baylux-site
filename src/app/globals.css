@@ -356,6 +356,17 @@ footer.site a:hover{color:var(--gold-lt)}
 .gallery div{position:relative;background-size:cover;background-position:center;overflow:hidden}
 .gallery div:first-child{grid-row:span 2}
 .gal-arrow,.gal-count,.gal-dots{display:none}
+/* Лайтбокс — полноэкранный просмотр фото */
+.lightbox{position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,.92);display:flex;align-items:center;justify-content:center;animation:lbfade .15s ease}
+@keyframes lbfade{from{opacity:0}to{opacity:1}}
+.lb-stage{position:relative;width:92vw;height:86vh;max-width:1500px}
+.lb-close{position:absolute;top:18px;right:22px;width:44px;height:44px;border-radius:50%;border:none;background:rgba(255,255,255,.14);color:#fff;font-size:20px;line-height:1;cursor:pointer;z-index:2;display:grid;place-items:center}
+.lb-arrow{position:absolute;top:50%;transform:translateY(-50%);width:50px;height:50px;border-radius:50%;border:none;background:rgba(255,255,255,.16);color:#fff;font-size:30px;line-height:1;cursor:pointer;z-index:2;display:grid;place-items:center}
+.lb-prev{left:18px}
+.lb-next{right:18px}
+.lb-arrow:hover,.lb-close:hover{background:rgba(255,255,255,.3)}
+.lb-count{position:absolute;bottom:22px;left:50%;transform:translateX(-50%);color:#fff;font-size:14px;background:rgba(0,0,0,.45);padding:5px 13px;border-radius:20px}
+@media(max-width:560px){ .lb-stage{width:100vw;height:80vh} .lb-arrow{width:42px;height:42px;font-size:26px} .lb-prev{left:8px} .lb-next{right:8px} }
 .pp-grid{display:grid;grid-template-columns:1fr 360px;gap:28px;margin-top:26px;align-items:start}
 .spec{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:18px 0}
 .spec div{background:var(--cream);border:1px solid var(--line);border-radius:12px;padding:13px 15px}
