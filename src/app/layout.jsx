@@ -3,6 +3,7 @@ import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import LeadModal from "@/components/LeadModal";
 import CookieConsent from "@/components/CookieConsent";
+import AnalyticsConsent from "@/components/AnalyticsConsent";
 import CurrencyManager from "@/components/CurrencyManager";
 import { FilterProvider } from "@/components/FilterContext";
 import { LangProvider } from "@/components/LangContext";
@@ -86,6 +87,7 @@ export default async function RootLayout({ children }) {
             <Footer />
             <LeadModal />
             <CookieConsent />
+            <AnalyticsConsent />
           </FilterProvider>
         </LangProvider>
       </body>

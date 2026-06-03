@@ -17,6 +17,7 @@
     "@supabase/supabase-js": "2.45.4",
     "nodemailer": "6.9.14",
     "xlsx": "0.18.5",
-    "jszip": "3.10.1"
+    "jszip": "3.10.1",
+    "@vercel/analytics": "2.0.1"
   }
 }
