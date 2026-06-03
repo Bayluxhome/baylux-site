@@ -1,7 +1,7 @@
 import Link from "next/link";
-import Image from "next/image";
 import { notFound } from "next/navigation";
 import MapView from "@/components/MapView";
+import Gallery from "@/components/Gallery";
 import { DEAL_LABEL, buildingPriceFrom, fmtMoney } from "@/data/data";
 import { getBuildingsList, findBuilding } from "@/data/source";
 import LeadButton from "@/components/LeadButton";
@@ -48,7 +48,6 @@ export default async function BuildingPage({ params }) {
   pushPhoto(b.image);
   for (const u of b.units) for (const p of (u.photos || [])) pushPhoto(p);
   if (!photoPool.length) pushPhoto("/placeholder-baylux.jpg");
-  const gallery = Array.from({ length: 5 }, (_, i) => photoPool[i % photoPool.length]);
   const mapBuildings = [{ slug: b.slug, name: b.name, district: b.district, kind: b.kind, lat: b.lat, lng: b.lng, priceFrom: buildingPriceFrom(b), units: b.units }];
 
   return (
@@ -69,9 +68,7 @@ export default async function BuildingPage({ params }) {
         </div>
       </div>
 
-      <div className="gallery">
-        {gallery.map((g, i) => <div key={i}><Image src={g} alt={`${b.name} — фото ${i + 1}`} fill sizes="(max-width:560px) 100vw, 50vw" style={{ objectFit: "cover" }} /></div>)}
-      </div>
+      <Gallery photos={photoPool} alt={b.name} />
 
       <div className="pp-grid">
         <div>

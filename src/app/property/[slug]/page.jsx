@@ -1,7 +1,7 @@
 import Link from "next/link";
-import Image from "next/image";
 import { notFound } from "next/navigation";
 import MapView from "@/components/MapView";
+import Gallery from "@/components/Gallery";
 import { DEAL_LABEL, fmtMoney, perSuffix } from "@/data/data";
 import { getBuildingsList, findUnit } from "@/data/source";
 import LeadButton from "@/components/LeadButton";
@@ -43,7 +43,6 @@ export default async function PropertyPage({ params }) {
   const bname = b["name_" + lang] || translitAddress(b.name, lang, b.kind);
 
   const photos = (u.photos && u.photos.length) ? u.photos : [u.img || "/placeholder-baylux.jpg"];
-  const gallery = Array.from({ length: 5 }, (_, i) => photos[i % photos.length]);
   const mapBuildings = [{ slug: b.slug, name: b.name, district: b.district, kind: b.kind, lat: b.lat, lng: b.lng, priceFrom: u.price, units: [{ slug: u.slug, deal: u.deal, type: u.type, rooms: u.rooms, area: u.area, price: u.price, per: u.per }] }];
   const ctaMain = u.deal === "daily" ? t("cta_daily") : u.deal === "rent" ? t("cta_rent") : t("cta_view");
   const specs = [[t("sp_type"), ty], [t("sp_area"), u.area + " м²"], [t("sp_rooms"), u.rooms || "—"]];
@@ -111,9 +110,7 @@ export default async function PropertyPage({ params }) {
         </div>
       </div>
 
-      <div className="gallery">
-        {gallery.map((g, i) => <div key={i}><Image src={g} alt={`${u.type} — фото ${i + 1}`} fill sizes="(max-width:560px) 100vw, 50vw" style={{ objectFit: "cover" }} /></div>)}
-      </div>
+      <Gallery photos={photos} alt={u.type} />
 
       {u.dupeCount > 0 && u.dupes?.length > 0 && (
         <div style={{ margin: "18px 0 4px" }}>
