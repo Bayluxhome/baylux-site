@@ -30,6 +30,7 @@ export default function MapView({ buildings = [], center = [41.642, 41.632], zoo
   onSelRef.current = onSelect;
   const buildingsRef = useRef(buildings);
   buildingsRef.current = buildings;
+  const didFitRef = useRef(false); // fitBounds выполняется ОДИН раз — чтобы клик/ре-рендер не сбрасывал приближение
 
   function closeCard() {
     const map = mapRef.current, card = cardRef.current;
@@ -92,11 +93,14 @@ export default function MapView({ buildings = [], center = [41.642, 41.632], zoo
       markersRef.current.push(mk);
       el.addEventListener("click", (ev) => { ev.stopPropagation(); selectBuilding(b, el); });
     });
-    if (list.length > 1) {
+    // Подгоняем карту под все объекты ТОЛЬКО при первом рендере. Дальше маркеры обновляются,
+    // но вид (приближение/центр) не трогаем — иначе клик/ре-рендер сбрасывал бы зум пользователя.
+    if (!didFitRef.current && list.length > 1) {
       const bb = new gl.LngLatBounds();
       list.forEach((x) => bb.extend([x.lng, x.lat]));
       map.fitBounds(bb, { padding: 60, maxZoom: 15, duration: 0 });
     }
+    didFitRef.current = true;
   }
 
   // Создаём карту ОДИН раз. Карта не пересоздаётся при ре-рендерах — иначе сбрасывался зум и плодились карточки.
