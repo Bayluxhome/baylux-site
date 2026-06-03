@@ -43,8 +43,23 @@ export default function PropertyCard({ unit }) {
   const photos = unit.photos && unit.photos.length > 1 ? unit.photos : null;
   const alt = `${ty}, ${unit.area} м² — ${bname}`;
   const hasFloor = unit.floor && unit.floor !== "—";
+  const hasArea = unit.area && Number(unit.area) > 0;
   const dateStr = fmtDate(unit.created_at, lang);
   const sub = `${district}${b.developer ? ` · ${b.developer}` : ""}`;
+
+  // Первая характеристика — как у Korter: для квартир только комнаты («2 комн.»),
+  // для студий/коммерции — сам тип, для прочего (дом и т.п.) — «Тип, N комн.».
+  const FLAT_TYPES = new Set(["Квартира", "Новостройка", "Апартаменты", "Апартамент"]);
+  const TYPE_ONLY = new Set(["Студия", "Коммерция", "Офис", "Помещение", "Участок", "Земля"]);
+  let firstSpec;
+  if (TYPE_ONLY.has(unit.type)) firstSpec = ty;
+  else if (unit.rooms) firstSpec = FLAT_TYPES.has(unit.type) ? `${unit.rooms} ${rs}` : `${ty}, ${unit.rooms} ${rs}`;
+  else firstSpec = ty;
+  const specs = [
+    { ic: <IcBed key="b" />, txt: firstSpec },
+    ...(hasArea ? [{ ic: <IcArea key="a" />, txt: `${unit.area} м²` }] : []),
+    ...(hasFloor ? [{ ic: <IcFloor key="f" />, txt: unit.floor }] : []),
+  ];
   const fav = { slug: unit.slug, href: `/property/${unit.slug}`, title: `${ty}${unit.rooms ? `, ${unit.rooms} ${rs}` : ""}, ${unit.area} м²`, sub: `📍 ${district} · ${bname}`, price: unit.price, img: unit.img };
   return (
     <Link className="card" href={`/property/${unit.slug}`}>
@@ -77,9 +92,7 @@ export default function PropertyCard({ unit }) {
           </span>
         </div>
         <div className="cspecs">
-          <span><IcBed />{ty}{unit.rooms ? `, ${unit.rooms} ${rs}` : ""}</span>
-          <span><IcArea />{unit.area} м²</span>
-          {hasFloor ? <span><IcFloor />{unit.floor}</span> : null}
+          {specs.map((s, i) => <span className="cspec" key={i}>{s.ic}{s.txt}</span>)}
         </div>
         <div className="caddr">{bname}</div>
         <div className="cdistrict">{sub}</div>

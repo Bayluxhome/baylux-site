@@ -275,9 +275,10 @@ nav.main{display:flex;gap:2px;font-weight:500;font-size:15px}
 .ctitle{font-weight:600;margin-top:6px;font-size:15px;color:var(--ink)}
 .meta{display:flex;gap:14px;color:var(--ink-soft);font-size:13px;margin-top:8px;flex-wrap:wrap}
 .cdistrict{color:var(--ink-soft);font-size:13px;margin-top:4px;display:flex;gap:6px;align-items:center}
-/* Korter-style строка характеристик */
-.cspecs{display:flex;flex-wrap:wrap;align-items:center;gap:6px 15px;margin-top:11px;color:var(--ink-soft);font-size:13.5px}
-.cspecs>span{display:inline-flex;align-items:center;gap:5px;white-space:nowrap}
+/* Korter-style строка характеристик — иконка+значение, разделённые «·», в одну строку */
+.cspecs{display:flex;flex-wrap:wrap;align-items:center;margin-top:11px;color:var(--ink-soft);font-size:13.5px}
+.cspec{display:inline-flex;align-items:center;gap:5px;white-space:nowrap}
+.cspec:not(:first-child)::before{content:"·";margin:0 8px;opacity:.5;font-weight:700}
 .cspecs svg{width:15px;height:15px;opacity:.72;flex:none}
 .caddr{font-weight:600;font-size:15px;color:var(--ink);margin-top:11px;line-height:1.35}
 .cdate{display:inline-flex;align-items:center;gap:6px;color:var(--ink-soft);font-size:12px;margin-top:13px;padding-top:12px;border-top:1px solid var(--line);width:100%}
