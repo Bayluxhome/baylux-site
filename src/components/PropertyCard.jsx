@@ -41,6 +41,16 @@ export default function PropertyCard({ unit }) {
     const el = stripRef.current;
     if (el && el.clientWidth) setPidx(Math.round(el.scrollLeft / el.clientWidth));
   };
+  // Листание стрелками на десктопе: не даём клику открыть карточку, прокручиваем ленту фото.
+  const goStrip = (e, dir) => {
+    e.preventDefault();
+    e.stopPropagation();
+    const el = stripRef.current;
+    if (!el || !el.clientWidth) return;
+    const n = unit.photos ? unit.photos.length : 1;
+    const target = Math.max(0, Math.min(n - 1, pidx + dir));
+    el.scrollTo({ left: target * el.clientWidth, behavior: "smooth" });
+  };
   const b = unit.building;
   const rs = t("rooms_short");
   const dupeText = unit.dupeCount > 0 ? t(dupePluralKey(unit.dupeCount)).replace("{n}", unit.dupeCount) : "";
@@ -87,6 +97,12 @@ export default function PropertyCard({ unit }) {
         {photos && (photos.length <= 7
           ? <div className="ph-dots">{photos.map((_, i) => <span key={i} className={"ph-dot" + (i === pidx ? " on" : "")} />)}</div>
           : <div className="ph-count">{pidx + 1}/{photos.length}</div>)}
+        {photos && (
+          <>
+            <button type="button" className="ph-arrow ph-prev" aria-label="Предыдущее фото" onClick={(e) => goStrip(e, -1)}>‹</button>
+            <button type="button" className="ph-arrow ph-next" aria-label="Следующее фото" onClick={(e) => goStrip(e, 1)}>›</button>
+          </>
+        )}
         <FavButton item={fav} />
       </div>
       <div className="body">
