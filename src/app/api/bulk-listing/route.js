@@ -250,7 +250,7 @@ export async function POST(req) {
         }
         const geoLine = x.geoOk ? "" : `\n⚠️ гео неточное (центр города)`;
         const card =
-          `🆕 <b>Объект из пачки #${esc(x.refId)}</b>\n` +
+          `🆕 <b>Объект Bayluxhome #${esc(x.refId)}</b>\n` +
           `${DEAL_RU[row.deal]} · ${esc(row.type)}\n` +
           `🏙 ${esc(row.district)}\n🏠 ${esc(row.building_name)}\n` +
           `💰 ${esc(row.price)}\n📐 ${row.area} м² · 🛏 ${row.rooms} комн. · 🏢 ${esc(row.floor)}\n` +
@@ -264,3 +264,4 @@ export async function POST(req) {
 
   return Response.json({ ok: true, batchId, count: inserted.length, geoFails, errors });
 }
+     
