@@ -1,4 +1,5 @@
 "use client";
+import { useRef, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { DEAL_CLASS, fmtMoney, perSuffix } from "@/data/data";
@@ -34,6 +35,12 @@ function fmtDate(iso, lang) {
 
 export default function PropertyCard({ unit }) {
   const { t, lang } = useLang();
+  const stripRef = useRef(null);
+  const [pidx, setPidx] = useState(0);
+  const onStripScroll = () => {
+    const el = stripRef.current;
+    if (el && el.clientWidth) setPidx(Math.round(el.scrollLeft / el.clientWidth));
+  };
   const b = unit.building;
   const rs = t("rooms_short");
   const dupeText = unit.dupeCount > 0 ? t(dupePluralKey(unit.dupeCount)).replace("{n}", unit.dupeCount) : "";
@@ -65,7 +72,7 @@ export default function PropertyCard({ unit }) {
     <Link className="card" href={`/property/${unit.slug}`}>
       <div className="ph">
         {photos ? (
-          <div className="ph-strip">
+          <div className="ph-strip" ref={stripRef} onScroll={onStripScroll}>
             {photos.map((p, i) => (
               <div className="ph-slide" key={i}>
                 <Image src={p} alt={alt} fill sizes="(max-width:560px) 100vw, 360px" style={{ objectFit: "cover" }} />
@@ -77,6 +84,9 @@ export default function PropertyCard({ unit }) {
         )}
         <span className={"badge " + DEAL_CLASS[unit.deal]}>{t("deal_" + unit.deal)}</span>
         {dupeText && <span className="dupe-badge">{dupeText}</span>}
+        {photos && (photos.length <= 7
+          ? <div className="ph-dots">{photos.map((_, i) => <span key={i} className={"ph-dot" + (i === pidx ? " on" : "")} />)}</div>
+          : <div className="ph-count">{pidx + 1}/{photos.length}</div>)}
         <FavButton item={fav} />
       </div>
       <div className="body">
