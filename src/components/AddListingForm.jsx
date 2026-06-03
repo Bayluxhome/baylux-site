@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react";
+import { useState, useRef } from "react";
 import MapPicker from "./MapPicker";
 import { useLang } from "@/components/LangContext";
 import { typeLabel, amenLabel } from "@/lib/dict";
@@ -53,6 +53,7 @@ export default function AddListingForm({ initial, editId }) {
   const [state, setState] = useState("");
   const upd = (k, v) => setF((s) => ({ ...s, [k]: v }));
   const toggleAmenity = (a) => setAmenities((arr) => arr.includes(a) ? arr.filter((x) => x !== a) : [...arr, a]);
+  const geoTimer = useRef(null);
 
   async function geocodeAddress(addr, city) {
     const key = process.env.NEXT_PUBLIC_MAPTILER_KEY;
@@ -65,6 +66,16 @@ export default function AddListingForm({ initial, editId }) {
       if (Array.isArray(c) && c.length === 2) { setGeo({ lat: c[1], lng: c[0] }); setGeoNote(t("af_geo_auto")); }
     } catch (e) { /* ignore */ }
   }
+
+  // Адрес: точка двигается сама — авто-геокод с задержкой при вводе и по Enter (Enter НЕ сабмитит форму).
+  const onAddrChange = (val) => {
+    upd("address", val);
+    clearTimeout(geoTimer.current);
+    geoTimer.current = setTimeout(() => geocodeAddress(val, f.city), 800);
+  };
+  const onAddrKey = (e) => {
+    if (e.key === "Enter") { e.preventDefault(); clearTimeout(geoTimer.current); geocodeAddress(e.currentTarget.value, f.city); }
+  };
 
   async function submit(e) {
     e.preventDefault();
@@ -129,7 +140,7 @@ export default function AddListingForm({ initial, editId }) {
         <input value={f.complex} onChange={(e) => upd("complex", e.target.value)} placeholder={t("af_complex_ph")} />
       </label>
       <label className="af-full">{t("af_address")}
-        <input value={f.address} onChange={(e) => upd("address", e.target.value)} onBlur={(e) => geocodeAddress(e.target.value, f.city)} placeholder={t("af_address_ph")} />
+        <input value={f.address} onChange={(e) => onAddrChange(e.target.value)} onBlur={(e) => geocodeAddress(e.target.value, f.city)} onKeyDown={onAddrKey} placeholder={t("af_address_ph")} />
       </label>
       <div className="af-full">
         <div className="af-lbl">{t("af_mapnote")}</div>
