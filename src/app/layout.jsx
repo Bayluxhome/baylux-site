@@ -3,11 +3,11 @@ import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import LeadModal from "@/components/LeadModal";
 import CookieConsent from "@/components/CookieConsent";
-import { headers } from "next/headers";
 import CurrencyManager from "@/components/CurrencyManager";
 import { FilterProvider } from "@/components/FilterContext";
 import { LangProvider } from "@/components/LangContext";
 import { getUsdGel } from "@/lib/rate";
+import { getLang } from "@/lib/serverLang";
 
 export const metadata = {
   metadataBase: new URL("https://bayluxhome.com"),
@@ -46,8 +46,8 @@ export const metadata = {
 
 export default async function RootLayout({ children }) {
   const rate = await getUsdGel();
-  const country = headers().get("x-vercel-ip-country") || "";
-  const initialLang = country === "GE" ? "ka" : "ru";
+  // Язык по умолчанию по домену/рынку (.ge→ka, .com→en, Грузия→ka) + уважение cookie.
+  const initialLang = getLang();
   return (
     <html lang={initialLang}>
       <head>
