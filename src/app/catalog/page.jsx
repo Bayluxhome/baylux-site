@@ -4,7 +4,7 @@ import PropertyCard from "@/components/PropertyCard";
 import { DEAL_LABEL, CAT_LABEL, GE_CITIES, unitCat, unitIsNew } from "@/data/data";
 import { getAllUnits } from "@/data/source";
 import { getLang } from "@/lib/serverLang";
-import { t as tr, cityLabel } from "@/lib/dict";
+import { t as tr, cityLabel, amenLabel } from "@/lib/dict";
 
 export const revalidate = 300;
 
@@ -199,7 +199,7 @@ export default async function CatalogPage({ searchParams }) {
         </div>
         <div className="cf-amen">
           {AMENITIES.map((a) => (
-            <label key={a} className="cf-check"><input type="checkbox" name="amen" value={a} defaultChecked={amenSel.includes(a)} />{a}</label>
+            <label key={a} className="cf-check"><input type="checkbox" name="amen" value={a} defaultChecked={amenSel.includes(a)} />{amenLabel(lang, a)}</label>
           ))}
           <label className="cf-check"><input type="checkbox" name="nc" value="1" defaultChecked={nc} />{t("f_noCommission")}</label>
         </div>
