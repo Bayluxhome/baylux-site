@@ -2,6 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import MapView from "@/components/MapView";
 import Gallery from "@/components/Gallery";
+import AdminEdit from "@/components/AdminEdit";
 import { DEAL_LABEL, buildingPriceFrom, fmtMoney } from "@/data/data";
 import { getBuildingsList, findBuilding } from "@/data/source";
 import LeadButton from "@/components/LeadButton";
@@ -55,6 +56,8 @@ export default async function BuildingPage({ params }) {
       <div className="crumbs">
         <Link href="/">{t("crumb_home")}</Link> · <Link href="/catalog">{t("crumb_catalog")}</Link> · <span>{bname}</span>
       </div>
+
+      <AdminEdit items={b.units.map((u) => ({ id: u.id, label: `${typeLabel(lang, u.type)}${u.rooms ? `, ${u.rooms} ${t("rooms_short")}` : ""} · ${u.area} м²` }))} />
 
       <div className="pp-head">
         <div>

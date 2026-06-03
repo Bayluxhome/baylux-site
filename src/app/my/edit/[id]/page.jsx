@@ -44,7 +44,7 @@ export default async function EditListingPage({ params }) {
     <div className="wrap" style={{ paddingBlock: "26px 50px" }}>
       <div className="crumbs"><Link href="/my">← Мои объявления</Link></div>
       <h1 style={{ color: "var(--navy)", marginBottom: 6 }}>Редактирование объявления</h1>
-      <p style={{ color: "var(--ink-soft)", marginBottom: 14 }}>После сохранения объявление снова уйдёт на модерацию и временно скроется с сайта.</p>
+      <p style={{ color: "var(--ink-soft)", marginBottom: 14 }}>{isAdmin(session) ? "Изменения публикуются сразу — без модерации." : "После сохранения объявление снова уйдёт на модерацию и временно скроется с сайта."}</p>
       <AddListingForm initial={initial} editId={r.id} />
     </div>
   );

@@ -1,5 +1,5 @@
 import { cookies } from "next/headers";
-import { verifySession } from "@/lib/session";
+import { verifySession, isAdmin } from "@/lib/session";
 import { supa } from "@/lib/supabase";
 
 export const runtime = "nodejs";
@@ -51,6 +51,7 @@ export async function POST(req) {
   const session = verifySession(cookies().get("bx_session")?.value);
   if (!session) return Response.json({ ok: false, error: "auth" }, { status: 401 });
   if (!supa) return Response.json({ ok: false }, { status: 500 });
+  const admin = isAdmin(session); // главный админ: публикуем сразу, без модерации в боте
   let b;
   try { b = await req.json(); } catch { return Response.json({ ok: false }); }
 
@@ -69,7 +70,7 @@ export async function POST(req) {
   const aboutText = (b.about || "").toString();
   const buildingName = (b.address || "").trim() || (b.type ? `${b.type}, ${city}` : "Объект");
   const row = {
-    status: "pending", lang, ["desc_" + lang]: aboutText, ["name_" + lang]: buildingName,
+    status: admin ? "approved" : "pending", lang, ["desc_" + lang]: aboutText, ["name_" + lang]: buildingName,
     building_name: buildingName,
     kind: /новострой/i.test(b.type || "") || (b.complex || "").trim() ? "complex" : "house",
     district: city,
@@ -87,7 +88,7 @@ export async function POST(req) {
   if (error) return Response.json({ ok: false });
   if (session.id != null) await supa.from("users").upsert({ tg_user_id: session.id, phone, username: session.username || "" }, { onConflict: "tg_user_id" });
 
-  if (ADMIN && TOKEN) {
+  if (!admin && ADMIN && TOKEN) {
     if (row.photos.length) await tg("sendMediaGroup", { chat_id: ADMIN, media: row.photos.map((u) => ({ type: "photo", media: u })) });
     if (hasGeo) await tg("sendLocation", { chat_id: ADMIN, latitude: row.lat, longitude: row.lng });
     const geoLine = hasGeo

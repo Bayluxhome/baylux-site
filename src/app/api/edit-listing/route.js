@@ -46,14 +46,15 @@ export async function POST(req) {
 
   // Проверка владельца
   const { data: existing } = await supa.from("listings").select("id, tg_user_id, owner_email, tg_post_id, tg_channel").eq("id", b.id).single();
-  if (!owns(session, existing) && !isAdmin(session)) return Response.json({ ok: false, error: "forbidden" }, { status: 403 });
+  const admin = isAdmin(session); // главный админ: правки публикуются сразу, без повторной модерации
+  if (!owns(session, existing) && !admin) return Response.json({ ok: false, error: "forbidden" }, { status: 403 });
 
   const phone = gePhone(b.contact);
   if (!phone) return Response.json({ ok: false, error: "phone" }, { status: 400 });
 
   // Старый пост в канале удаляем (из того канала, куда публиковали) — объявление снова на модерации
   const oldCh = existing.tg_channel || CHANNEL;
-  if (oldCh && existing.tg_post_id) {
+  if (!admin && oldCh && existing.tg_post_id) {
     for (const mid of String(existing.tg_post_id).split(",")) await tg("deleteMessage", { chat_id: oldCh, message_id: Number(mid) });
   }
 
@@ -64,7 +65,7 @@ export async function POST(req) {
   const amenities = Array.isArray(b.amenities) ? b.amenities.filter(Boolean).join(", ") : (b.amenities || "");
   const hasGeo = b.lat != null && b.lng != null;
   const row = {
-    status: "pending",
+    status: admin ? "approved" : "pending",
     building_name: (b.address || "").trim() || (b.type ? `${b.type}, ${city}` : "Объект"),
     kind: /новострой/i.test(b.type || "") || (b.complex || "").trim() ? "complex" : "house",
     district: city,
@@ -80,7 +81,7 @@ export async function POST(req) {
   const { error } = await supa.from("listings").update(row).eq("id", b.id);
   if (error) return Response.json({ ok: false });
 
-  if (ADMIN && TOKEN) {
+  if (!admin && ADMIN && TOKEN) {
     if (row.photos.length) await tg("sendMediaGroup", { chat_id: ADMIN, media: row.photos.map((u) => ({ type: "photo", media: u })) });
     if (hasGeo) await tg("sendLocation", { chat_id: ADMIN, latitude: row.lat, longitude: row.lng });
     const geoLine = hasGeo ? `\n📍 <a href="${mapsLink(row.lat, row.lng)}">проверить точку</a>` : `\n⚠️ точка на карте НЕ указана`;

@@ -2,6 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import MapView from "@/components/MapView";
 import Gallery from "@/components/Gallery";
+import AdminEdit from "@/components/AdminEdit";
 import { DEAL_LABEL, fmtMoney, perSuffix } from "@/data/data";
 import { getBuildingsList, findUnit } from "@/data/source";
 import LeadButton from "@/components/LeadButton";
@@ -95,6 +96,8 @@ export default async function PropertyPage({ params }) {
         <Link href="/">{t("crumb_home")}</Link> · <Link href="/catalog">{t("crumb_catalog")}</Link> ·{" "}
         <Link href={`/building/${b.slug}`}>{bname}</Link> · <span>{ty}, {u.area} м²</span>
       </div>
+
+      <AdminEdit items={[{ id: u.id, label: "Редактировать объявление" }]} />
 
       <div className="pp-head">
         <div>

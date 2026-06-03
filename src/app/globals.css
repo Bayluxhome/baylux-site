@@ -393,6 +393,11 @@ footer.site a:hover{color:var(--gold-lt)}
 .units .uhead{background:var(--navy);color:#fff;font-weight:600;font-size:13px;text-transform:uppercase;letter-spacing:.4px}
 .units .uhead:hover{background:var(--navy)}
 .units .uprice{font-weight:800;color:var(--navy);font-family:Montserrat}
+/* Админ-бар «Редактировать» в карточке (виден только главному админу) */
+.admin-edit-bar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:14px 0;padding:10px 12px;background:rgba(201,169,97,.1);border:1px solid var(--gold);border-radius:12px}
+.admin-edit-tag{font-size:11px;font-weight:800;color:var(--gold-dk);text-transform:uppercase;letter-spacing:.6px}
+.admin-edit-btn{display:inline-flex;align-items:center;gap:5px;font-size:13px;font-weight:600;color:var(--navy);background:#fff;border:1px solid var(--line);padding:6px 12px;border-radius:8px}
+.admin-edit-btn:hover{border-color:var(--gold);background:var(--cream)}
 .note{background:var(--navy);color:var(--gold-lt);font-size:13px;padding:9px 16px;text-align:center;font-weight:600}
 
 /* LEAD MODAL */
