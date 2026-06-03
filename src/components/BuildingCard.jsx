@@ -1,4 +1,5 @@
 "use client";
+import { useRef, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { buildingPriceFrom, buildingFromNum, fmtMoney } from "@/data/data";
@@ -8,6 +9,30 @@ import { cityLabel, translitAddress, typeLabel } from "@/lib/dict";
 
 export default function BuildingCard({ building }) {
   const { t, lang } = useLang();
+  const stripRef = useRef(null);
+  const [pidx, setPidx] = useState(0);
+  const onStripScroll = () => {
+    const el = stripRef.current;
+    if (el && el.clientWidth) setPidx(Math.round(el.scrollLeft / el.clientWidth));
+  };
+
+  // Лента фото дома: фасад + фото объектов (как на странице дома), без повторов.
+  const pool = [];
+  const seen = new Set();
+  const push = (p) => { if (p && !seen.has(p)) { seen.add(p); pool.push(p); } };
+  push(building.image);
+  for (const u of (building.units || [])) for (const p of (u.photos || [])) push(p);
+  const photos = pool.length > 1 ? pool : null;
+
+  const goStrip = (e, dir) => {
+    e.preventDefault();
+    e.stopPropagation();
+    const el = stripRef.current;
+    if (!el || !el.clientWidth || !photos) return;
+    const target = Math.max(0, Math.min(photos.length - 1, pidx + dir));
+    el.scrollTo({ left: target * el.clientWidth, behavior: "smooth" });
+  };
+
   const district = cityLabel(lang, building.district || "Батуми");
   const bname = building["name_" + lang] || translitAddress(building.name, lang, building.kind);
   const from = buildingFromNum(building);
@@ -24,8 +49,27 @@ export default function BuildingCard({ building }) {
   return (
     <Link className="card" href={`/building/${building.slug}`}>
       <div className="ph">
-        <Image src={building.image} alt={bname} fill sizes="(max-width:560px) 100vw, 360px" style={{ objectFit: "cover" }} />
+        {photos ? (
+          <div className="ph-strip" ref={stripRef} onScroll={onStripScroll}>
+            {photos.map((p, i) => (
+              <div className="ph-slide" key={i}>
+                <Image src={p} alt={bname} fill sizes="(max-width:560px) 100vw, 360px" style={{ objectFit: "cover" }} />
+              </div>
+            ))}
+          </div>
+        ) : (
+          <Image src={building.image} alt={bname} fill sizes="(max-width:560px) 100vw, 360px" style={{ objectFit: "cover" }} />
+        )}
         <span className="badge b-jk">{badge}</span>
+        {photos && (photos.length <= 7
+          ? <div className="ph-dots">{photos.map((_, i) => <span key={i} className={"ph-dot" + (i === pidx ? " on" : "")} />)}</div>
+          : <div className="ph-count">{pidx + 1}/{photos.length}</div>)}
+        {photos && (
+          <>
+            <button type="button" className="ph-arrow ph-prev" aria-label="Предыдущее фото" onClick={(e) => goStrip(e, -1)}>‹</button>
+            <button type="button" className="ph-arrow ph-next" aria-label="Следующее фото" onClick={(e) => goStrip(e, 1)}>›</button>
+          </>
+        )}
         <FavButton item={fav} />
       </div>
       <div className="body">
