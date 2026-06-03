@@ -183,8 +183,9 @@ nav.main{display:flex;gap:2px;font-weight:500;font-size:15px}
 .cards.three{grid-template-columns:repeat(3,1fr)}
 .map-home{height:560px;border-radius:18px;box-shadow:var(--shadow);border:1px solid var(--line);position:sticky;top:88px;align-self:start;overflow:hidden}
 .map-full{height:calc(100vh - 170px);border-radius:16px;box-shadow:var(--shadow);border:1px solid var(--line);position:sticky;top:88px;align-self:start;overflow:hidden}
-/* MapLibre ставит .maplibregl-map{position:relative} на контейнер — перекрываем, чтобы sticky работал */
-.map-home.maplibregl-map,.map-full.maplibregl-map{position:sticky;top:88px}
+/* Mapbox GL ставит .mapboxgl-map{position:relative} на контейнер — перекрываем, чтобы sticky работал
+   (иначе с position:relative оставшийся top:88px толкал карту вниз = перекос с карточками). */
+.map-home.mapboxgl-map,.map-full.mapboxgl-map{position:sticky;top:88px}
 .pager{display:flex;justify-content:center;align-items:center;gap:6px;flex-wrap:wrap;margin-top:28px}
 .pg-num,.pg-arrow{display:inline-flex;align-items:center;justify-content:center;min-width:40px;height:40px;padding:0 10px;border:1px solid var(--line);border-radius:10px;color:var(--navy);font-weight:600;font-size:15px;text-decoration:none;background:#fff;transition:border-color .15s}
 .pg-num:hover,.pg-arrow:hover{border-color:var(--navy)}
@@ -396,7 +397,7 @@ footer.site a:hover{color:var(--gold-lt)}
   .burger{display:inline-flex;align-items:center;justify-content:center}
   .split{grid-template-columns:1fr}
   .map-home,.map-full{height:360px;position:relative;top:0;order:-1;margin-bottom:16px}
-  .map-home.maplibregl-map,.map-full.maplibregl-map{position:relative;top:0}
+  .map-home.mapboxgl-map,.map-full.mapboxgl-map{position:relative;top:0}
   .cards,.cards.three{grid-template-columns:1fr 1fr}
   .svc-grid,.why-grid,.fgrid{grid-template-columns:1fr 1fr}
   .hero h1{font-size:32px}
