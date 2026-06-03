@@ -19,7 +19,7 @@ function shortPrice(s) {
 const esc = (s) => String(s || "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
 
 // buildings: [{ slug, name, district, kind, lat, lng, priceFrom, units:[{slug,deal,type,rooms,area,price,per}] }]
-export default function MapView({ buildings = [], center = [41.642, 41.632], zoom = 13, className = "map-home", onSelect }) {
+export default function MapView({ buildings = [], center = [41.642, 41.632], zoom = 13, className = "map-home", onSelect, fit = true }) {
   const elRef = useRef(null);
   const mapRef = useRef(null);
   const glRef = useRef(null);
@@ -95,7 +95,7 @@ export default function MapView({ buildings = [], center = [41.642, 41.632], zoo
     });
     // Подгоняем карту под все объекты ТОЛЬКО при первом рендере. Дальше маркеры обновляются,
     // но вид (приближение/центр) не трогаем — иначе клик/ре-рендер сбрасывал бы зум пользователя.
-    if (!didFitRef.current && list.length > 1) {
+    if (!didFitRef.current && fit && list.length > 1) {
       const bb = new gl.LngLatBounds();
       list.forEach((x) => bb.extend([x.lng, x.lat]));
       map.fitBounds(bb, { padding: 60, maxZoom: 15, duration: 0 });

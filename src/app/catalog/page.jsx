@@ -106,6 +106,20 @@ export default async function CatalogPage({ searchParams }) {
   }
   const mapBuildings = Array.from(bmap.values());
 
+  // Центр карты: при выбранном городе — по центру его объектов (и подгоняем масштаб),
+  // без выбора — Батуми по умолчанию (а не общий вид на весь Кавказ).
+  let mapCenter = [41.642, 41.632]; // Батуми
+  let mapZoom = 11;
+  let fitMap = false;
+  if (city) {
+    const pts = mapBuildings.filter((b) => b.lat && b.lng);
+    if (pts.length) {
+      mapCenter = [pts.reduce((s, b) => s + b.lat, 0) / pts.length, pts.reduce((s, b) => s + b.lng, 0) / pts.length];
+      mapZoom = 13;
+      fitMap = pts.length > 1;
+    }
+  }
+
   const qs = (k, v) => {
     const p = new URLSearchParams();
     for (const [key, val] of Object.entries(sp)) { if (Array.isArray(val)) val.forEach((x) => p.append(key, x)); else if (val != null) p.set(key, val); }
@@ -233,7 +247,7 @@ export default async function CatalogPage({ searchParams }) {
               </nav>
             )}
           </div>
-          <MapView buildings={mapBuildings} className="map-full" />
+          <MapView buildings={mapBuildings} className="map-full" center={mapCenter} zoom={mapZoom} fit={fitMap} />
         </div>
       )}
 
