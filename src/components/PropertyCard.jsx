@@ -14,6 +14,24 @@ function dupePluralKey(n) {
   return "dupe_badge_many";
 }
 
+// Тонкие монохромные иконки характеристик — в стиле Korter.
+const IcBed = () => (<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round"><path d="M3 18v-7a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v7" /><path d="M3 14h18" /><path d="M7 9V7.5A1.5 1.5 0 0 1 8.5 6h3A1.5 1.5 0 0 1 13 7.5V9" /><path d="M3 18v2M21 18v2" /></svg>);
+const IcArea = () => (<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round"><rect x="4" y="4" width="16" height="16" rx="1.5" /><path d="M4 9h3M4 14h3M9 20v-3M14 20v-3" /></svg>);
+const IcFloor = () => (<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round"><path d="M4 21V8l8-4 8 4v13" /><path d="M9 21v-5h6v5" /></svg>);
+const IcRefresh = () => (<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M21 12a9 9 0 1 1-2.64-6.36" /><path d="M21 4v4h-4" /></svg>);
+
+const LOCALE = { ru: "ru-RU", en: "en-US", ka: "ka-GE" };
+function fmtDate(iso, lang) {
+  if (!iso) return "";
+  const d = new Date(iso);
+  if (isNaN(d.getTime())) return "";
+  try {
+    return new Intl.DateTimeFormat(LOCALE[lang] || "ru-RU", { day: "numeric", month: "long", year: "numeric" }).format(d);
+  } catch (e) {
+    return "";
+  }
+}
+
 export default function PropertyCard({ unit }) {
   const { t, lang } = useLang();
   const b = unit.building;
@@ -24,6 +42,9 @@ export default function PropertyCard({ unit }) {
   const bname = b["name_" + lang] || translitAddress(b.name, lang, b.kind);
   const photos = unit.photos && unit.photos.length > 1 ? unit.photos : null;
   const alt = `${ty}, ${unit.area} м² — ${bname}`;
+  const hasFloor = unit.floor && unit.floor !== "—";
+  const dateStr = fmtDate(unit.created_at, lang);
+  const sub = `${district}${b.developer ? ` · ${b.developer}` : ""}`;
   const fav = { slug: unit.slug, href: `/property/${unit.slug}`, title: `${ty}${unit.rooms ? `, ${unit.rooms} ${rs}` : ""}, ${unit.area} м²`, sub: `📍 ${district} · ${bname}`, price: unit.price, img: unit.img };
   return (
     <Link className="card" href={`/property/${unit.slug}`}>
@@ -40,7 +61,7 @@ export default function PropertyCard({ unit }) {
           <Image src={unit.img} alt={alt} fill sizes="(max-width:560px) 100vw, 360px" style={{ objectFit: "cover" }} />
         )}
         <span className={"badge " + DEAL_CLASS[unit.deal]}>{t("deal_" + unit.deal)}</span>
-        {dupeText && <span style={{ position: "absolute", left: 10, bottom: 10, zIndex: 2, background: "rgba(1,29,60,.82)", color: "#fff", fontSize: 12, fontWeight: 600, padding: "3px 9px", borderRadius: 20 }}>{dupeText}</span>}
+        {dupeText && <span className="dupe-badge">{dupeText}</span>}
         <FavButton item={fav} />
       </div>
       <div className="body">
@@ -55,12 +76,14 @@ export default function PropertyCard({ unit }) {
               : unit.per}
           </span>
         </div>
-        <div className="ctitle">{ty}{unit.rooms ? `, ${unit.rooms} ${rs}` : ""}, {unit.area} м²</div>
-        <div className="cdistrict">📍 {district}{b.district && bname ? " · " : ""}{bname}</div>
-        <div className="meta">
-          {unit.rooms ? <span>🛏 {unit.rooms} {rs}</span> : null}
-          <span>📐 {unit.area} м²</span><span>🏢 {unit.floor}</span>
+        <div className="cspecs">
+          <span><IcBed />{ty}{unit.rooms ? `, ${unit.rooms} ${rs}` : ""}</span>
+          <span><IcArea />{unit.area} м²</span>
+          {hasFloor ? <span><IcFloor />{unit.floor}</span> : null}
         </div>
+        <div className="caddr">{bname}</div>
+        <div className="cdistrict">{sub}</div>
+        {dateStr ? <div className="cdate"><IcRefresh />{dateStr}</div> : null}
       </div>
     </Link>
   );
