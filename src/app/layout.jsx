@@ -8,6 +8,7 @@ import CurrencyManager from "@/components/CurrencyManager";
 import { FilterProvider } from "@/components/FilterContext";
 import { LangProvider } from "@/components/LangContext";
 import { getUsdGel } from "@/lib/rate";
+import { getCityCounts } from "@/data/source";
 import { getLang } from "@/lib/serverLang";
 
 export const metadata = {
@@ -47,6 +48,7 @@ export const metadata = {
 
 export default async function RootLayout({ children }) {
   const rate = await getUsdGel();
+  const cityCounts = await getCityCounts();
   // Язык по умолчанию по домену/рынку (.ge→ka, .com→en, Грузия→ka) + уважение cookie.
   const initialLang = getLang();
   return (
@@ -82,7 +84,7 @@ export default async function RootLayout({ children }) {
         <LangProvider initial={initialLang}>
           <FilterProvider>
             <CurrencyManager rate={rate} />
-            <Header />
+            <Header cityCounts={cityCounts} />
             <main>{children}</main>
             <Footer />
             <LeadModal />

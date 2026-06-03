@@ -2,6 +2,7 @@
 import { BUILDINGS as LOCAL } from "./data";
 import { fetchSheet, slugify, cleanAddress, cleanDesc } from "./sheet";
 import { supa } from "@/lib/supabase";
+import { cache } from "react";
 
 const KIND_COMPLEX = /жк|новострой|комплекс|complex/i;
 
@@ -155,7 +156,7 @@ function dedupeUnits(buildings) {
   return buildings.map((b) => ({ ...b, units: b.units.filter((u) => !remove.has(u)) }));
 }
 
-async function getBuildings() {
+const getBuildings = cache(async () => {
   const fromSupa = await fetchSupabase();
   let fromSheet = [];
   const url = process.env.SHEET_CSV_URL;
@@ -178,10 +179,26 @@ async function getBuildings() {
   const deduped = dedupeUnits(withPhotos).filter((b) => b.units.length > 0);
   // Продвигаемые объекты — выше (boost ставится вручную; оплата позже)
   return deduped.sort((a, b) => (b.boost || 0) - (a.boost || 0));
-}
+});
 
 export async function getBuildingsList() {
   return getBuildings();
+}
+
+// Реальное число объектов по городам (для меню выбора города в шапке) — считается из того,
+// что фактически на сайте, и меняется при публикации/удалении.
+export async function getCityCounts() {
+  try {
+    const buildings = await getBuildings();
+    const counts = {};
+    for (const b of buildings) {
+      const d = b.district || "Батуми";
+      counts[d] = (counts[d] || 0) + b.units.length;
+    }
+    return counts;
+  } catch (e) {
+    return null;
+  }
 }
 
 // Доп. обогащение цены (для локальных/сторонних данных без price_num)

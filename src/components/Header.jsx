@@ -52,7 +52,7 @@ const NAV = [
   ] },
 ];
 
-export default function Header() {
+export default function Header({ cityCounts } = {}) {
   const [open, setOpen] = useState(false);
   const fc = useFilter();
   const { lang: uiLang, setLang: setUiLang, t } = useLang();
@@ -114,7 +114,7 @@ export default function Header() {
               <div className="loc-cities">
                 {GE_CITIES.map((c) => (
                   <button key={c.name} className={"loc-city" + (city === c.name ? " active" : "")} onClick={() => pickCity(c.name)}>
-                    <b>{cityLabel(uiLang, c.name)}</b><span>{c.count}</span>
+                    <b>{cityLabel(uiLang, c.name)}</b><span>{cityCounts ? (cityCounts[c.name] || 0) : c.count}</span>
                   </button>
                 ))}
               </div>
