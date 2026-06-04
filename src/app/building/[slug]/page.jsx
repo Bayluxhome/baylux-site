@@ -6,7 +6,7 @@ import AdminEdit from "@/components/AdminEdit";
 import { DEAL_LABEL, buildingPriceFrom, fmtMoney } from "@/data/data";
 import { getBuildingsList, findBuilding } from "@/data/source";
 import LeadButton from "@/components/LeadButton";
-import { waLink, TG_BOT } from "@/config";
+import { waLink, TG_CONTACT } from "@/config";
 import { getLang } from "@/lib/serverLang";
 import { t as tr, typeLabel, translitAddress } from "@/lib/dict";
 
@@ -51,7 +51,7 @@ export default async function BuildingPage({ params }) {
   if (!photoPool.length) pushPhoto("/placeholder-baylux.jpg");
   const mapBuildings = [{ slug: b.slug, name: b.name, district: b.district, kind: b.kind, lat: b.lat, lng: b.lng, priceFrom: buildingPriceFrom(b), units: b.units }];
   // Telegram-контакт: личный аккаунт автора объектов дома; если его нет (массовая/агентская загрузка) — лид-бот.
-  const bTg = b.units.map((u) => (u.tg_username || "").replace(/[^A-Za-z0-9_]/g, "")).find(Boolean) || TG_BOT;
+  const bTg = b.units.map((u) => (u.tg_username || "").replace(/[^A-Za-z0-9_]/g, "")).find(Boolean) || TG_CONTACT;
 
   return (
     <div className="wrap">

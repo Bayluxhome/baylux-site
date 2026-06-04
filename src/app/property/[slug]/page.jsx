@@ -6,7 +6,7 @@ import AdminEdit from "@/components/AdminEdit";
 import { DEAL_LABEL, fmtMoney, perSuffix } from "@/data/data";
 import { getBuildingsList, findUnit } from "@/data/source";
 import LeadButton from "@/components/LeadButton";
-import { waLink, TG_BOT } from "@/config";
+import { waLink, TG_CONTACT } from "@/config";
 import { getLang } from "@/lib/serverLang";
 import { t as tr, typeLabel, amenLabel, translitAddress } from "@/lib/dict";
 
@@ -161,7 +161,7 @@ export default async function PropertyPage({ params }) {
             {cleanPhone && <a className="seller-phone" href={`tel:+${cleanPhone}`}>📞 +{cleanPhone}</a>}
             <div className="contact-btns">
               <a className="btn btn-wa" href={waHref} target="_blank" rel="noopener">💬 WhatsApp</a>
-              <a className="btn btn-tg" href={`https://t.me/${tgUser || TG_BOT}`} target="_blank" rel="noopener">✈️ Telegram</a>
+              <a className="btn btn-tg" href={`https://t.me/${tgUser || TG_CONTACT}`} target="_blank" rel="noopener">✈️ Telegram</a>
             </div>
             <LeadButton className="btn btn-ghost" type="Управление" object={b.name} title="Отдать квартиру в управление">{t("mgmt_btn")}</LeadButton>
             <Link href={`/building/${b.slug}`} className="btn btn-ghost" style={{ width: "100%", marginTop: 10 }}>{t("all_in")} «{bname}»</Link>
