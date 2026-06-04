@@ -6,7 +6,7 @@ import AdminEdit from "@/components/AdminEdit";
 import { DEAL_LABEL, buildingPriceFrom, fmtMoney } from "@/data/data";
 import { getBuildingsList, findBuilding } from "@/data/source";
 import LeadButton from "@/components/LeadButton";
-import { waLink } from "@/config";
+import { waLink, TG_BOT } from "@/config";
 import { getLang } from "@/lib/serverLang";
 import { t as tr, typeLabel, translitAddress } from "@/lib/dict";
 
@@ -50,6 +50,8 @@ export default async function BuildingPage({ params }) {
   for (const u of b.units) for (const p of (u.photos || [])) pushPhoto(p);
   if (!photoPool.length) pushPhoto("/placeholder-baylux.jpg");
   const mapBuildings = [{ slug: b.slug, name: b.name, district: b.district, kind: b.kind, lat: b.lat, lng: b.lng, priceFrom: buildingPriceFrom(b), units: b.units }];
+  // Telegram-контакт: личный аккаунт автора объектов дома; если его нет (массовая/агентская загрузка) — лид-бот.
+  const bTg = b.units.map((u) => (u.tg_username || "").replace(/[^A-Za-z0-9_]/g, "")).find(Boolean) || TG_BOT;
 
   return (
     <div className="wrap">
@@ -107,7 +109,10 @@ export default async function BuildingPage({ params }) {
             <div style={{ fontWeight: 700, color: "var(--navy)", fontSize: 18 }}>{t("bld_cta_title")} «{bname}»?</div>
             <p style={{ color: "var(--ink-soft)", fontSize: 14, margin: "8px 0 4px" }}>{t("bld_cta_sub")}</p>
             <LeadButton className="btn btn-gold" type="Заявка по ЖК" object={b.name} title={`Заявка — ${b.name}`}>{t("bld_lead")}</LeadButton>
-            <a className="btn btn-wa" href={waLink(`Здравствуйте! Интересует ${b.name} в Батуми.`)} target="_blank" rel="noopener">💬 WhatsApp</a>
+            <div className="contact-btns">
+              <a className="btn btn-wa" href={waLink(`Здравствуйте! Интересует ${b.name} в Батуми.`)} target="_blank" rel="noopener">💬 WhatsApp</a>
+              <a className="btn btn-tg" href={`https://t.me/${bTg}`} target="_blank" rel="noopener">✈️ Telegram</a>
+            </div>
             <LeadButton className="btn btn-ghost" type="Управление" object={b.name} title="Отдать квартиру в управление">{t("bld_mgmt")}</LeadButton>
             <div className="agent">
               <div className="av" />
