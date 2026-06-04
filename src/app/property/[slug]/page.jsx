@@ -44,7 +44,7 @@ export default async function PropertyPage({ params }) {
   const bname = b["name_" + lang] || translitAddress(b.name, lang, b.kind);
 
   const photos = (u.photos && u.photos.length) ? u.photos : [u.img || "/placeholder-baylux.jpg"];
-  const mapBuildings = [{ slug: b.slug, name: b.name, district: b.district, kind: b.kind, lat: b.lat, lng: b.lng, priceFrom: u.price, units: [{ slug: u.slug, deal: u.deal, type: u.type, rooms: u.rooms, area: u.area, price: u.price, per: u.per }] }];
+  const mapBuildings = [{ slug: b.slug, name: b.name, district: b.district, kind: b.kind, lat: b.lat, lng: b.lng, priceFrom: u.price, units: [{ slug: u.slug, deal: u.deal, type: u.type, rooms: u.rooms, area: u.area, price: u.price, per: u.per, img: (u.photos && u.photos[0]) || u.img || "" }] }];
   const ctaMain = u.deal === "daily" ? t("cta_daily") : u.deal === "rent" ? t("cta_rent") : t("cta_view");
   const specs = [[t("sp_type"), ty], [t("sp_area"), u.area + " м²"], [t("sp_rooms"), u.rooms || "—"]];
   if (u.bathrooms) specs.push([t("sp_bath"), u.bathrooms]);

@@ -307,8 +307,10 @@ nav.main{display:flex;gap:2px;font-weight:500;font-size:15px}
 .mc-sub{color:var(--ink-soft);font-size:12px;margin-top:2px}
 .mc-close{border:none;background:none;font-size:16px;color:var(--ink-soft);cursor:pointer;line-height:1}
 .mc-list{max-height:240px;overflow:auto;padding:0 8px}
-.mc-unit{display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:8px;padding:9px 8px;border-radius:10px;color:var(--ink);font-size:13px}
+.mc-unit{display:grid;grid-template-columns:46px 1fr auto;align-items:center;gap:10px;padding:8px;border-radius:10px;color:var(--ink);font-size:13px}
 .mc-unit:hover{background:var(--cream)}
+.mc-u-img{width:46px;height:46px;border-radius:8px;object-fit:cover;background:var(--cream);flex:none}
+.mc-u-main{display:flex;align-items:center;gap:6px;flex-wrap:wrap;min-width:0}
 .mc-badge{font-size:11px;font-weight:700;color:#fff;padding:3px 8px;border-radius:7px;white-space:nowrap}
 .mc-u-price{font-weight:800;color:var(--navy);white-space:nowrap;font-family:Montserrat,Inter,sans-serif}
 .mc-all{display:block;text-align:center;padding:12px;font-weight:700;color:var(--gold-dk);border-top:1px solid var(--line);margin-top:6px}

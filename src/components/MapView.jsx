@@ -59,12 +59,14 @@ export default function MapView({ buildings = [], center = [41.642, 41.632], zoo
     map.flyTo({ center: [b.lng, b.lat], zoom: Math.max(map.getZoom(), 16.5) });
     map.once("idle", () => highlightAt(b.lng, b.lat));
 
-    const rows = b.units.map((u) =>
-      `<a class="mc-unit" href="/property/${u.slug}">
-         <span class="mc-badge ${DEALCLASS[u.deal] || "b-sale"}">${DEAL[u.deal] || ""}</span>
-         <span class="mc-u-main">${esc(u.type)}${u.rooms ? ", " + u.rooms + " комн." : ""} · ${u.area} м²</span>
+    const rows = b.units.map((u) => {
+      const uimg = u.img || u.unit_image || (Array.isArray(u.photos) && u.photos[0]) || "";
+      return `<a class="mc-unit" href="/property/${u.slug}">
+         ${uimg ? `<img class="mc-u-img" src="${esc(uimg)}" alt="" loading="lazy">` : `<span class="mc-u-img"></span>`}
+         <span class="mc-u-main"><span class="mc-badge ${DEALCLASS[u.deal] || "b-sale"}">${DEAL[u.deal] || ""}</span> ${esc(u.type)}${u.rooms ? ", " + u.rooms + " комн." : ""} · ${u.area} м²</span>
          <span class="mc-u-price">${esc(u.price)}</span>
-       </a>`).join("");
+       </a>`;
+    }).join("");
     card.innerHTML =
       `<div class="mc-head">
          <div>

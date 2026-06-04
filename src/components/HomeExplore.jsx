@@ -30,7 +30,7 @@ export default function HomeExplore({ buildings }) {
   const mapBuildings = filtered.map((b) => ({
     slug: b.slug, name: b.name, district: b.district, kind: b.kind, lat: b.lat, lng: b.lng,
     priceFrom: buildingPriceFrom(b),
-    units: b.units.map((u) => ({ slug: u.slug, deal: u.deal, type: u.type, rooms: u.rooms, area: u.area, price: u.price, per: u.per })),
+    units: b.units.map((u) => ({ slug: u.slug, deal: u.deal, type: u.type, rooms: u.rooms, area: u.area, price: u.price, per: u.per, img: u.unit_image || (u.photos && u.photos[0]) || b.image || "" })),
   }));
 
   const selected = sel ? filtered.find((b) => b.slug === sel) : null;
