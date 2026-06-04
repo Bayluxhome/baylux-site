@@ -584,6 +584,7 @@ async function postToChannel(row, channel) {
     `💰 <b>${esc(row.price)}${per}</b>\n` +
     `${bits.join(" · ")}\n` +
     `📞 ${esc(row.contact || "по запросу")}\n` +
+    `✈️ @${esc(row.tg_username || "bayluxhome")}\n` +
     (aboutShort ? `\n${esc(aboutShort)}\n` : "") +
     `\n🔗 <a href="${unitLink(row)}">Открыть на сайте Baylux</a>` +
     (tags ? `\n\n${tags}` : "");
