@@ -498,12 +498,13 @@ footer.site a:hover{color:var(--gold-lt)}
 
 /* риелторы */
 .realtor-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-top:18px}
-.realtor-card{display:flex;flex-direction:column;align-items:flex-start;border:1px solid var(--line);border-radius:14px;padding:18px;background:#fff;text-decoration:none;transition:box-shadow .15s,transform .15s}
+.realtor-card{display:flex;flex-direction:column;align-items:flex-start;border:1px solid var(--line);border-radius:16px;padding:24px 22px;background:#fff;text-decoration:none;transition:box-shadow .15s,transform .15s}
 a.realtor-card:hover{box-shadow:0 8px 24px rgba(1,39,80,.08);transform:translateY(-2px)}
-.realtor-ava{width:64px;height:64px;border-radius:50%;overflow:hidden;background:var(--navy);color:var(--gold-lt);display:flex;align-items:center;justify-content:center;font-weight:800;font-size:24px;margin-bottom:12px}
+.realtor-ava{width:88px;height:88px;border-radius:50%;overflow:hidden;background:var(--navy);color:var(--gold-lt);display:flex;align-items:center;justify-content:center;font-weight:800;font-size:34px;margin-bottom:16px}
 .realtor-ava img{width:100%;height:100%;object-fit:cover}
 .realtor-name{font-weight:700;color:var(--navy);font-size:16px}
-.realtor-role{font-size:13px;color:var(--ink-soft);margin-top:2px}
+.realtor-role{font-size:13px;color:var(--ink-soft);margin-top:3px}
+.realtor-count{font-size:13px;color:var(--ink-soft);margin-top:6px;font-weight:600}
 .realtor-bio{font-size:13px;color:var(--ink);margin-top:8px;line-height:1.5}
 .ri-inp{border:1px solid var(--line);border-radius:10px;padding:11px 13px;font-size:15px;font-family:inherit;color:var(--ink);background:#fff;width:100%}
 .ri-inp:focus{outline:none;border-color:var(--gold)}

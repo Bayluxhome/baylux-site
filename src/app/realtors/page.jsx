@@ -16,6 +16,13 @@ export default async function RealtorsPage() {
   if (supa) {
     const { data } = await supa.from("realtors").select("*").eq("status", "approved").order("created_at", { ascending: false });
     rows = data || [];
+    const { data: lst } = await supa.from("listings").select("owner_email, tg_user_id").eq("status", "approved");
+    const byEmail = {}, byTg = {};
+    (lst || []).forEach((l) => {
+      if (l.owner_email) { const k = String(l.owner_email).toLowerCase(); byEmail[k] = (byEmail[k] || 0) + 1; }
+      if (l.tg_user_id != null) { const k = String(l.tg_user_id); byTg[k] = (byTg[k] || 0) + 1; }
+    });
+    rows = rows.map((r) => ({ ...r, count: r.tg_user_id != null ? (byTg[String(r.tg_user_id)] || 0) : (byEmail[String(r.email || "").toLowerCase()] || 0) }));
   }
 
   return (
@@ -36,6 +43,7 @@ export default async function RealtorsPage() {
               </div>
               <div className="realtor-name">{r.name}</div>
               <div className="realtor-role">{t("rl_role")}{r.deal_types ? ` · ${r.deal_types}` : ""}</div>
+              <div className="realtor-count">{r.count} {t("w_objects")}</div>
               {r.bio && <p className="realtor-bio">{r.bio}</p>}
               {r.phone && <a className="btn btn-ghost" href={`tel:${r.phone}`} style={{ marginTop: 10, padding: "8px 14px", fontSize: 13 }}>{r.phone}</a>}
             </div>
