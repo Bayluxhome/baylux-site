@@ -99,7 +99,6 @@ export async function POST(req) {
   const session = verifySession(cookies().get("bx_session")?.value);
   if (!session) return Response.json({ ok: false, error: "auth" }, { status: 401 });
   if (!supa) return Response.json({ ok: false }, { status: 500 });
-  const admin = isAdmin(session); // главный админ: пачка публикуется сразу, без модерации в боте
   let b;
   try { b = await req.json(); } catch { return Response.json({ ok: false }); }
 
@@ -166,7 +165,7 @@ export async function POST(req) {
     if (!geoOk) geoFails.push(refId);
 
     const row = {
-      status: admin ? "approved" : "pending", batch_id: batchId, geo_ok: geoOk,
+      status: "pending", batch_id: batchId, geo_ok: geoOk, // пачки (спарсенное извне) — ВСЕГДА на модерацию, даже от админа
       lang, ["desc_" + lang]: about, ["name_" + lang]: buildingName,
       building_name: buildingName,
       kind: /новострой/i.test(r.type || "") || (r.complex || "").toString().trim() ? "complex" : "house",
@@ -194,7 +193,7 @@ export async function POST(req) {
   // Модерация. Небольшую пачку (≤ PER_OBJECT_LIMIT) шлём по объектам — отдельной
   // карточкой с фото и кнопками ✅/❌/📍 (callback ap/rj/eg), чтобы одобрять по одному.
   // В конце — всегда итоговое сообщение пачки с кнопками «одобрить/отклонить всю пачку».
-  if (!admin && ADMIN && TOKEN && inserted.length) {
+  if (ADMIN && TOKEN && inserted.length) {
     // Блок «Связаться с автором» (тот, кто загрузил пачку) — отдельно от публичного контакта на сайте.
     const authorRows = [];
     let authorLine = "";
