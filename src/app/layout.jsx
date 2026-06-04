@@ -76,7 +76,7 @@ export default async function RootLayout({ children }) {
                 "Агентство недвижимости в Батуми: продажа, аренда, посуточная аренда, управление и клининг.",
               areaServed: { "@type": "City", name: "Batumi", address: { "@type": "PostalAddress", addressCountry: "GE" } },
               address: { "@type": "PostalAddress", addressLocality: "Батуми", addressCountry: "GE" },
-              telephone: "+995 511 12 47 81",
+              telephone: "+995 599 20 07 96",
               email: "bayluxhome@yahoo.com",
             }),
           }}
