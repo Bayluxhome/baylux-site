@@ -14,7 +14,7 @@ export const revalidate = 300;
 export default async function HomePage() {
   const BUILDINGS = await getBuildingsList();
   const allUnits = await getAllUnits();
-  const freshUnits = allUnits.slice(0, 24);
+  const freshUnits = allUnits.slice(0, 60);
   const lang = getLang();
   const t = (k) => tr(lang, k);
 
