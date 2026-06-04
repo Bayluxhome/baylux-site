@@ -191,6 +191,8 @@ nav.main{display:flex;gap:2px;font-weight:500;font-size:15px}
 .pg-num:hover,.pg-arrow:hover{border-color:var(--navy)}
 .pg-num.active{background:var(--navy);color:#fff;border-color:var(--navy);pointer-events:none}
 .pg-dots{color:var(--ink-soft);padding:0 2px}
+.pager button{cursor:pointer;font-family:inherit}
+.pager button:disabled{opacity:.4;cursor:default;pointer-events:none}
 .mapscreen-bar{display:flex;align-items:center;gap:14px;padding:12px 24px;border-bottom:1px solid var(--line);background:#fff;flex-wrap:wrap}
 .ms-count{font-weight:600;color:var(--navy);font-size:15px}
 .map-screen{position:relative;width:100%;height:calc(100vh - 72px - 58px);min-height:440px}
