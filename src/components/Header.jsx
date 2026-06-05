@@ -8,11 +8,12 @@ import { cityLabel } from "@/lib/dict";
 import LeadButton from "@/components/LeadButton";
 
 const LANGS = [
-  { code: "ka", label: "GE", name: "ქართული", flag: "🇬🇪" },
-  { code: "ru", label: "RU", name: "Русский", flag: "🇷🇺" },
-  { code: "en", label: "EN", name: "English", flag: "🇬🇧" },
+  { code: "ka", label: "GE", name: "ქართული", cc: "ge" },
+  { code: "ru", label: "RU", name: "Русский", cc: "ru" },
+  { code: "en", label: "EN", name: "English", cc: "gb" },
 ];
-const flagOf = (code) => (LANGS.find((l) => l.code === code) || {}).flag || "🌐";
+const ccOf = (code) => (LANGS.find((l) => l.code === code) || {}).cc || "ge";
+const flagSrc = (cc) => `https://flagcdn.com/32x24/${cc}.png`;
 const NAV_KEY = { "Продажа": "nav_sale", "Аренда": "nav_rent", "Новостройки": "nav_new", "Посуточно": "nav_daily", "Услуги": "nav_services" };
 const CURR = [
   { code: "GEL", sym: "₾", name: "GEL — Грузинский лари" },
@@ -143,14 +144,14 @@ export default function Header({ cityCounts } = {}) {
 
           <div className="langw" ref={langRef}>
             <button className="hicon hlang" onClick={(e) => { e.stopPropagation(); setLangOpen((v) => !v); }} title={t("lp_lang")} aria-label={t("lp_lang")}>
-              <span className="lang-flag" aria-hidden="true">{flagOf(uiLang)}</span><span className="lang-cur">{uiLang === "ka" ? "GE" : uiLang.toUpperCase()}</span><span className="lang-car" aria-hidden="true">▾</span>
+              <img className="lang-flag" src={flagSrc(ccOf(uiLang))} alt="" width="20" height="15" /><span className="lang-cur">{uiLang === "ka" ? "GE" : uiLang.toUpperCase()}</span><span className="lang-car" aria-hidden="true">▾</span>
             </button>
             {langOpen && (
               <div className="lang-pop">
                 <div className="lp-h">{t("lp_lang")}</div>
                 {LANGS.map((l) => (
                   <button key={l.code} className={"lp-row" + (uiLang === l.code ? " active" : "")} onClick={() => setUiLang(l.code)}>
-                    <b><span className="lang-flag">{l.flag}</span> {l.label}</b><span>{l.name}</span>
+                    <img className="lang-flag" src={flagSrc(l.cc)} alt="" width="22" height="16" /><b>{l.label}</b><span>{l.name}</span>
                   </button>
                 ))}
                 <div className="lp-h">{t("lp_curr")}</div>
@@ -183,7 +184,7 @@ export default function Header({ cityCounts } = {}) {
             <div className="md-curr">
               <span className="md-curr-lbl">{t("md_lang")}</span>
               {LANGS.map((l) => (
-                <button key={l.code} type="button" className={"md-curr-btn" + (uiLang === l.code ? " on" : "")} onClick={() => setUiLang(l.code)}>{l.flag} {l.label}</button>
+                <button key={l.code} type="button" className={"md-curr-btn md-lang-btn" + (uiLang === l.code ? " on" : "")} onClick={() => setUiLang(l.code)}><img className="lang-flag" src={flagSrc(l.cc)} alt="" width="20" height="15" />{l.label}</button>
               ))}
             </div>
             <div className="md-curr">

@@ -52,7 +52,9 @@ nav.main{display:flex;gap:2px;font-weight:500;font-size:15px}
 .langw{position:relative}
 .hlang{gap:6px;padding:0 12px;border:1.5px solid var(--gold);background:var(--cream)}
 .hlang:hover{background:#fff;border-color:var(--gold-dk)}
-.lang-flag{font-size:16px;line-height:1}
+.lang-flag{display:inline-block;width:20px;height:15px;border-radius:3px;object-fit:cover;box-shadow:0 0 0 1px rgba(0,0,0,.1);flex:0 0 auto;vertical-align:middle}
+.lp-row .lang-flag{width:22px;height:16px}
+.md-lang-btn{display:inline-flex;align-items:center;gap:6px}
 .lang-cur{font-size:13px;font-weight:800;color:var(--gold-dk);letter-spacing:.3px}
 .lang-car{font-size:10px;color:var(--gold-dk);margin-left:-1px}
 .lang-pop{position:absolute;top:48px;right:0;width:300px;max-width:90vw;background:#fff;border:1px solid var(--line);border-radius:16px;box-shadow:var(--shadow-lg);padding:10px;z-index:1200}
