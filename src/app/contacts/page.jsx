@@ -18,7 +18,7 @@ export default function ContactsPage() {
       <div className="contact-row">
         <a href={waLink("Здравствуйте! Пишу с сайта Baylux.")} target="_blank" rel="noopener">💬 WhatsApp: +{WA_PHONE}</a>
         <a href="https://t.me/bayluxhome" target="_blank" rel="noopener">✈️ Telegram: @bayluxhome</a>
-        <a href="mailto:bayluxhome@yahoo.com">✉️ E-mail: bayluxhome@yahoo.com</a>
+        <a href="mailto:bayluxhome@gmail.com">✉️ E-mail: bayluxhome@gmail.com</a>
       </div>
 
       <h2>{t("co_h_where")}</h2>

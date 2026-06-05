@@ -6,7 +6,7 @@ export const TG_CONTACT = "bayluxhome"; // основной Telegram-конта�
 // ⚠️ Подставь точные ФИО/контакт оператора.
 export const OPERATOR = {
   name: "Parshuto Dmitrii", // ФИО оператора-физлица (до регистрации ШПС)
-  email: "bayluxhome@yahoo.com",
+  email: "bayluxhome@gmail.com",
   phone: "+995 599 20 07 96",
 };
 
@@ -16,7 +16,7 @@ export const DOC_UPDATED = "01.06.2026";
 
 // Главные администраторы сайта (по email сессии или Telegram-id).
 // Имеют доступ к /admin: новости, удаление любых объявлений.
-export const ADMIN_EMAILS = ["bayluxhome@yahoo.com"];
+export const ADMIN_EMAILS = ["bayluxhome@gmail.com", "bayluxhome@yahoo.com"];
 export const ADMIN_TG_IDS = []; // при необходимости добавить Telegram user id (число)
 
 // Соцсети для футера. Пустую строку — иконка скрывается.

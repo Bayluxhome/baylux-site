@@ -77,7 +77,7 @@ export default async function RootLayout({ children }) {
               areaServed: { "@type": "City", name: "Batumi", address: { "@type": "PostalAddress", addressCountry: "GE" } },
               address: { "@type": "PostalAddress", addressLocality: "Батуми", addressCountry: "GE" },
               telephone: "+995 599 20 07 96",
-              email: "bayluxhome@yahoo.com",
+              email: "bayluxhome@gmail.com",
             }),
           }}
         />
