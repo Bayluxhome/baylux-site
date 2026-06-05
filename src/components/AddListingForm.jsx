@@ -205,6 +205,7 @@ export default function AddListingForm({ initial, editId }) {
       <div className="af-full">
         <div className="af-lbl">{editId ? t("af_add_photos") : t("af_photos")}</div>
         <input type="file" accept="image/*" multiple onChange={(e) => setFiles([...e.target.files])} />
+        <div className="af-hint" style={{ color: "var(--gold-dk)" }}>⚠️ {t("af_nowatermark")}</div>
         {files.length > 0 && <div className="af-hint">{files.length} {t("af_newphotos")}</div>}
       </div>
       <div className="af-full">
