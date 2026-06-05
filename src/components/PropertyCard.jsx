@@ -2,7 +2,7 @@
 import { useRef, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { DEAL_CLASS, fmtMoney, perSuffix } from "@/data/data";
+import { DEAL_CLASS, fmtMoney } from "@/data/data";
 import FavButton from "@/components/FavButton";
 import { useLang } from "@/components/LangContext";
 import { typeLabel, cityLabel, translitAddress } from "@/lib/dict";
@@ -56,9 +56,12 @@ export default function PropertyCard({ unit }) {
   const dupeText = unit.dupeCount > 0 ? t(dupePluralKey(unit.dupeCount)).replace("{n}", unit.dupeCount) : "";
   const ty = typeLabel(lang, unit.type);
   const district = cityLabel(lang, b.district || "Батуми");
-  const bname = b["name_" + lang] || translitAddress(b.name, lang, b.kind);
+  const bname = translitAddress(b["name_" + lang] || b.name, lang, b.kind);
   const photos = unit.photos && unit.photos.length > 1 ? unit.photos : null;
-  const alt = `${ty}, ${unit.area} м² — ${bname}`;
+  const sqm = t("sqm");
+  const priceSuffix = unit.deal === "rent" ? t("ps_rent") : unit.deal === "daily" ? t("ps_daily") : "";
+  const perWord = unit.deal === "rent" ? t("per_rent") : unit.deal === "daily" ? t("per_daily") : "";
+  const alt = `${ty}, ${unit.area} ${sqm} — ${bname}`;
   const hasFloor = unit.floor && unit.floor !== "—";
   const hasArea = unit.area && Number(unit.area) > 0;
   const dateStr = fmtDate(unit.created_at, lang);
@@ -74,7 +77,7 @@ export default function PropertyCard({ unit }) {
   else firstSpec = ty;
   const specs = [
     { ic: <IcBed key="b" />, txt: firstSpec },
-    ...(hasArea ? [{ ic: <IcArea key="a" />, txt: `${unit.area} м²` }] : []),
+    ...(hasArea ? [{ ic: <IcArea key="a" />, txt: `${unit.area} ${sqm}` }] : []),
     ...(hasFloor ? [{ ic: <IcFloor key="f" />, txt: unit.floor }] : []),
   ];
   const fav = { slug: unit.slug, href: `/property/${unit.slug}`, title: `${ty}${unit.rooms ? `, ${unit.rooms} ${rs}` : ""}, ${unit.area} м²`, sub: `📍 ${district} · ${bname}`, price: unit.price, img: unit.img };
@@ -108,13 +111,13 @@ export default function PropertyCard({ unit }) {
       <div className="body">
         <div className="price">
           {unit.priceNum
-            ? <><span className="bx-price" data-num={unit.priceNum} data-cur={unit.currency}>{fmtMoney(unit.priceNum, unit.currency)}</span>{perSuffix(unit.deal)}</>
+            ? <><span className="bx-price" data-num={unit.priceNum} data-cur={unit.currency}>{fmtMoney(unit.priceNum, unit.currency)}</span>{priceSuffix}</>
             : unit.price}
           {" "}
           <span className="perm">
             {unit.deal === "sale" && unit.perM2
               ? <><span className="bx-price" data-num={unit.perM2} data-cur={unit.currency}>{fmtMoney(unit.perM2, unit.currency)}</span> {t("per_m2")}</>
-              : unit.per}
+              : perWord}
           </span>
         </div>
         <div className="cspecs">

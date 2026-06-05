@@ -39,7 +39,8 @@ export default async function BuildingPage({ params }) {
   if (!b) notFound();
   const lang = getLang();
   const t = (k) => tr(lang, k);
-  const bname = b["name_" + lang] || translitAddress(b.name, lang, b.kind);
+  const bname = translitAddress(b["name_" + lang] || b.name, lang, b.kind);
+  const sqm = t("sqm");
 
   // Галерея дома — из реальных фото всех объектов (обложка первой), а не 5 копий обложки.
   // Повтор по кругу включается только если уникальных фото меньше 5 (раскладка ждёт 5 слотов).
@@ -90,12 +91,12 @@ export default async function BuildingPage({ params }) {
             {b.units.map((u) => (
               <Link key={u.id} href={`/property/${u.slug}`} className="urow" style={{ color: "var(--ink)" }}>
                 <div><b>{typeLabel(lang, u.type)}</b>{u.rooms ? `, ${u.rooms} ${t("rooms_short")}` : ""}</div>
-                <div>{u.area} м²</div>
+                <div>{u.area} {sqm}</div>
                 <div>{u.floor}</div>
                 <div>{t("deal_" + u.deal)}</div>
                 <div className="uprice">
                   {u.priceNum ? <span className="bx-price" data-num={u.priceNum} data-cur={u.currency}>{fmtMoney(u.priceNum, u.currency)}</span> : u.price}
-                  {u.deal === "sale" && u.perM2 ? <div className="perm"><span className="bx-price" data-num={u.perM2} data-cur={u.currency}>{fmtMoney(u.perM2, u.currency)}</span> /м²</div> : null}
+                  {u.deal === "sale" && u.perM2 ? <div className="perm"><span className="bx-price" data-num={u.perM2} data-cur={u.currency}>{fmtMoney(u.perM2, u.currency)}</span> /{sqm}</div> : null}
                 </div>
               </Link>
             ))}

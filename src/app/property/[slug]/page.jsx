@@ -3,7 +3,7 @@ import { notFound } from "next/navigation";
 import MapView from "@/components/MapView";
 import Gallery from "@/components/Gallery";
 import AdminEdit from "@/components/AdminEdit";
-import { DEAL_LABEL, fmtMoney, perSuffix } from "@/data/data";
+import { DEAL_LABEL, fmtMoney } from "@/data/data";
 import { getBuildingsList, findUnit } from "@/data/source";
 import LeadButton from "@/components/LeadButton";
 import { waLink, TG_CONTACT } from "@/config";
@@ -41,12 +41,14 @@ export default async function PropertyPage({ params }) {
   const lang = getLang();
   const t = (k) => tr(lang, k);
   const ty = typeLabel(lang, u.type);
-  const bname = b["name_" + lang] || translitAddress(b.name, lang, b.kind);
+  const bname = translitAddress(b["name_" + lang] || b.name, lang, b.kind);
+  const sqm = t("sqm");
+  const priceSuffix = u.deal === "rent" ? t("ps_rent") : u.deal === "daily" ? t("ps_daily") : "";
 
   const photos = (u.photos && u.photos.length) ? u.photos : [u.img || "/placeholder-baylux.jpg"];
   const mapBuildings = [{ slug: b.slug, name: b.name, district: b.district, kind: b.kind, lat: b.lat, lng: b.lng, priceFrom: u.price, units: [{ slug: u.slug, deal: u.deal, type: u.type, rooms: u.rooms, area: u.area, price: u.price, per: u.per, img: (u.photos && u.photos[0]) || u.img || "" }] }];
   const ctaMain = u.deal === "daily" ? t("cta_daily") : u.deal === "rent" ? t("cta_rent") : t("cta_view");
-  const specs = [[t("sp_type"), ty], [t("sp_area"), u.area + " м²"], [t("sp_rooms"), u.rooms || "—"]];
+  const specs = [[t("sp_type"), ty], [t("sp_area"), u.area + " " + sqm], [t("sp_rooms"), u.rooms || "—"]];
   if (u.bathrooms) specs.push([t("sp_bath"), u.bathrooms]);
   specs.push([t("sp_floor"), u.floor]);
   if (u.year) specs.push([t("sp_year"), u.year]);
@@ -94,21 +96,21 @@ export default async function PropertyPage({ params }) {
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJson) }} />
       <div className="crumbs">
         <Link href="/">{t("crumb_home")}</Link> · <Link href="/catalog">{t("crumb_catalog")}</Link> ·{" "}
-        <Link href={`/building/${b.slug}`}>{bname}</Link> · <span>{ty}, {u.area} м²</span>
+        <Link href={`/building/${b.slug}`}>{bname}</Link> · <span>{ty}, {u.area} {sqm}</span>
       </div>
 
       <AdminEdit items={[{ id: u.id, label: "Редактировать объявление" }]} />
 
       <div className="pp-head">
         <div>
-          <h1>{ty}{u.rooms ? `, ${u.rooms} ${t("rooms_short")}` : ""}, {u.area} м²</h1>
+          <h1>{ty}{u.rooms ? `, ${u.rooms} ${t("rooms_short")}` : ""}, {u.area} {sqm}</h1>
           <div className="cdistrict" style={{ marginTop: 8, fontSize: 15 }}>
             📍 {b.district} · <Link href={`/building/${b.slug}`} style={{ color: "var(--gold-dk)", fontWeight: 600 }}>{bname}</Link> · {t("deal_" + u.deal)}
           </div>
           {u.boost > 0 && <span className="boost-badge" style={{ marginTop: 8, display: "inline-block" }}>{t("boost_badge")}</span>}
         </div>
         <div style={{ textAlign: "right" }}>
-          <div className="pp-price">{u.priceNum ? <><span className="bx-price" data-num={u.priceNum} data-cur={u.currency}>{fmtMoney(u.priceNum, u.currency)}</span>{perSuffix(u.deal)}</> : u.price}</div>
+          <div className="pp-price">{u.priceNum ? <><span className="bx-price" data-num={u.priceNum} data-cur={u.currency}>{fmtMoney(u.priceNum, u.currency)}</span>{priceSuffix}</> : u.price}</div>
           <div className="perm">{u.deal === "sale" && u.perM2 ? <><span className="bx-price" data-num={u.perM2} data-cur={u.currency}>{fmtMoney(u.perM2, u.currency)}</span> {t("per_m2")}</> : u.per}</div>
         </div>
       </div>
@@ -144,7 +146,7 @@ export default async function PropertyPage({ params }) {
             <h3>{t("about_h")}</h3>
             {u["desc_" + lang] || u.about
               ? <p style={{ whiteSpace: "pre-line" }}>{u["desc_" + lang] || u.about}</p>
-              : <p>{ty}, {u.area} м²{u.rooms ? `, ${u.rooms} ${t("rooms_short")}` : ""}, {u.floor}. {t("about_p")}</p>}
+              : <p>{ty}, {u.area} {sqm}{u.rooms ? `, ${u.rooms} ${t("rooms_short")}` : ""}, {u.floor}. {t("about_p")}</p>}
             <h3>{t("near_h")}</h3>
             <p>{t("near_p")}</p>
             <h3>{t("why_h")}</h3>
@@ -155,7 +157,7 @@ export default async function PropertyPage({ params }) {
 
         <aside>
           <div className="cta-card">
-            <div className="price">{u.priceNum ? <><span className="bx-price" data-num={u.priceNum} data-cur={u.currency}>{fmtMoney(u.priceNum, u.currency)}</span>{perSuffix(u.deal)}</> : u.price}</div>
+            <div className="price">{u.priceNum ? <><span className="bx-price" data-num={u.priceNum} data-cur={u.currency}>{fmtMoney(u.priceNum, u.currency)}</span>{priceSuffix}</> : u.price}</div>
             <div className="perm" style={{ marginBottom: 6 }}>{u.deal === "sale" && u.perM2 ? <><span className="bx-price" data-num={u.perM2} data-cur={u.currency}>{fmtMoney(u.perM2, u.currency)}</span> {t("per_m2")}</> : u.per}</div>
             <LeadButton className="btn btn-gold" type={t("deal_" + u.deal)} object={`${u.type}, ${u.area} м² — ${b.name}`} title={ctaMain}>{ctaMain}</LeadButton>
             {cleanPhone && <a className="seller-phone" href={`tel:+${cleanPhone}`}>📞 +{cleanPhone}</a>}

@@ -34,7 +34,7 @@ export default function BuildingCard({ building }) {
   };
 
   const district = cityLabel(lang, building.district || "Батуми");
-  const bname = building["name_" + lang] || translitAddress(building.name, lang, building.kind);
+  const bname = translitAddress(building["name_" + lang] || building.name, lang, building.kind);
   const from = buildingFromNum(building);
   const perM2 = from && from.deal === "sale" && from.area > 0 && from.n ? Math.round(from.n / from.area) : null;
   const counts = {};
