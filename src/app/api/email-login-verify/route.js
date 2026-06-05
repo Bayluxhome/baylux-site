@@ -16,6 +16,8 @@ export async function GET(req) {
   }
   await supa.from("login_tokens").delete().eq("token", token);
   const session = signSession({ email: data.email, name: data.email.split("@")[0], exp: Date.now() + 30 * 24 * 3600 * 1000 });
+  // Учёт пользователя (для админ-раздела «Пользователи»). Не ломаем вход при ошибке.
+  try { await supa.from("site_users").upsert({ email: data.email, name: data.email.split("@")[0], last_login: new Date().toISOString() }, { onConflict: "email" }); } catch (e) { console.error("site_users email:", e?.message); }
   const res = new Response(null, { status: 302, headers: { Location: "/my" } });
   res.headers.append("Set-Cookie", `bx_session=${session}; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=${30 * 24 * 3600}`);
   return res;

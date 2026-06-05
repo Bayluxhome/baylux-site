@@ -17,6 +17,11 @@ export async function GET(req) {
     }
   } catch (e) { console.error("consent log:", e?.message); }
 
+  // Учёт пользователя (для админ-раздела «Пользователи»). Не ломаем вход при ошибке.
+  try {
+    if (supa) await supa.from("site_users").upsert({ tg_user_id: Number(data.id), username: data.username || "", name: data.first_name || "", last_login: new Date().toISOString() }, { onConflict: "tg_user_id" });
+  } catch (e) { console.error("site_users tg:", e?.message); }
+
   const session = signSession({
     id: Number(data.id),
     name: data.first_name || "",

@@ -23,11 +23,14 @@ export default async function AdminPage() {
 
   let rows = [];
   let realtorPending = 0;
+  let usersCount = 0;
   if (supa) {
     const { data } = await supa.from("listings").select("*").order("created_at", { ascending: false });
     rows = data || [];
     const { count } = await supa.from("realtors").select("id", { count: "exact", head: true }).eq("status", "pending");
     realtorPending = count || 0;
+    const { count: uc } = await supa.from("site_users").select("id", { count: "exact", head: true });
+    usersCount = uc || 0;
   }
 
   // Поиск дублей: по совпадению фото-хэшей ИЛИ по адрес+площадь+комнаты+цена.
@@ -73,6 +76,7 @@ export default async function AdminPage() {
       <div style={{ display: "flex", gap: 12, marginBottom: 22, flexWrap: "wrap" }}>
         <a className="btn btn-ghost" href="/admin/news" style={{ padding: "9px 16px" }}>📰 Управление новостями</a>
         <a className="btn btn-ghost" href="/admin/realtors" style={{ padding: "9px 16px" }}>👤 Риелторы{realtorPending ? ` · ${realtorPending} новых` : ""}</a>
+        <a className="btn btn-ghost" href="/admin/users" style={{ padding: "9px 16px" }}>👥 Пользователи{usersCount ? ` · ${usersCount}` : ""}</a>
       </div>
       <h2 style={{ color: "var(--navy)", fontSize: 18, marginBottom: 12 }}>Все объявления</h2>
       <AdminListings items={items} />
