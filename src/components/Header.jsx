@@ -8,10 +8,11 @@ import { cityLabel } from "@/lib/dict";
 import LeadButton from "@/components/LeadButton";
 
 const LANGS = [
-  { code: "ka", label: "GE", name: "ქართული" },
-  { code: "ru", label: "RU", name: "Русский" },
-  { code: "en", label: "EN", name: "English" },
+  { code: "ka", label: "GE", name: "ქართული", flag: "🇬🇪" },
+  { code: "ru", label: "RU", name: "Русский", flag: "🇷🇺" },
+  { code: "en", label: "EN", name: "English", flag: "🇬🇧" },
 ];
+const flagOf = (code) => (LANGS.find((l) => l.code === code) || {}).flag || "🌐";
 const NAV_KEY = { "Продажа": "nav_sale", "Аренда": "nav_rent", "Новостройки": "nav_new", "Посуточно": "nav_daily", "Услуги": "nav_services" };
 const CURR = [
   { code: "GEL", sym: "₾", name: "GEL — Грузинский лари" },
@@ -141,15 +142,15 @@ export default function Header({ cityCounts } = {}) {
           <Link className="hicon hicon-sq" href="/favorites" title="Избранное" aria-label="Избранное">♡{favCount > 0 && <span className="fav-count">{favCount}</span>}</Link>
 
           <div className="langw" ref={langRef}>
-            <button className="hicon hlang" onClick={(e) => { e.stopPropagation(); setLangOpen((v) => !v); }} title="Язык и валюта" aria-label="Язык и валюта">
-              <svg className="hi-ic" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9" /><path d="M3 12h18" /><path d="M12 3c2.5 2.5 2.5 15.5 0 18M12 3c-2.5 2.5-2.5 15.5 0 18" /></svg><span className="lang-cur">{uiLang === "ka" ? "GE" : uiLang.toUpperCase()}</span>
+            <button className="hicon hlang" onClick={(e) => { e.stopPropagation(); setLangOpen((v) => !v); }} title={t("lp_lang")} aria-label={t("lp_lang")}>
+              <span className="lang-flag" aria-hidden="true">{flagOf(uiLang)}</span><span className="lang-cur">{uiLang === "ka" ? "GE" : uiLang.toUpperCase()}</span><span className="lang-car" aria-hidden="true">▾</span>
             </button>
             {langOpen && (
               <div className="lang-pop">
                 <div className="lp-h">{t("lp_lang")}</div>
                 {LANGS.map((l) => (
                   <button key={l.code} className={"lp-row" + (uiLang === l.code ? " active" : "")} onClick={() => setUiLang(l.code)}>
-                    <b>{l.label}</b><span>{l.name}</span>
+                    <b><span className="lang-flag">{l.flag}</span> {l.label}</b><span>{l.name}</span>
                   </button>
                 ))}
                 <div className="lp-h">{t("lp_curr")}</div>
@@ -182,7 +183,7 @@ export default function Header({ cityCounts } = {}) {
             <div className="md-curr">
               <span className="md-curr-lbl">{t("md_lang")}</span>
               {LANGS.map((l) => (
-                <button key={l.code} type="button" className={"md-curr-btn" + (uiLang === l.code ? " on" : "")} onClick={() => setUiLang(l.code)}>{l.label}</button>
+                <button key={l.code} type="button" className={"md-curr-btn" + (uiLang === l.code ? " on" : "")} onClick={() => setUiLang(l.code)}>{l.flag} {l.label}</button>
               ))}
             </div>
             <div className="md-curr">

@@ -60,13 +60,14 @@ export default async function PropertyPage({ params }) {
   const inquiry = `Здравствуйте! Интересует объект: ${u.type}, ${u.area} м² — ${b.name} (${u.price})`;
   const waHref = cleanPhone ? `https://wa.me/${cleanPhone}?text=${encodeURIComponent(inquiry)}` : waLink(inquiry);
 
+  const resType = /house|cottage|вилл|дом/i.test(`${u.type} ${u.category || ""}`) ? "House" : "Apartment";
   const ldJson = {
     "@context": "https://schema.org",
-    "@type": "Product",
-    name: `${u.type}, ${u.area} м² — ${b.name}, Батуми`,
-    description: `${DEAL_LABEL[u.deal]}: ${u.type}, ${u.area} м² в ${b.name}, район ${b.district}, Батуми.`,
+    "@type": "RealEstateListing",
+    url: `https://bayluxhome.com/property/${u.slug}`,
+    name: `${ty}, ${u.area} ${sqm} — ${bname}, ${b.district}`,
+    description: u["desc_" + lang] || u.about || `${t("deal_" + u.deal)}: ${ty}, ${u.area} ${sqm}, ${bname}, ${b.district}.`,
     image: photos.map((p) => (p.startsWith("http") ? p : `https://bayluxhome.com${p}`)),
-    category: "Real Estate",
     ...(u.priceNum
       ? {
           offers: {
@@ -78,6 +79,19 @@ export default async function PropertyPage({ params }) {
           },
         }
       : {}),
+    about: {
+      "@type": resType,
+      name: `${ty}, ${u.area} ${sqm}`,
+      ...(u.rooms ? { numberOfRooms: Number(u.rooms) || u.rooms } : {}),
+      floorSize: { "@type": "QuantitativeValue", value: u.area, unitCode: "MTK" },
+      address: {
+        "@type": "PostalAddress",
+        streetAddress: bname,
+        addressLocality: b.district,
+        addressRegion: "Adjara",
+        addressCountry: "GE",
+      },
+    },
   };
   const breadcrumbJson = {
     "@context": "https://schema.org",

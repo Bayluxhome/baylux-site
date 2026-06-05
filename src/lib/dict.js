@@ -134,7 +134,7 @@ export const DICT = {
     rl_h_moder: "Модерация", rl_moder: "Каждое объявление проходит проверку модератором перед публикацией. Модератор может отклонить или снять объявление с указанием причины.", rl_h_contact: "Вопросы", rl_contact: "По вопросам размещения — раздел «Контакты».",
     af_rules_pre: "Размещая объявление, вы соглашаетесь с ", af_rules_link: "Правилами размещения",
     foot_operator: "Оператор", st_verified2: "модерация каждого объявления",
-    seo_home_h: "Недвижимость в Батуми — Baylux",
+    seo_home_h: "Недвижимость в Грузии — Baylux",
     seo_home_p: "Baylux — агентство недвижимости в Батуми и по всей Грузии. Помогаем купить и продать квартиры, дома, апартаменты и новостройки у моря, а также снять жильё на длительный срок и посуточно. Берём на себя управление недвижимостью и клининг. Прозрачные цены, проверенные объекты и поддержка местной команды на русском, английском и грузинском.",
     seo_cat_h: "Каталог недвижимости в Батуми и Грузии",
     seo_cat_p: "В каталоге Baylux — квартиры, студии, дома, коммерция и новостройки в Батуми, Гонио, Махинджаури, Чакви и других городах Грузии. Фильтруйте по типу сделки (продажа, аренда, посуточно), цене, числу комнат, площади и удобствам. Все объявления проходят модерацию.",
@@ -307,7 +307,7 @@ export const DICT = {
     rl_h_moder: "Moderation", rl_moder: "Every listing is reviewed by a moderator before publication. A moderator may reject or remove a listing stating the reason.", rl_h_contact: "Questions", rl_contact: "For posting questions, see the “Contacts” section.",
     af_rules_pre: "By posting a listing, you agree to the ", af_rules_link: "Listing rules",
     foot_operator: "Operator", st_verified2: "every listing moderated",
-    seo_home_h: "Real estate in Batumi — Baylux",
+    seo_home_h: "Real estate in Georgia — Baylux",
     seo_home_p: "Baylux is a real estate agency in Batumi and across Georgia. We help you buy and sell apartments, houses, units and new builds by the sea, as well as rent long-term or daily. We also handle property management and cleaning. Transparent prices, verified listings and support from a local team in Russian, English and Georgian.",
     seo_cat_h: "Property catalog in Batumi and Georgia",
     seo_cat_p: "The Baylux catalog features apartments, studios, houses, commercial units and new builds in Batumi, Gonio, Makhinjauri, Chakvi and other cities of Georgia. Filter by deal type (sale, rent, daily), price, number of rooms, area and amenities. All listings are moderated.",
@@ -480,7 +480,7 @@ export const DICT = {
     rl_h_moder: "მოდერაცია", rl_moder: "თითოეული განცხადება მოწმდება მოდერატორის მიერ გამოქვეყნებამდე. მოდერატორს შეუძლია უარყოს ან მოხსნას განცხადება მიზეზის მითითებით.", rl_h_contact: "კითხვები", rl_contact: "განთავსების კითხვებისთვის — განყოფილება „კონტაქტი“.",
     af_rules_pre: "განცხადების განთავსებით თქვენ ეთანხმებით ", af_rules_link: "განთავსების წესებს",
     foot_operator: "ოპერატორი", st_verified2: "ყველა განცხადება მოწმდება",
-    seo_home_h: "უძრავი ქონება ბათუმში — Baylux",
+    seo_home_h: "უძრავი ქონება საქართველოში — Baylux",
     seo_home_p: "Baylux — უძრავი ქონების სააგენტო ბათუმსა და მთელ საქართველოში. დაგეხმარებით ბინების, სახლების, აპარტამენტებისა და ახალი კორპუსების ყიდვასა და გაყიდვაში ზღვის პირას, ასევე გრძელვადიან და დღიურ გაქირავებაში. ვუზრუნველყოფთ ქონების მართვასა და დასუფთავებას. გამჭვირვალე ფასები, შემოწმებული ობიექტები და ადგილობრივი გუნდის მხარდაჭერა რუსულ, ინგლისურ და ქართულ ენებზე.",
     seo_cat_h: "უძრავი ქონების კატალოგი ბათუმსა და საქართველოში",
     seo_cat_p: "Baylux-ის კატალოგში — ბინები, სტუდიოები, სახლები, კომერცია და ახალი კორპუსები ბათუმში, გონიოში, მახინჯაურში, ჩაქვსა და საქართველოს სხვა ქალაქებში. გაფილტრეთ გარიგების ტიპით (გაყიდვა, ქირა, დღიური), ფასით, ოთახების რაოდენობით, ფართობითა და კეთილმოწყობით. ყველა განცხადება გადის მოდერაციას.",
@@ -579,8 +579,8 @@ const TRANSLIT = {
   ka: { "а": "ა", "б": "ბ", "в": "ვ", "г": "გ", "д": "დ", "е": "ე", "ё": "ო", "ж": "ჟ", "з": "ზ", "и": "ი", "й": "ი", "к": "კ", "л": "ლ", "м": "მ", "н": "ნ", "о": "ო", "п": "პ", "р": "რ", "с": "ს", "т": "ტ", "у": "უ", "ф": "ფ", "х": "ხ", "ц": "ც", "ч": "ჩ", "ш": "შ", "щ": "შჩ", "ъ": "", "ы": "ი", "ь": "", "э": "ე", "ю": "იუ", "я": "ია" },
 };
 const ADDR_WORDS = {
-  en: [[/у\s*л\s*\./gi, "St."], [/улиц[аы]?/gi, "St."], [/проспект/gi, "Ave."], [/пр\./gi, "Ave."], [/переулок/gi, "Ln."], [/пер\./gi, "Ln."]],
-  ka: [[/у\s*л\s*\./gi, "ქ."], [/улиц[аы]?/gi, "ქუჩა"], [/проспект/gi, "გამზირი"], [/пр\./gi, "გამზ."], [/переулок/gi, "შესახვევი"], [/пер\./gi, "შეს."]],
+  en: [[/у\s*л\s*\./gi, "St."], [/улиц[а-яё]*/gi, "St."], [/проспект[а-яё]*/gi, "Ave."], [/пр\./gi, "Ave."], [/переул(ок|ке|ка)?/gi, "Ln."], [/пер\./gi, "Ln."]],
+  ka: [[/у\s*л\s*\./gi, "ქ."], [/улиц[а-яё]*/gi, "ქუჩა"], [/проспект[а-яё]*/gi, "გამზირი"], [/пр\./gi, "გამზ."], [/переул(ок|ке|ка)?/gi, "შესახვევი"], [/пер\./gi, "შეს."]],
 };
 export function translitAddress(name, lang, kind) {
   const s0 = name || "";

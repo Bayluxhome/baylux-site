@@ -19,8 +19,11 @@ export default async function RealtorsStrip() {
       if (l.tg_user_id != null) { const k = String(l.tg_user_id); byTg[k] = (byTg[k] || 0) + 1; }
     });
     rows = rows.map((r) => ({ ...r, count: r.tg_user_id != null ? (byTg[String(r.tg_user_id)] || 0) : (byEmail[String(r.email || "").toLowerCase()] || 0) }));
+    // Показываем только риелторов с объектами и сортируем по их числу.
+    rows = rows.filter((r) => (r.count || 0) > 0).sort((a, b) => b.count - a.count);
   }
-  if (!rows.length) return null;
+  // Блок появляется на главной только когда хотя бы у одного риелтора 5+ объектов.
+  if (!rows.length || !rows.some((r) => r.count >= 5)) return null;
 
   return (
     <section className="wrap" style={{ paddingBlock: "10px 30px" }}>
