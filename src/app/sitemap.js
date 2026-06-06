@@ -9,6 +9,7 @@ export default async function sitemap() {
   const urls = [
     { url: BASE, lastModified: now, priority: 1 },
     { url: `${BASE}/catalog`, lastModified: now, priority: 0.9 },
+    { url: `${BASE}/arenda-batumi`, lastModified: now, priority: 0.9 },
     { url: `${BASE}/realtors`, lastModified: now, priority: 0.6 },
     { url: `${BASE}/news`, lastModified: now, priority: 0.6 },
   ];

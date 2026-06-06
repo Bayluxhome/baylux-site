@@ -31,6 +31,7 @@ export default function Footer() {
             <h4>{t("foot_realty")}</h4>
             <Link href="/catalog?deal=sale">{t("nav_sale")}</Link>
             <Link href="/catalog?deal=rent">{t("nav_rent")}</Link>
+            <Link href="/arenda-batumi">{t("ar_foot")}</Link>
             <Link href="/catalog?new=1">{t("nav_new")}</Link>
             <Link href="/catalog?deal=daily">{t("nav_daily")}</Link>
           </div>
