@@ -14,17 +14,17 @@ import { getLang } from "@/lib/serverLang";
 export const metadata = {
   metadataBase: new URL("https://bayluxhome.com"),
   title: {
-    default: "Baylux — недвижимость в Батуми: купить, продать, снять, сдать",
+    default: "Недвижимость в Грузии и Батуми — купить и снять квартиру у моря | Baylux",
     template: "%s — Baylux",
   },
   description:
-    "Проверенные квартиры, дома и апартаменты в Батуми у моря. Купить, продать, снять или сдать недвижимость — прозрачные цены и помощь местной команды Baylux.",
+    "Проверенные квартиры и апартаменты в Грузии и Батуми у моря. Купить, продать, снять или сдать недвижимость — прозрачные цены и помощь местной команды Baylux.",
   alternates: {
     canonical: "/",
   },
   openGraph: {
-    title: "Baylux — недвижимость в Батуми",
-    description: "Купить, продать, снять или сдать недвижимость в Батуми у моря.",
+    title: "Baylux — недвижимость в Грузии и Батуми",
+    description: "Купить, продать, снять или сдать квартиру в Грузии и Батуми у моря.",
     type: "website",
     locale: "ru_RU",
     siteName: "Baylux",
@@ -35,8 +35,8 @@ export const metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "Baylux — недвижимость в Батуми",
-    description: "Купить, продать, снять или сдать недвижимость в Батуми у моря.",
+    title: "Baylux — недвижимость в Грузии и Батуми",
+    description: "Купить, продать, снять или сдать квартиру в Грузии и Батуми у моря.",
     images: ["/hero-batumi.jpg"],
   },
   robots: {
