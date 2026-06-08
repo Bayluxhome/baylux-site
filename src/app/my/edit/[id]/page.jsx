@@ -14,6 +14,8 @@ export default async function EditListingPage({ params }) {
   const { data: r } = await supa.from("listings").select("*").eq("id", params.id).single();
   // Владелец — по tg_user_id; админ может редактировать любое объявление.
   if (!r || (String(r.tg_user_id) !== String(session.id) && !isAdmin(session))) redirect("/my");
+  // Объект под управлением Baylux владелец не редактирует (только админ).
+  if (r.managed_by_baylux && !isAdmin(session)) redirect("/my");
 
   const initial = {
     f: {

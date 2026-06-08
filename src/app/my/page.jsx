@@ -4,7 +4,7 @@ import { verifySession, isAdmin } from "@/lib/session";
 import { supa } from "@/lib/supabase";
 import { slugify, cleanAddress } from "@/data/sheet";
 import LoginBlock from "@/components/LoginBlock";
-import MyListings from "@/components/MyListings";
+import CabinetTabs from "@/components/CabinetTabs";
 import DataRights from "@/components/DataRights";
 import RealtorPanel from "@/components/RealtorPanel";
 import { getLang } from "@/lib/serverLang";
@@ -57,8 +57,11 @@ export default async function MyPage() {
       status: r.status,
       photo: (Array.isArray(r.photos) && r.photos[0]) || "/placeholder-baylux.jpg",
       slug: r.status === "approved" ? slugify(`${bn}-${r.type || ""}-${r.price || ""}`) : null,
+      managed: !!r.managed_by_baylux,
     };
   });
+  const ownItems = items.filter((x) => !x.managed);
+  const managedItems = items.filter((x) => x.managed);
 
   return (
     <div className="wrap" style={{ paddingBlock: "30px 50px" }}>
@@ -74,7 +77,7 @@ export default async function MyPage() {
       <p style={{ color: "var(--ink-soft)", margin: "6px 0 20px" }}>
         {session.name ? session.name + " — " : ""}{t("cab_objs")} ({rows.length}). {t("cab_addnew")}
       </p>
-      <MyListings items={items} />
+      <CabinetTabs listings={ownItems} managed={managedItems} />
       <RealtorPanel initial={realtor} />
       <DataRights />
     </div>

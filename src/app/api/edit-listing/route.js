@@ -45,9 +45,11 @@ export async function POST(req) {
   if (!b.id) return Response.json({ ok: false, error: "id" }, { status: 400 });
 
   // Проверка владельца
-  const { data: existing } = await supa.from("listings").select("id, tg_user_id, owner_email, tg_post_id, tg_channel").eq("id", b.id).single();
+  const { data: existing } = await supa.from("listings").select("id, tg_user_id, owner_email, tg_post_id, tg_channel, managed_by_baylux").eq("id", b.id).single();
   const admin = isAdmin(session); // главный админ: правки публикуются сразу, без повторной модерации
   if (!owns(session, existing) && !admin) return Response.json({ ok: false, error: "forbidden" }, { status: 403 });
+  // Объект под управлением Baylux владелец редактировать не может — только админ.
+  if (existing?.managed_by_baylux && !admin) return Response.json({ ok: false, error: "managed" }, { status: 403 });
 
   const phone = gePhone(b.contact);
   if (!phone) return Response.json({ ok: false, error: "phone" }, { status: 400 });
