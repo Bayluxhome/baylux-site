@@ -54,6 +54,14 @@ export default function AddListingForm({ initial, editId }) {
   const [isAdm, setIsAdm] = useState(false);
   useEffect(() => { fetch("/api/me").then((r) => r.json()).then((j) => setIsAdm(!!j.admin)).catch(() => {}); }, []);
   const upd = (k, v) => setF((s) => ({ ...s, [k]: v }));
+  const dragIdx = useRef(null);
+  const moveThumb = (from, to) => setExistingPhotos((p) => {
+    if (from == null || to < 0 || to >= p.length || from === to) return p;
+    const arr = [...p];
+    const [m] = arr.splice(from, 1);
+    arr.splice(to, 0, m);
+    return arr;
+  });
   const toggleAmenity = (a) => setAmenities((arr) => arr.includes(a) ? arr.filter((x) => x !== a) : [...arr, a]);
   const geoTimer = useRef(null);
 
@@ -159,7 +167,15 @@ export default function AddListingForm({ initial, editId }) {
         <input value={f.area} onChange={(e) => upd("area", e.target.value)} inputMode="numeric" placeholder="56" />
       </label>
       <label>{t("af_rooms")}
-        <input value={f.rooms} onChange={(e) => upd("rooms", e.target.value)} inputMode="numeric" placeholder="2" />
+        <select value={f.rooms} onChange={(e) => upd("rooms", e.target.value)}>
+          <option value="">—</option>
+          <option value="0">{t("ht_studio")}</option>
+          <option value="1">1</option>
+          <option value="2">2</option>
+          <option value="3">3</option>
+          <option value="4">4</option>
+          <option value="5">5+</option>
+        </select>
       </label>
       <label>{t("af_bath")}
         <input value={f.bathrooms} onChange={(e) => upd("bathrooms", e.target.value)} inputMode="numeric" placeholder="1" />
@@ -199,12 +215,25 @@ export default function AddListingForm({ initial, editId }) {
       </label>
       {existingPhotos.length > 0 && (
         <div className="af-full">
-          <div className="af-lbl">{t("af_cur_photos")}</div>
+          <div className="af-lbl">{t("af_cur_photos")} <span style={{ color: "var(--ink-soft)", fontWeight: 400, fontSize: 13 }}>· {t("af_reorder")}</span></div>
           <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
             {existingPhotos.map((u, i) => (
-              <div key={u + i} style={{ position: "relative", width: 84, height: 64, borderRadius: 8, overflow: "hidden", border: "1px solid var(--line)" }}>
-                <img src={u} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+              <div
+                key={u + i}
+                draggable
+                onDragStart={() => { dragIdx.current = i; }}
+                onDragOver={(e) => e.preventDefault()}
+                onDrop={() => { moveThumb(dragIdx.current, i); dragIdx.current = null; }}
+                style={{ position: "relative", width: 84, height: 64, borderRadius: 8, overflow: "hidden", border: i === 0 ? "2px solid var(--gold)" : "1px solid var(--line)", cursor: "grab" }}
+                title={i === 0 ? t("af_cover") : ""}
+              >
+                <img src={u} alt="" draggable={false} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                {i === 0 && <span style={{ position: "absolute", left: 2, top: 2, background: "var(--gold-dk)", color: "#fff", fontSize: 9, fontWeight: 700, padding: "1px 5px", borderRadius: 6 }}>{t("af_cover")}</span>}
                 <button type="button" onClick={() => setExistingPhotos((p) => p.filter((_, j) => j !== i))} style={{ position: "absolute", top: 2, right: 2, width: 20, height: 20, borderRadius: "50%", border: "none", background: "rgba(0,0,0,.6)", color: "#fff", cursor: "pointer", lineHeight: 1, fontSize: 12 }}>✕</button>
+                <div style={{ position: "absolute", left: 0, right: 0, bottom: 0, display: "flex", justifyContent: "space-between" }}>
+                  <button type="button" aria-label="←" onClick={() => moveThumb(i, i - 1)} disabled={i === 0} style={{ flex: 1, border: "none", background: "rgba(1,29,60,.6)", color: "#fff", cursor: i === 0 ? "default" : "pointer", fontSize: 13, padding: "1px 0", opacity: i === 0 ? 0.35 : 1 }}>‹</button>
+                  <button type="button" aria-label="→" onClick={() => moveThumb(i, i + 1)} disabled={i === existingPhotos.length - 1} style={{ flex: 1, border: "none", background: "rgba(1,29,60,.6)", color: "#fff", cursor: i === existingPhotos.length - 1 ? "default" : "pointer", fontSize: 13, padding: "1px 0", opacity: i === existingPhotos.length - 1 ? 0.35 : 1 }}>›</button>
+                </div>
               </div>
             ))}
           </div>
