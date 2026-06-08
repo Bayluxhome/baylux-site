@@ -27,6 +27,10 @@ export async function POST(req) {
   if (!canManage) return Response.json({ ok: false, error: "forbidden" }, { status: 403 });
 
   const author = s.email || s.username || (s.id != null ? String(s.id) : "");
+  // Анти-флуд: не больше 5 отчётов в минуту от одного сотрудника.
+  const since = new Date(Date.now() - 60 * 1000).toISOString();
+  const { count: recent } = await supa.from("photo_reports").select("id", { count: "exact", head: true }).eq("created_by", author).gt("created_at", since);
+  if ((recent || 0) >= 5) return Response.json({ ok: false, error: "rate" }, { status: 429 });
   const { data: ins, error } = await supa.from("photo_reports").insert({ listing_id: String(r.id), photos, note: note || null, created_by: author }).select("id, created_at").single();
   if (error) return Response.json({ ok: false });
   return Response.json({ ok: true, id: ins.id, at: ins.created_at });

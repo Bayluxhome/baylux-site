@@ -26,6 +26,10 @@ export async function POST(req) {
   if (!canManage) return Response.json({ ok: false, error: "forbidden" }, { status: 403 });
 
   const author = s.email || s.username || (s.id != null ? String(s.id) : "");
+  // Анти-флуд: не больше 5 сообщений в минуту от одного сотрудника (защита почты собственника).
+  const since = new Date(Date.now() - 60 * 1000).toISOString();
+  const { count: recent } = await supa.from("owner_messages").select("id", { count: "exact", head: true }).eq("created_by", author).gt("created_at", since);
+  if ((recent || 0) >= 5) return Response.json({ ok: false, error: "rate" }, { status: 429 });
   const { error } = await supa.from("owner_messages").insert({ listing_id: String(r.id), body, created_by: author });
   if (error) return Response.json({ ok: false });
 
