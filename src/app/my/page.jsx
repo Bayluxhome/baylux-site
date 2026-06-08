@@ -40,6 +40,7 @@ export default async function MyPage() {
   let realtor = null;
   let managedRows = [];
   let msgsByListing = {};
+  let reportsByListing = {};
   if (supa) {
     let q = supa.from("listings").select("*");
     q = session.id != null ? q.eq("tg_user_id", session.id) : q.eq("owner_email", session.email);
@@ -68,6 +69,8 @@ export default async function MyPage() {
       const ids = managedRows.map((r) => String(r.id));
       const { data: msgs } = await supa.from("owner_messages").select("*").in("listing_id", ids).order("created_at", { ascending: false });
       (msgs || []).forEach((m) => { (msgsByListing[m.listing_id] = msgsByListing[m.listing_id] || []).push({ id: m.id, body: m.body, at: m.created_at }); });
+      const { data: reps } = await supa.from("photo_reports").select("*").in("listing_id", ids).order("created_at", { ascending: false });
+      (reps || []).forEach((p) => { (reportsByListing[p.listing_id] = reportsByListing[p.listing_id] || []).push({ id: p.id, photos: Array.isArray(p.photos) ? p.photos : [], note: p.note || "", at: p.created_at }); });
     }
   }
 
@@ -90,6 +93,7 @@ export default async function MyPage() {
       internalNo: r.internal_no || "",
       canManage: canMng || isResponsible(session, r),
       messages: msgsByListing[String(r.id)] || [],
+      reports: reportsByListing[String(r.id)] || [],
     };
   };
   const ownItems = rows.map(mapItem).filter((x) => !x.managed);
