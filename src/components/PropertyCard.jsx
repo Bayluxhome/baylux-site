@@ -96,6 +96,7 @@ export default function PropertyCard({ unit }) {
           <Image src={unit.img} alt={alt} fill sizes="(max-width:560px) 100vw, 360px" style={{ objectFit: "cover" }} />
         )}
         <span className={"badge " + DEAL_CLASS[unit.deal]}>{t("deal_" + unit.deal)}</span>
+        {unit.managed && <span className="managed-badge">🏠 {t("managed_badge")}</span>}
         {dupeText && <span className="dupe-badge">{dupeText}</span>}
         {photos && (photos.length <= 7
           ? <div className="ph-dots">{photos.map((_, i) => <span key={i} className={"ph-dot" + (i === pidx ? " on" : "")} />)}</div>

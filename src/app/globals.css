@@ -275,6 +275,7 @@ nav.main{display:flex;gap:2px;font-weight:500;font-size:15px}
 @media(hover:hover) and (min-width:561px){ .card:hover .ph-arrow{display:flex} .ph-arrow:hover{background:#fff} }
 .badge{position:absolute;top:12px;left:12px;padding:5px 11px;border-radius:8px;font-size:12px;font-weight:700;color:#fff;box-shadow:0 2px 8px rgba(1,29,60,.18)}
 .dupe-badge{position:absolute;left:12px;bottom:12px;z-index:2;background:rgba(1,29,60,.82);color:#fff;font-size:12px;font-weight:600;padding:3px 9px;border-radius:20px}
+.managed-badge{position:absolute;right:12px;top:12px;z-index:2;background:var(--gold-dk);color:#fff;font-size:11px;font-weight:700;padding:4px 9px;border-radius:20px;box-shadow:0 2px 8px rgba(1,29,60,.18)}
 .b-sale{background:var(--navy)} .b-rent{background:var(--grad-gold);color:var(--navy)} .b-daily{background:var(--ink)}
 .b-jk{background:var(--gold-dk)}
 .heart{position:absolute;top:10px;right:10px;width:34px;height:34px;border-radius:9px;background:rgba(255,255,255,.92);display:grid;place-items:center;font-size:16px;color:var(--navy);border:none;cursor:pointer}

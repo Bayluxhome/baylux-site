@@ -66,6 +66,7 @@ function groupRows(rows) {
       complex: r.complex || "",
       amenities: typeof r.amenities === "string" && r.amenities ? r.amenities.split(",").map((s) => s.trim()).filter(Boolean) : (Array.isArray(r.amenities) ? r.amenities : []),
       noCommission: !!r.no_commission,
+      managed: !!r.managed_by_baylux,
       currency: curU,
       priceNum: pNum,
       perM2,

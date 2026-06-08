@@ -73,6 +73,7 @@ export default async function CatalogPage({ searchParams }) {
   const amax = parseInt(sp.amax, 10) || 0;
   const ymin = parseInt(sp.ymin, 10) || 0;
   const nc = sp.nc === "1";
+  const managed = sp.managed === "1";
   const amenSel = [].concat(sp.amen || []).filter(Boolean);
   const sort = SORTS.some((s) => s.key === sp.sort) ? sp.sort : "rec";
   const q = (sp.q || "").toString().trim();
@@ -99,6 +100,7 @@ export default async function CatalogPage({ searchParams }) {
   if (amax) units = units.filter((u) => (u.area || 0) > 0 && u.area <= amax);
   if (ymin) units = units.filter((u) => u.year && parseInt(u.year, 10) >= ymin);
   if (nc) units = units.filter((u) => u.noCommission);
+  if (managed) units = units.filter((u) => u.managed);
   if (amenSel.length) units = units.filter((u) => amenSel.every((a) => (u.amenities || []).includes(a)));
 
   // Сортировка. "rec" — порядок по умолчанию (boost desc из источника). Остальные — чистые,
