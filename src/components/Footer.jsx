@@ -37,7 +37,7 @@ export default function Footer() {
           </div>
           <div>
             <h4>{t("nav_services")}</h4>
-            <a href="/#services">{t("foot_mgmt")}</a><a href="/#services">{t("foot_cleaning")}</a><a href="/realtors">{t("foot_realtors")}</a>
+            <Link href="/property-management">{t("foot_mgmt")}</Link><Link href="/cleaning">{t("foot_cleaning")}</Link><Link href="/realtors">{t("foot_realtors")}</Link>
           </div>
           <div>
             <h4>{t("foot_company")}</h4>

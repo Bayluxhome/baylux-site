@@ -47,10 +47,10 @@ const NAV = [
     { d: "daily", c: "apartment", href: "/catalog?deal=daily&cat=apartment" },
     { d: "daily", c: "house", href: "/catalog?deal=daily&cat=house" },
   ] },
-  { label: "Услуги", href: "/#services", sub: [
-    { lk: "foot_mgmt", href: "/#services" },
-    { lk: "foot_cleaning", href: "/#services" },
-    { lk: "foot_realtors", href: "/#services" },
+  { label: "Услуги", href: "/property-management", sub: [
+    { lk: "foot_mgmt", href: "/property-management" },
+    { lk: "foot_cleaning", href: "/cleaning" },
+    { lk: "foot_realtors", href: "/realtors" },
   ] },
 ];
 
