@@ -13,7 +13,8 @@ export async function POST(req) {
   const f = form.get("photo");
   if (!f || typeof f.arrayBuffer !== "function") return Response.json({ ok: false });
   // Только изображения и не больше 10 МБ (защита от заливки произвольных/тяжёлых файлов).
-  if (f.type && !/^image\//.test(f.type)) return Response.json({ ok: false, error: "type" }, { status: 415 });
+  // Требуем image/* явно — пустой Content-Type тоже отклоняем (наши клиенты всегда шлют image/jpeg).
+  if (!/^image\//.test(f.type || "")) return Response.json({ ok: false, error: "type" }, { status: 415 });
   const buf = Buffer.from(await f.arrayBuffer());
   if (buf.length > 10 * 1024 * 1024) return Response.json({ ok: false, error: "size" }, { status: 413 });
   const name = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}.jpg`;
