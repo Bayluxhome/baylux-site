@@ -1,5 +1,5 @@
 import { cookies } from "next/headers";
-import { verifySession, can } from "@/lib/session";
+import { verifySession, can, isResponsible } from "@/lib/session";
 import { supa } from "@/lib/supabase";
 import * as XLSX from "xlsx";
 
@@ -21,11 +21,13 @@ function normPeriod(v) {
 }
 function pick(row, re) { for (const k of Object.keys(row)) if (re.test(k)) return row[k]; return undefined; }
 
-// Импорт XLS/CSV сводки. Один файл на все квартиры (по внутр. номеру и месяцу). Только право managed.
+// Импорт XLS/CSV сводки по внутр. номеру и месяцу.
+// Управляющий (managed) импортирует по всем объектам, ответственный сотрудник — только по своим.
 export async function POST(req) {
   const s = verifySession(cookies().get("bx_session")?.value);
-  if (!can(s, "managed")) return Response.json({ ok: false, error: "forbidden" }, { status: 403 });
+  if (!s) return Response.json({ ok: false, error: "auth" }, { status: 401 });
   if (!supa) return Response.json({ ok: false }, { status: 500 });
+  const canMng = can(s, "managed");
   const form = await req.formData();
   const f = form.get("file");
   if (!f || typeof f.arrayBuffer !== "function") return Response.json({ ok: false, error: "file" }, { status: 400 });
@@ -37,9 +39,14 @@ export async function POST(req) {
   } catch (e) { return Response.json({ ok: false, error: "parse" }, { status: 400 }); }
   if (!rows.length) return Response.json({ ok: false, error: "empty" }, { status: 400 });
 
-  const { data: lst } = await supa.from("listings").select("id, internal_no").eq("managed_by_baylux", true);
+  // Управляющий видит все объекты, ответственный — только закреплённые за ним.
+  const { data: lst } = await supa.from("listings")
+    .select("id, internal_no, responsible_tg, responsible_email")
+    .eq("managed_by_baylux", true);
+  const scope = (lst || []).filter((l) => canMng || isResponsible(s, l));
+  if (!canMng && !scope.length) return Response.json({ ok: false, error: "forbidden" }, { status: 403 });
   const byNo = {};
-  (lst || []).forEach((l) => { if (l.internal_no) byNo[String(l.internal_no).trim().toLowerCase()] = String(l.id); });
+  scope.forEach((l) => { if (l.internal_no) byNo[String(l.internal_no).trim().toLowerCase()] = String(l.id); });
 
   const toUpsert = [];
   const skipped = [];
