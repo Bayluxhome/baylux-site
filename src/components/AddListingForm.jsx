@@ -52,10 +52,11 @@ export default function AddListingForm({ initial, editId }) {
   const [geoNote, setGeoNote] = useState("");
   const [state, setState] = useState("");
   const [isAdm, setIsAdm] = useState(false);
-  useEffect(() => { fetch("/api/me").then((r) => r.json()).then((j) => setIsAdm(!!j.admin)).catch(() => {}); }, []);
+  const [canMng, setCanMng] = useState(false);
+  useEffect(() => { fetch("/api/me").then((r) => r.json()).then((j) => { setIsAdm(!!j.admin); setCanMng(!!(j.perms && j.perms.managed)); }).catch(() => {}); }, []);
   const [ownerList, setOwnerList] = useState([]);
   const [ownerSel, setOwnerSel] = useState("");
-  useEffect(() => { if (!isAdm) return; fetch("/api/admin/users-list").then((r) => r.json()).then((j) => setOwnerList(j.users || [])).catch(() => {}); }, [isAdm]);
+  useEffect(() => { if (!canMng) return; fetch("/api/admin/users-list").then((r) => r.json()).then((j) => setOwnerList(j.users || [])).catch(() => {}); }, [canMng]);
   const ownerVal = (u) => u.email || (u.tg_user_id != null ? "tg:" + u.tg_user_id : "");
   const curOwner = editId ? (init.f?.ownerEmail || (init.f?.ownerUsername ? "@" + init.f.ownerUsername : (init.f?.ownerTg != null ? "tg:" + init.f.ownerTg : ""))) : "";
   const [respSel, setRespSel] = useState("");
@@ -137,11 +138,11 @@ export default function AddListingForm({ initial, editId }) {
       }
       const payload = { ...f, contact: phone, amenities, lat: geo?.lat, lng: geo?.lng, photos, photo_hashes, lang, facade: facadeUrl };
       if (editId) payload.id = editId;
-      if (isAdm && editId && ownerSel) {
+      if (canMng && editId &&ownerSel) {
         const ou = ownerList.find((x) => ownerVal(x) === ownerSel);
         if (ou) { payload.ownerEmail = ou.email || ""; payload.ownerTg = ou.tg_user_id ?? null; }
       }
-      if (isAdm && editId && respSel) {
+      if (canMng && editId &&respSel) {
         const ru = ownerList.find((x) => ownerVal(x) === respSel);
         if (ru) { payload.responsibleEmail = ru.email || ""; payload.responsibleTg = ru.tg_user_id ?? null; }
       }
@@ -228,13 +229,13 @@ export default function AddListingForm({ initial, editId }) {
         <input type="checkbox" checked={f.noCommission} onChange={(e) => upd("noCommission", e.target.checked)} />
         <span>{t("af_nc")}</span>
       </label>
-      {isAdm && (
+      {canMng && (
         <label className="af-full af-check" style={{ background: "var(--cream)", borderRadius: 10, padding: "10px 12px" }}>
           <input type="checkbox" checked={!!f.managed} onChange={(e) => upd("managed", e.target.checked)} />
           <span>🏠 {t("managed_badge")} <span style={{ color: "var(--ink-soft)", fontWeight: 400 }}>({t("af_admin_only")})</span></span>
         </label>
       )}
-      {isAdm && editId && (
+      {canMng && editId && (
         <div className="af-full" style={{ background: "var(--cream)", borderRadius: 10, padding: "12px 14px" }}>
           <div className="af-lbl">👤 {t("af_owner_h")} <span style={{ color: "var(--ink-soft)", fontWeight: 400, fontSize: 13 }}>({t("af_admin_only")})</span></div>
           <div style={{ fontSize: 13, color: "var(--ink-soft)", margin: "2px 0 8px" }}>{t("af_owner_cur")}: <b>{curOwner || "—"}</b></div>
@@ -249,7 +250,7 @@ export default function AddListingForm({ initial, editId }) {
           <div className="af-hint">{t("af_owner_hint")}</div>
         </div>
       )}
-      {isAdm && editId && (
+      {canMng && editId && (
         <div className="af-full" style={{ background: "var(--cream)", borderRadius: 10, padding: "12px 14px" }}>
           <div className="af-lbl">🧑‍💼 {t("af_resp_h")} <span style={{ color: "var(--ink-soft)", fontWeight: 400, fontSize: 13 }}>({t("af_admin_only")})</span></div>
           <div style={{ fontSize: 13, color: "var(--ink-soft)", margin: "2px 0 8px" }}>{t("af_resp_cur")}: <b>{curResp || "—"}</b></div>
@@ -264,7 +265,7 @@ export default function AddListingForm({ initial, editId }) {
           <div className="af-hint">{t("af_resp_hint")}</div>
         </div>
       )}
-      {isAdm && editId && (
+      {canMng && editId && (
         <label className="af-full">📄 {t("af_contract_h")} <span style={{ color: "var(--ink-soft)", fontWeight: 400, fontSize: 13 }}>({t("af_admin_only")})</span>
           <input value={f.contractUrl || ""} onChange={(e) => upd("contractUrl", e.target.value)} placeholder="https://..." />
           <span className="af-hint">{t("af_contract_hint")}</span>

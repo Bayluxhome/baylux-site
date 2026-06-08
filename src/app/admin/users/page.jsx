@@ -1,7 +1,7 @@
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import Link from "next/link";
-import { verifySession, isAdmin } from "@/lib/session";
+import { verifySession, can } from "@/lib/session";
 import { supa } from "@/lib/supabase";
 
 export const dynamic = "force-dynamic";
@@ -15,7 +15,7 @@ function fmt(s) {
 
 export default async function AdminUsersPage() {
   const session = verifySession(cookies().get("bx_session")?.value);
-  if (!isAdmin(session)) redirect("/admin");
+  if (!can(session, "users")) redirect("/admin");
 
   let users = [];
   if (supa) {

@@ -1,5 +1,5 @@
 import { cookies } from "next/headers";
-import { verifySession, owns, isAdmin } from "@/lib/session";
+import { verifySession, owns, can } from "@/lib/session";
 import { supa } from "@/lib/supabase";
 
 export const runtime = "nodejs";
@@ -46,17 +46,19 @@ export async function POST(req) {
 
   // Проверка владельца
   const { data: existing } = await supa.from("listings").select("id, tg_user_id, owner_email, tg_post_id, tg_channel, managed_by_baylux").eq("id", b.id).single();
-  const admin = isAdmin(session); // главный админ: правки публикуются сразу, без повторной модерации
-  if (!owns(session, existing) && !admin) return Response.json({ ok: false, error: "forbidden" }, { status: 403 });
-  // Объект под управлением Baylux владелец редактировать не может — только админ.
-  if (existing?.managed_by_baylux && !admin) return Response.json({ ok: false, error: "managed" }, { status: 403 });
+  const canMod = can(session, "moderate"); // модерация: правки публикуются сразу
+  const canMng = can(session, "managed");  // управление: поля managed/владелец/ответственный/договор
+  // Редактировать может: владелец; модератор (любое); управляющий (только объекты в управлении).
+  if (!owns(session, existing) && !canMod && !(canMng && existing?.managed_by_baylux)) return Response.json({ ok: false, error: "forbidden" }, { status: 403 });
+  // Объект под управлением: владелец редактировать не может — только модератор или управляющий.
+  if (existing?.managed_by_baylux && !canMod && !canMng) return Response.json({ ok: false, error: "managed" }, { status: 403 });
 
   const phone = gePhone(b.contact);
   if (!phone) return Response.json({ ok: false, error: "phone" }, { status: 400 });
 
   // Старый пост в канале удаляем (из того канала, куда публиковали) — объявление снова на модерации
   const oldCh = existing.tg_channel || CHANNEL;
-  if (!admin && oldCh && existing.tg_post_id) {
+  if (!canMod && oldCh && existing.tg_post_id) {
     for (const mid of String(existing.tg_post_id).split(",")) await tg("deleteMessage", { chat_id: oldCh, message_id: Number(mid) });
   }
 
@@ -67,7 +69,7 @@ export async function POST(req) {
   const amenities = Array.isArray(b.amenities) ? b.amenities.filter(Boolean).join(", ") : (b.amenities || "");
   const hasGeo = b.lat != null && b.lng != null;
   const row = {
-    status: admin ? "approved" : "pending",
+    status: canMod ? "approved" : "pending",
     building_name: (b.address || "").trim() || (b.type ? `${b.type}, ${city}` : "Объект"),
     kind: /новострой/i.test(b.type || "") || (b.complex || "").trim() ? "complex" : "house",
     district: city,
@@ -76,13 +78,13 @@ export async function POST(req) {
     rooms: parseInt(b.rooms, 10) || 0, area: parseInt(b.area, 10) || 0, bathrooms: parseInt(b.bathrooms, 10) || null,
     floor: (b.floor || "—").toString(), year: parseInt(b.year, 10) || null,
     complex: (b.complex || "").toString().trim(), amenities, no_commission: !!b.noCommission,
-    ...(admin && b.managed !== undefined ? { managed_by_baylux: !!b.managed } : {}),
+    ...(canMng && b.managed !== undefined ? { managed_by_baylux: !!b.managed } : {}),
     // Админ может назначить владельца — объект появится в его личном кабинете.
-    ...(admin && b.ownerEmail !== undefined ? { owner_email: b.ownerEmail || null, tg_user_id: b.ownerTg != null ? Number(b.ownerTg) : null } : {}),
+    ...(canMng && b.ownerEmail !== undefined ? { owner_email: b.ownerEmail || null, tg_user_id: b.ownerTg != null ? Number(b.ownerTg) : null } : {}),
     // Договор с арендатором (ссылка) — только админ.
-    ...(admin && b.contractUrl !== undefined ? { contract_url: (b.contractUrl || "").toString().trim() || null } : {}),
+    ...(canMng && b.contractUrl !== undefined ? { contract_url: (b.contractUrl || "").toString().trim() || null } : {}),
     // Ответственный сотрудник за объект — только админ.
-    ...(admin && b.responsibleEmail !== undefined ? { responsible_email: b.responsibleEmail || null, responsible_tg: b.responsibleTg != null ? Number(b.responsibleTg) : null } : {}),
+    ...(canMng && b.responsibleEmail !== undefined ? { responsible_email: b.responsibleEmail || null, responsible_tg: b.responsibleTg != null ? Number(b.responsibleTg) : null } : {}),
     price: fmtPrice(priceNum, currency), currency, price_num: priceNum, per: deal === "rent" ? "в месяц" : deal === "daily" ? "в сутки" : "",
     about: (b.about || "").toString(), photos: Array.isArray(b.photos) ? b.photos.slice(0, 10) : [],
     facade_photo: (b.facade || "").toString() || null,
@@ -91,7 +93,7 @@ export async function POST(req) {
   const { error } = await supa.from("listings").update(row).eq("id", b.id);
   if (error) return Response.json({ ok: false });
 
-  if (!admin && ADMIN && TOKEN) {
+  if (!canMod && ADMIN && TOKEN) {
     if (row.photos.length) await tg("sendMediaGroup", { chat_id: ADMIN, media: row.photos.map((u) => ({ type: "photo", media: u })) });
     if (hasGeo) await tg("sendLocation", { chat_id: ADMIN, latitude: row.lat, longitude: row.lng });
     const geoLine = hasGeo ? `\n📍 <a href="${mapsLink(row.lat, row.lng)}">проверить точку</a>` : `\n⚠️ точка на карте НЕ указана`;

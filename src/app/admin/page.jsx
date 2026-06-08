@@ -1,5 +1,5 @@
 import { cookies } from "next/headers";
-import { verifySession, isAdmin, isSuperAdmin } from "@/lib/session";
+import { verifySession, isAdmin, isSuperAdmin, can } from "@/lib/session";
 import { supa } from "@/lib/supabase";
 import { slugify } from "@/data/sheet";
 import AdminListings from "@/components/AdminListings";
@@ -74,13 +74,19 @@ export default async function AdminPage() {
         Всего {rows.length} · одобрено {counts.approved || 0} · на модерации {counts.pending || 0} · снято {counts.rejected || 0}
       </p>
       <div style={{ display: "flex", gap: 12, marginBottom: 22, flexWrap: "wrap" }}>
-        <a className="btn btn-ghost" href="/admin/news" style={{ padding: "9px 16px" }}>📰 Управление новостями</a>
-        <a className="btn btn-ghost" href="/admin/realtors" style={{ padding: "9px 16px" }}>👤 Риелторы{realtorPending ? ` · ${realtorPending} новых` : ""}</a>
-        <a className="btn btn-ghost" href="/admin/users" style={{ padding: "9px 16px" }}>👥 Пользователи{usersCount ? ` · ${usersCount}` : ""}</a>
+        {can(session, "news") && <a className="btn btn-ghost" href="/admin/news" style={{ padding: "9px 16px" }}>📰 Управление новостями</a>}
+        {can(session, "realtors") && <a className="btn btn-ghost" href="/admin/realtors" style={{ padding: "9px 16px" }}>👤 Риелторы{realtorPending ? ` · ${realtorPending} новых` : ""}</a>}
+        {can(session, "users") && <a className="btn btn-ghost" href="/admin/users" style={{ padding: "9px 16px" }}>👥 Пользователи{usersCount ? ` · ${usersCount}` : ""}</a>}
         {isSuperAdmin(session) && <a className="btn btn-gold" href="/admin/staff" style={{ padding: "9px 16px" }}>🛡️ Сотрудники</a>}
       </div>
-      <h2 style={{ color: "var(--navy)", fontSize: 18, marginBottom: 12 }}>Все объявления</h2>
-      <AdminListings items={items} />
+      {can(session, "moderate") ? (
+        <>
+          <h2 style={{ color: "var(--navy)", fontSize: 18, marginBottom: 12 }}>Все объявления</h2>
+          <AdminListings items={items} />
+        </>
+      ) : (
+        <p style={{ color: "var(--ink-soft)" }}>У вас нет права на модерацию объявлений. Доступные разделы — выше.</p>
+      )}
     </div>
   );
 }

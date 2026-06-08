@@ -17,13 +17,13 @@ export async function GET(req) {
     }
   } catch (e) { console.error("consent log:", e?.message); }
 
-  // Учёт пользователя (для админ-раздела «Пользователи»). Не ломаем вход при ошибке.
-  let adminGrant = false;
+  // Учёт пользователя + чтение прав сотрудника. Не ломаем вход при ошибке.
+  let perms = [];
   try {
     if (supa) {
       await supa.from("site_users").upsert({ tg_user_id: Number(data.id), username: data.username || "", name: data.first_name || "", last_login: new Date().toISOString() }, { onConflict: "tg_user_id" });
-      const { data: su } = await supa.from("site_users").select("is_admin").eq("tg_user_id", Number(data.id)).maybeSingle();
-      adminGrant = !!su?.is_admin;
+      const { data: su } = await supa.from("site_users").select("permissions, is_admin").eq("tg_user_id", Number(data.id)).maybeSingle();
+      perms = Array.isArray(su?.permissions) && su.permissions.length ? su.permissions : (su?.is_admin ? ["moderate", "managed", "news", "realtors", "users"] : []);
     }
   } catch (e) { console.error("site_users tg:", e?.message); }
 
@@ -31,7 +31,7 @@ export async function GET(req) {
     id: Number(data.id),
     name: data.first_name || "",
     username: data.username || "",
-    ...(adminGrant ? { admin: true } : {}),
+    ...(perms.length ? { perms } : {}),
     exp: Date.now() + 30 * 24 * 3600 * 1000,
   });
 

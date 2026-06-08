@@ -41,13 +41,21 @@ export function isSuperAdmin(session) {
   return false;
 }
 
-// Является ли текущая сессия администратором: супер-админ из конфига ИЛИ сотрудник,
-// которому выданы права (флаг is_admin запекается в сессию при входе).
+// Есть ли у сессии конкретное право. Права (perms[]) запекаются в сессию при входе.
+// session.admin === true — легаси «полный админ» из старых сессий (до гранулярных прав).
+export function can(session, key) {
+  if (!session) return false;
+  if (isSuperAdmin(session)) return true;
+  if (session.admin === true) return true;
+  return Array.isArray(session.perms) && session.perms.includes(key);
+}
+
+// Есть ли у сессии вообще админ-доступ (хоть одно право). Используется как общий гейт.
 export function isAdmin(session) {
   if (!session) return false;
   if (isSuperAdmin(session)) return true;
   if (session.admin === true) return true;
-  return false;
+  return Array.isArray(session.perms) && session.perms.length > 0;
 }
 
 // Проверка подписи данных Telegram Login Widget.

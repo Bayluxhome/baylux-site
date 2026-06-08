@@ -1,7 +1,7 @@
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import Link from "next/link";
-import { verifySession, isAdmin } from "@/lib/session";
+import { verifySession, can } from "@/lib/session";
 import { supa } from "@/lib/supabase";
 import AdminRealtors from "@/components/AdminRealtors";
 
@@ -10,7 +10,7 @@ export const metadata = { title: "Риелторы — Админ", robots: { in
 
 export default async function AdminRealtorsPage() {
   const session = verifySession(cookies().get("bx_session")?.value);
-  if (!isAdmin(session)) redirect("/admin");
+  if (!can(session, "realtors")) redirect("/admin");
 
   let realtors = [];
   if (supa) {

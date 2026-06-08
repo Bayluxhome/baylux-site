@@ -1,5 +1,5 @@
 import { cookies } from "next/headers";
-import { verifySession, isAdmin } from "@/lib/session";
+import { verifySession, can } from "@/lib/session";
 import { supa } from "@/lib/supabase";
 import AdminNews from "@/components/AdminNews";
 
@@ -8,7 +8,7 @@ export const metadata = { title: "Новости — Админ", robots: { inde
 
 export default async function AdminNewsPage() {
   const session = verifySession(cookies().get("bx_session")?.value);
-  if (!isAdmin(session)) {
+  if (!can(session, "news")) {
     return (
       <div className="wrap" style={{ padding: "48px 24px", maxWidth: 560 }}>
         <h1 style={{ color: "var(--navy)" }}>Новости — Админ</h1>

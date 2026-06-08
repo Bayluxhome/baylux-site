@@ -1,7 +1,7 @@
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import Link from "next/link";
-import { verifySession, isAdmin } from "@/lib/session";
+import { verifySession, can, owns } from "@/lib/session";
 import { supa } from "@/lib/supabase";
 import AddListingForm from "@/components/AddListingForm";
 
@@ -13,9 +13,13 @@ export default async function EditListingPage({ params }) {
   if (!session) redirect("/my");
   const { data: r } = await supa.from("listings").select("*").eq("id", params.id).single();
   // Владелец — по tg_user_id; админ может редактировать любое объявление.
-  if (!r || (String(r.tg_user_id) !== String(session.id) && !isAdmin(session))) redirect("/my");
-  // Объект под управлением Baylux владелец не редактирует (только админ).
-  if (r.managed_by_baylux && !isAdmin(session)) redirect("/my");
+  const canMod = can(session, "moderate");
+  const canMng = can(session, "managed");
+  const mine = owns(session, r);
+  // Редактировать может: владелец; модератор (любое); управляющий (объекты в управлении).
+  if (!r || (!mine && !canMod && !(canMng && r.managed_by_baylux))) redirect("/my");
+  // Объект под управлением: владелец не редактирует — только модератор или управляющий.
+  if (r.managed_by_baylux && !canMod && !canMng) redirect("/my");
 
   const initial = {
     f: {
@@ -54,7 +58,7 @@ export default async function EditListingPage({ params }) {
     <div className="wrap" style={{ paddingBlock: "26px 50px" }}>
       <div className="crumbs"><Link href="/my">← Мои объявления</Link></div>
       <h1 style={{ color: "var(--navy)", marginBottom: 6 }}>Редактирование объявления</h1>
-      <p style={{ color: "var(--ink-soft)", marginBottom: 14 }}>{isAdmin(session) ? "Изменения публикуются сразу — без модерации." : "После сохранения объявление снова уйдёт на модерацию и временно скроется с сайта."}</p>
+      <p style={{ color: "var(--ink-soft)", marginBottom: 14 }}>{canMod ? "Изменения публикуются сразу — без модерации." : "После сохранения объявление снова уйдёт на модерацию и временно скроется с сайта."}</p>
       <AddListingForm initial={initial} editId={r.id} />
     </div>
   );

@@ -1,5 +1,5 @@
 import { cookies } from "next/headers";
-import { verifySession, isAdmin } from "@/lib/session";
+import { verifySession, can } from "@/lib/session";
 import { supa } from "@/lib/supabase";
 
 export const runtime = "nodejs";
@@ -51,7 +51,8 @@ export async function POST(req) {
   const session = verifySession(cookies().get("bx_session")?.value);
   if (!session) return Response.json({ ok: false, error: "auth" }, { status: 401 });
   if (!supa) return Response.json({ ok: false }, { status: 500 });
-  const admin = isAdmin(session); // главный админ: публикуем сразу, без модерации в боте
+  const canMod = can(session, "moderate"); // право модерации: публикуем сразу, без бота
+  const canMng = can(session, "managed");  // право управления: можно ставить флаг managed
   let b;
   try { b = await req.json(); } catch { return Response.json({ ok: false }); }
 
@@ -70,7 +71,7 @@ export async function POST(req) {
   const aboutText = (b.about || "").toString();
   const buildingName = (b.address || "").trim() || (b.type ? `${b.type}, ${city}` : "Объект");
   const row = {
-    status: admin ? "approved" : "pending", lang, ["desc_" + lang]: aboutText, ["name_" + lang]: buildingName,
+    status: canMod ? "approved" : "pending", lang, ["desc_" + lang]: aboutText, ["name_" + lang]: buildingName,
     building_name: buildingName,
     kind: /новострой/i.test(b.type || "") || (b.complex || "").trim() ? "complex" : "house",
     district: city,
@@ -82,7 +83,7 @@ export async function POST(req) {
     complex: (b.complex || "").toString().trim(), amenities, no_commission: !!b.noCommission,
     // ВАЖНО: «под управлением Baylux» может выставить только админ. Заявка владельца (b.managed)
     // не доверяется напрямую — она показывается модератору в боте, флаг ставит админ при одобрении.
-    managed_by_baylux: admin ? !!b.managed : false,
+    managed_by_baylux: canMng ? !!b.managed : false,
     price: priceStr, currency, price_num: priceNum, per: deal === "rent" ? "в месяц" : deal === "daily" ? "в сутки" : "",
     about: (b.about || "").toString(), photos: Array.isArray(b.photos) ? b.photos.slice(0, 10) : [], photo_hashes: Array.isArray(b.photo_hashes) ? b.photo_hashes.slice(0, 10) : [], facade_photo: (b.facade || "").toString() || null,
     tg_user_id: session.id ?? null, owner_email: session.email || null, tg_username: cleanTg(b.tg) || session.username || "", contact: phone, phone,
@@ -91,7 +92,7 @@ export async function POST(req) {
   if (error) return Response.json({ ok: false });
   if (session.id != null) await supa.from("users").upsert({ tg_user_id: session.id, phone, username: session.username || "" }, { onConflict: "tg_user_id" });
 
-  if (!admin && ADMIN && TOKEN) {
+  if (!canMod && ADMIN && TOKEN) {
     if (row.photos.length) await tg("sendMediaGroup", { chat_id: ADMIN, media: row.photos.map((u) => ({ type: "photo", media: u })) });
     if (hasGeo) await tg("sendLocation", { chat_id: ADMIN, latitude: row.lat, longitude: row.lng });
     const geoLine = hasGeo

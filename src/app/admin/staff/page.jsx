@@ -2,6 +2,7 @@ import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import { verifySession, isSuperAdmin } from "@/lib/session";
+import { PERMISSIONS } from "@/lib/permissions";
 import { supa } from "@/lib/supabase";
 import StaffTable from "@/components/StaffTable";
 
@@ -16,7 +17,7 @@ export default async function StaffPage() {
   if (supa) {
     const { data } = await supa
       .from("site_users")
-      .select("tg_user_id, email, name, username, is_admin")
+      .select("tg_user_id, email, name, username, permissions")
       .order("is_admin", { ascending: false })
       .order("created_at", { ascending: false });
     users = (data || []).map((u) => ({
@@ -25,7 +26,7 @@ export default async function StaffPage() {
       email: u.email || "",
       name: u.name || "",
       username: u.username || "",
-      is_admin: !!u.is_admin,
+      permissions: Array.isArray(u.permissions) ? u.permissions : [],
     }));
   }
 
@@ -37,7 +38,7 @@ export default async function StaffPage() {
         Выдавайте админ-права сотрудникам. Главный админ задан в конфигурации и всегда имеет доступ — его права здесь не меняются.
         Новые права вступают в силу при следующем входе сотрудника.
       </p>
-      <StaffTable users={users} />
+      <StaffTable users={users} allPerms={PERMISSIONS} />
     </div>
   );
 }

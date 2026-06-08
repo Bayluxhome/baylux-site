@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { cookies } from "next/headers";
-import { verifySession, isAdmin } from "@/lib/session";
+import { verifySession, isAdmin, can } from "@/lib/session";
 import { supa } from "@/lib/supabase";
 import { slugify, cleanAddress } from "@/data/sheet";
 import LoginBlock from "@/components/LoginBlock";
@@ -35,6 +35,7 @@ export default async function MyPage() {
   }
 
   const admin = isAdmin(session);
+  const canMng = can(session, "managed"); // право «Объекты в управлении» — видеть все
   let rows = [];
   let realtor = null;
   let managedRows = [];
@@ -49,8 +50,8 @@ export default async function MyPage() {
     const { data: rd } = await rq.maybeSingle();
     realtor = rd || null;
 
-    // Объекты в управлении: админ видит ВСЕ; ответственный — назначенные ему; владелец — свои.
-    if (admin) {
+    // Объекты в управлении: право managed видит ВСЕ; ответственный — назначенные ему; владелец — свои.
+    if (canMng) {
       const { data: md } = await supa.from("listings").select("*").eq("managed_by_baylux", true).order("created_at", { ascending: false });
       managedRows = md || [];
     } else {
@@ -95,7 +96,7 @@ export default async function MyPage() {
       <p style={{ color: "var(--ink-soft)", margin: "6px 0 20px" }}>
         {session.name ? session.name + " — " : ""}{t("cab_objs")} ({rows.length}). {t("cab_addnew")}
       </p>
-      <CabinetTabs listings={ownItems} managed={managedItems} adminView={admin} />
+      <CabinetTabs listings={ownItems} managed={managedItems} adminView={canMng} />
       <RealtorPanel initial={realtor} />
       <DataRights />
     </div>
