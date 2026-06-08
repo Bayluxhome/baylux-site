@@ -113,12 +113,9 @@ export default function PropertyCard({ unit }) {
           {unit.priceNum
             ? <><span className="bx-price" data-num={unit.priceNum} data-cur={unit.currency}>{fmtMoney(unit.priceNum, unit.currency)}</span>{priceSuffix}</>
             : unit.price}
-          {" "}
-          <span className="perm">
-            {unit.deal === "sale" && unit.perM2
-              ? <><span className="bx-price" data-num={unit.perM2} data-cur={unit.currency}>{fmtMoney(unit.perM2, unit.currency)}</span> {t("per_m2")}</>
-              : perWord}
-          </span>
+          {unit.deal === "sale" && unit.perM2
+            ? <span className="perm"><span className="bx-price" data-num={unit.perM2} data-cur={unit.currency}>{fmtMoney(unit.perM2, unit.currency)}</span> {t("per_m2")}</span>
+            : null}
         </div>
         <div className="cspecs">
           {specs.map((s, i) => <span className="cspec" key={i}>{s.ic}{s.txt}</span>)}

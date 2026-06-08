@@ -55,7 +55,7 @@ export default function SeoLanding({ prefix, slug, units, catalogHref, crumbLk, 
           </div>
           {units.length > shown.length && (
             <div style={{ marginTop: 22, textAlign: "center" }}>
-              <Link className="btn btn-ghost" href={catalogHref}>{t("rl_strip_all")}</Link>
+              <Link className="btn btn-ghost" href={catalogHref}>{t("ld_all")}</Link>
             </div>
           )}
         </>

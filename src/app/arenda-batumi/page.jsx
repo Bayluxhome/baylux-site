@@ -87,7 +87,7 @@ export default async function ArendaBatumiPage() {
           </div>
           {units.length > shown.length && (
             <div style={{ marginTop: 22, textAlign: "center" }}>
-              <Link className="btn btn-ghost" href="/catalog?deal=rent&city=Батуми">{t("rl_strip_all")}</Link>
+              <Link className="btn btn-ghost" href="/catalog?deal=rent&city=Батуми">{t("ld_all")}</Link>
             </div>
           )}
         </>
