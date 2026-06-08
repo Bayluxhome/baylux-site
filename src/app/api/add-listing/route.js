@@ -79,7 +79,7 @@ export async function POST(req) {
     rooms: parseInt(b.rooms, 10) || 0, area: parseInt(b.area, 10) || 0,
     bathrooms: parseInt(b.bathrooms, 10) || null,
     floor: (b.floor || "—").toString(), year: parseInt(b.year, 10) || null,
-    complex: (b.complex || "").toString().trim(), amenities, no_commission: !!b.noCommission,
+    complex: (b.complex || "").toString().trim(), amenities, no_commission: !!b.noCommission, managed_by_baylux: !!b.managed,
     price: priceStr, currency, price_num: priceNum, per: deal === "rent" ? "в месяц" : deal === "daily" ? "в сутки" : "",
     about: (b.about || "").toString(), photos: Array.isArray(b.photos) ? b.photos.slice(0, 10) : [], photo_hashes: Array.isArray(b.photo_hashes) ? b.photo_hashes.slice(0, 10) : [], facade_photo: (b.facade || "").toString() || null,
     tg_user_id: session.id ?? null, owner_email: session.email || null, tg_username: cleanTg(b.tg) || session.username || "", contact: phone, phone,

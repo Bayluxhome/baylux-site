@@ -100,7 +100,8 @@ export default async function PropertyManagementPage() {
         {/* ===== Блок для собственников ===== */}
         <section style={{ marginTop: 60, borderTop: "2px solid var(--line)", paddingTop: 40 }}>
           <h2 style={{ color: "var(--navy)", margin: "0 0 6px" }}>{t("hh_owner_h")}</h2>
-          <p style={{ color: "var(--ink-soft)", maxWidth: 760, margin: "0 0 24px", lineHeight: 1.6 }}>{t("hh_owner_p")}</p>
+          <p style={{ color: "var(--ink-soft)", maxWidth: 760, margin: "0 0 16px", lineHeight: 1.6 }}>{t("hh_owner_p")}</p>
+          <a className="btn btn-gold" href="/add-holiday" style={{ marginBottom: 26, display: "inline-block" }}>🏠 {t("cab_hh_btn")}</a>
 
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: 16 }}>
             {cards.map(([ic, h, p]) => (
