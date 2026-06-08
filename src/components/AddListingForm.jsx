@@ -1,5 +1,5 @@
 "use client";
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useMemo } from "react";
 import MapPicker from "./MapPicker";
 import { useLang } from "@/components/LangContext";
 import { typeLabel, amenLabel } from "@/lib/dict";
@@ -55,6 +55,7 @@ export default function AddListingForm({ initial, editId }) {
   useEffect(() => { fetch("/api/me").then((r) => r.json()).then((j) => setIsAdm(!!j.admin)).catch(() => {}); }, []);
   const upd = (k, v) => setF((s) => ({ ...s, [k]: v }));
   const dragIdx = useRef(null);
+  const dragIdx2 = useRef(null);
   const moveThumb = (from, to) => setExistingPhotos((p) => {
     if (from == null || to < 0 || to >= p.length || from === to) return p;
     const arr = [...p];
@@ -62,6 +63,15 @@ export default function AddListingForm({ initial, editId }) {
     arr.splice(to, 0, m);
     return arr;
   });
+  const moveFile = (from, to) => setFiles((p) => {
+    if (from == null || to < 0 || to >= p.length || from === to) return p;
+    const arr = [...p];
+    const [m] = arr.splice(from, 1);
+    arr.splice(to, 0, m);
+    return arr;
+  });
+  const filePreviews = useMemo(() => files.map((f) => URL.createObjectURL(f)), [files]);
+  useEffect(() => () => filePreviews.forEach((u) => URL.revokeObjectURL(u)), [filePreviews]);
   const toggleAmenity = (a) => setAmenities((arr) => arr.includes(a) ? arr.filter((x) => x !== a) : [...arr, a]);
   const geoTimer = useRef(null);
 
@@ -240,9 +250,30 @@ export default function AddListingForm({ initial, editId }) {
         </div>
       )}
       <div className="af-full">
-        <div className="af-lbl">{editId ? t("af_add_photos") : t("af_photos")}</div>
-        <input type="file" accept="image/*" multiple onChange={(e) => setFiles([...e.target.files])} />
+        <div className="af-lbl">{editId ? t("af_add_photos") : t("af_photos")}{files.length > 0 ? <span style={{ color: "var(--ink-soft)", fontWeight: 400, fontSize: 13 }}> · {t("af_reorder")}</span> : null}</div>
+        <input type="file" accept="image/*" multiple onChange={(e) => { const add = [...e.target.files]; setFiles((p) => [...p, ...add].slice(0, 10)); e.target.value = ""; }} />
         <div className="af-hint" style={{ color: "var(--gold-dk)" }}>⚠️ {t("af_nowatermark")}</div>
+        {files.length > 0 && (
+          <div style={{ display: "flex", flexWrap: "wrap", gap: 8, marginTop: 8 }}>
+            {files.map((f, i) => (
+              <div
+                key={f.name + f.size + f.lastModified}
+                draggable
+                onDragStart={() => { dragIdx2.current = i; }}
+                onDragOver={(e) => e.preventDefault()}
+                onDrop={() => { moveFile(dragIdx2.current, i); dragIdx2.current = null; }}
+                style={{ position: "relative", width: 84, height: 64, borderRadius: 8, overflow: "hidden", border: "1px solid var(--line)", cursor: "grab" }}
+              >
+                <img src={filePreviews[i]} alt="" draggable={false} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                <button type="button" onClick={() => setFiles((p) => p.filter((_, j) => j !== i))} style={{ position: "absolute", top: 2, right: 2, width: 20, height: 20, borderRadius: "50%", border: "none", background: "rgba(0,0,0,.6)", color: "#fff", cursor: "pointer", lineHeight: 1, fontSize: 12 }}>✕</button>
+                <div style={{ position: "absolute", left: 0, right: 0, bottom: 0, display: "flex", justifyContent: "space-between" }}>
+                  <button type="button" aria-label="‹" onClick={() => moveFile(i, i - 1)} disabled={i === 0} style={{ flex: 1, border: "none", background: "rgba(1,29,60,.6)", color: "#fff", cursor: i === 0 ? "default" : "pointer", fontSize: 13, padding: "1px 0", opacity: i === 0 ? 0.35 : 1 }}>‹</button>
+                  <button type="button" aria-label="›" onClick={() => moveFile(i, i + 1)} disabled={i === files.length - 1} style={{ flex: 1, border: "none", background: "rgba(1,29,60,.6)", color: "#fff", cursor: i === files.length - 1 ? "default" : "pointer", fontSize: 13, padding: "1px 0", opacity: i === files.length - 1 ? 0.35 : 1 }}>›</button>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
         {files.length > 0 && <div className="af-hint">{files.length} {t("af_newphotos")}</div>}
       </div>
       <div className="af-full">
