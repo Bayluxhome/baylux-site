@@ -1,5 +1,5 @@
 import { cookies } from "next/headers";
-import { verifySession, isAdmin } from "@/lib/session";
+import { verifySession, isAdmin, isSuperAdmin } from "@/lib/session";
 import { supa } from "@/lib/supabase";
 import { slugify } from "@/data/sheet";
 import AdminListings from "@/components/AdminListings";
@@ -77,6 +77,7 @@ export default async function AdminPage() {
         <a className="btn btn-ghost" href="/admin/news" style={{ padding: "9px 16px" }}>📰 Управление новостями</a>
         <a className="btn btn-ghost" href="/admin/realtors" style={{ padding: "9px 16px" }}>👤 Риелторы{realtorPending ? ` · ${realtorPending} новых` : ""}</a>
         <a className="btn btn-ghost" href="/admin/users" style={{ padding: "9px 16px" }}>👥 Пользователи{usersCount ? ` · ${usersCount}` : ""}</a>
+        {isSuperAdmin(session) && <a className="btn btn-gold" href="/admin/staff" style={{ padding: "9px 16px" }}>🛡️ Сотрудники</a>}
       </div>
       <h2 style={{ color: "var(--navy)", fontSize: 18, marginBottom: 12 }}>Все объявления</h2>
       <AdminListings items={items} />

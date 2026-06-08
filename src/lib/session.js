@@ -33,11 +33,20 @@ export function owns(session, row) {
   return false;
 }
 
-// Является ли текущая сессия администратором.
-export function isAdmin(session) {
+// Главный (супер-)админ: жёстко задан в конфиге. Только он управляет правами сотрудников.
+export function isSuperAdmin(session) {
   if (!session) return false;
   if (session.email && ADMIN_EMAILS.map((e) => e.toLowerCase()).includes(String(session.email).toLowerCase())) return true;
   if (session.id != null && ADMIN_TG_IDS.map(Number).includes(Number(session.id))) return true;
+  return false;
+}
+
+// Является ли текущая сессия администратором: супер-админ из конфига ИЛИ сотрудник,
+// которому выданы права (флаг is_admin запекается в сессию при входе).
+export function isAdmin(session) {
+  if (!session) return false;
+  if (isSuperAdmin(session)) return true;
+  if (session.admin === true) return true;
   return false;
 }
 

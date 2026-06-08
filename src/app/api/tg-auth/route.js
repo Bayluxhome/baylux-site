@@ -18,14 +18,20 @@ export async function GET(req) {
   } catch (e) { console.error("consent log:", e?.message); }
 
   // Учёт пользователя (для админ-раздела «Пользователи»). Не ломаем вход при ошибке.
+  let adminGrant = false;
   try {
-    if (supa) await supa.from("site_users").upsert({ tg_user_id: Number(data.id), username: data.username || "", name: data.first_name || "", last_login: new Date().toISOString() }, { onConflict: "tg_user_id" });
+    if (supa) {
+      await supa.from("site_users").upsert({ tg_user_id: Number(data.id), username: data.username || "", name: data.first_name || "", last_login: new Date().toISOString() }, { onConflict: "tg_user_id" });
+      const { data: su } = await supa.from("site_users").select("is_admin").eq("tg_user_id", Number(data.id)).maybeSingle();
+      adminGrant = !!su?.is_admin;
+    }
   } catch (e) { console.error("site_users tg:", e?.message); }
 
   const session = signSession({
     id: Number(data.id),
     name: data.first_name || "",
     username: data.username || "",
+    ...(adminGrant ? { admin: true } : {}),
     exp: Date.now() + 30 * 24 * 3600 * 1000,
   });
 
