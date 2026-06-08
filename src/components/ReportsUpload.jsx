@@ -3,25 +3,6 @@ import { useState } from "react";
 import { useLang } from "@/components/LangContext";
 
 const HEADERS = ["внутренний номер", "месяц", "доход", "выплачено владельцу", "комиссия", "коммуналка", "расходы", "заметка"];
-const SAMPLE = [
-  ["A-101", "2026-06", 1200, 960, 240, 80, 30, "всё в порядке"],
-  ["A-102", "2026-06", 1500, 1200, 300, 90, 0, ""],
-];
-const COL_W = [18, 12, 12, 18, 12, 13, 12, 30];
-const HELP = [
-  ["Как заполнять сводку Baylux"],
-  [""],
-  ["внутренний номер", "Внутренний номер объекта из его карточки. По нему строка привязывается к квартире. Обязательно."],
-  ["месяц", "Месяц отчёта в формате ГГГГ-ММ, например 2026-06. Обязательно."],
-  ["доход", "Общая выручка за месяц, число (без знака валюты)."],
-  ["выплачено владельцу", "Сумма к выплате собственнику."],
-  ["комиссия", "Комиссия Baylux."],
-  ["коммуналка", "Коммунальные платежи."],
-  ["расходы", "Прочие расходы (ремонт, расходники и т.п.)."],
-  ["заметка", "Комментарий для собственника (необязательно)."],
-  [""],
-  ["Одна строка = один объект за один месяц. Файл можно вести один на все месяцы — данные группируются по месяцу."],
-];
 
 export default function ReportsUpload() {
   const { t } = useLang();
@@ -42,24 +23,6 @@ export default function ReportsUpload() {
     setBusy(false);
   }
 
-  async function downloadTemplate() {
-    const XLSX = await import("xlsx");
-    const ws = XLSX.utils.aoa_to_sheet([HEADERS, ...SAMPLE]);
-    ws["!cols"] = COL_W.map((w) => ({ wch: w }));
-    const help = XLSX.utils.aoa_to_sheet(HELP);
-    help["!cols"] = [{ wch: 22 }, { wch: 70 }];
-    const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, "Сводка");
-    XLSX.utils.book_append_sheet(wb, help, "Инструкция");
-    const out = XLSX.write(wb, { bookType: "xlsx", type: "array" });
-    const blob = new Blob([out], { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" });
-    const a = document.createElement("a");
-    a.href = URL.createObjectURL(blob);
-    a.download = "baylux_svodka_template.xlsx";
-    a.click();
-    setTimeout(() => URL.revokeObjectURL(a.href), 2000);
-  }
-
   return (
     <div style={{ background: "#fff", border: "1px solid var(--line)", borderRadius: 14, padding: "20px 22px", maxWidth: 720 }}>
       <p style={{ color: "var(--ink-soft)", margin: "0 0 16px", lineHeight: 1.6 }}>{t("rep_intro")}</p>
@@ -68,7 +31,7 @@ export default function ReportsUpload() {
           {busy ? t("rep_uploading") : t("rep_upload")}
           <input type="file" accept=".xlsx,.xls,.csv" onChange={upload} disabled={busy} style={{ display: "none" }} />
         </label>
-        <button type="button" className="btn btn-ghost" onClick={downloadTemplate}>⬇ {t("rep_template")}</button>
+        <a className="btn btn-ghost" href="/api/reports-template" download>⬇ {t("rep_template")}</a>
       </div>
       <div style={{ color: "var(--ink-soft)", fontSize: 13, marginTop: 10 }}>{t("rep_cols")}: <b>{HEADERS.join(" · ")}</b></div>
 
