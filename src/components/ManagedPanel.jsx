@@ -42,7 +42,7 @@ export default function ManagedPanel({ items, adminView }) {
                 )}
                 <div className="my-actions">
                   {r.slug && <a className="my-link" href={"/property/" + r.slug}>{t("my_view")}</a>}
-                  {adminView && <a className="my-link" href={"/my/edit/" + r.id}>{t("my_edit")}</a>}
+                  {r.canManage && <a className="my-link" href={"/my/edit/" + r.id}>{t("my_edit")}</a>}
                   <button className="my-link" type="button" onClick={() => setOpen(open === r.id ? null : r.id)} style={{ background: "none", border: "none", cursor: "pointer", padding: 0 }}>
                     {open === r.id ? "▲ " : "▼ "}{t("mg_summary")}
                   </button>
@@ -61,6 +61,12 @@ export default function ManagedPanel({ items, adminView }) {
                   ? <a href={r.contract} target="_blank" rel="noopener noreferrer" className="my-link">{t("mg_contract_open")} →</a>
                   : <span style={{ color: "var(--ink-soft)", fontSize: 13 }}>{t("mg_no_contract")}</span>}
               </div>
+              {(r.ownerName || r.ownerPhone) && (
+                <div style={{ background: "#fff", border: "1px solid var(--line)", borderRadius: 12, padding: "12px 14px", marginBottom: 12 }}>
+                  <span style={{ color: "var(--navy)", fontWeight: 700, fontSize: 14 }}>👤 {t("mg_owner_contact")}</span>
+                  <div style={{ color: "var(--ink-soft)", fontSize: 14, marginTop: 4 }}>{[r.ownerName, r.ownerPhone].filter(Boolean).join(" · ")}</div>
+                </div>
+              )}
               <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(150px, 1fr))", gap: 10 }}>
                 {tiles.map(([ic, label, val]) => (
                   <div key={label} style={{ background: "#fff", border: "1px solid var(--line)", borderRadius: 12, padding: "12px 14px" }}>

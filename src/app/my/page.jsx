@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { cookies } from "next/headers";
-import { verifySession, isAdmin, can } from "@/lib/session";
+import { verifySession, isAdmin, can, isResponsible } from "@/lib/session";
 import { supa } from "@/lib/supabase";
 import { slugify, cleanAddress } from "@/data/sheet";
 import LoginBlock from "@/components/LoginBlock";
@@ -77,6 +77,9 @@ export default async function MyPage() {
       contract: r.contract_url || "",
       owner: r.owner_email || (r.tg_username ? "@" + r.tg_username : (r.tg_user_id != null ? "tg:" + r.tg_user_id : "")),
       responsible: r.responsible_email || (r.responsible_tg != null ? "tg:" + r.responsible_tg : ""),
+      ownerName: r.owner_name || "",
+      ownerPhone: r.owner_phone || "",
+      canManage: canMng || isResponsible(session, r),
     };
   };
   const ownItems = rows.map(mapItem).filter((x) => !x.managed);

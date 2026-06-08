@@ -33,6 +33,14 @@ export function owns(session, row) {
   return false;
 }
 
+// Является ли сессия ответственным сотрудником за объект (по Telegram-id или email).
+export function isResponsible(session, row) {
+  if (!session || !row) return false;
+  if (session.id != null && row.responsible_tg != null && Number(row.responsible_tg) === Number(session.id)) return true;
+  if (session.email && row.responsible_email && String(row.responsible_email).toLowerCase() === String(session.email).toLowerCase()) return true;
+  return false;
+}
+
 // Главный (супер-)админ: жёстко задан в конфиге. Только он управляет правами сотрудников.
 export function isSuperAdmin(session) {
   if (!session) return false;

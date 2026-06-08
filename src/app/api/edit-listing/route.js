@@ -1,5 +1,5 @@
 import { cookies } from "next/headers";
-import { verifySession, owns, can } from "@/lib/session";
+import { verifySession, owns, can, isResponsible } from "@/lib/session";
 import { supa } from "@/lib/supabase";
 
 export const runtime = "nodejs";
@@ -45,20 +45,23 @@ export async function POST(req) {
   if (!b.id) return Response.json({ ok: false, error: "id" }, { status: 400 });
 
   // Проверка владельца
-  const { data: existing } = await supa.from("listings").select("id, tg_user_id, owner_email, tg_post_id, tg_channel, managed_by_baylux").eq("id", b.id).single();
+  const { data: existing } = await supa.from("listings").select("id, tg_user_id, owner_email, tg_post_id, tg_channel, managed_by_baylux, responsible_tg, responsible_email").eq("id", b.id).single();
   const canMod = can(session, "moderate"); // модерация: правки публикуются сразу
-  const canMng = can(session, "managed");  // управление: поля managed/владелец/ответственный/договор
-  // Редактировать может: владелец; модератор (любое); управляющий (только объекты в управлении).
-  if (!owns(session, existing) && !canMod && !(canMng && existing?.managed_by_baylux)) return Response.json({ ok: false, error: "forbidden" }, { status: 403 });
-  // Объект под управлением: владелец редактировать не может — только модератор или управляющий.
-  if (existing?.managed_by_baylux && !canMod && !canMng) return Response.json({ ok: false, error: "managed" }, { status: 403 });
+  const canMng = can(session, "managed");  // управление: поля managed/владелец/договор
+  // Управлять этим объектом может: право managed ИЛИ ответственный сотрудник за него.
+  const canManageThis = (canMng || isResponsible(session, existing)) && !!existing?.managed_by_baylux;
+  const keepLive = canMod || canManageThis; // управленческие правки не уводят объект на модерацию
+  // Редактировать может: владелец; модератор (любое); управляющий/ответственный (свой объект в управлении).
+  if (!owns(session, existing) && !canMod && !canManageThis) return Response.json({ ok: false, error: "forbidden" }, { status: 403 });
+  // Объект под управлением: владелец редактировать не может — только модератор/управляющий/ответственный.
+  if (existing?.managed_by_baylux && !canMod && !canManageThis) return Response.json({ ok: false, error: "managed" }, { status: 403 });
 
   const phone = gePhone(b.contact);
   if (!phone) return Response.json({ ok: false, error: "phone" }, { status: 400 });
 
   // Старый пост в канале удаляем (из того канала, куда публиковали) — объявление снова на модерации
   const oldCh = existing.tg_channel || CHANNEL;
-  if (!canMod && oldCh && existing.tg_post_id) {
+  if (!keepLive && oldCh && existing.tg_post_id) {
     for (const mid of String(existing.tg_post_id).split(",")) await tg("deleteMessage", { chat_id: oldCh, message_id: Number(mid) });
   }
 
@@ -69,7 +72,7 @@ export async function POST(req) {
   const amenities = Array.isArray(b.amenities) ? b.amenities.filter(Boolean).join(", ") : (b.amenities || "");
   const hasGeo = b.lat != null && b.lng != null;
   const row = {
-    status: canMod ? "approved" : "pending",
+    status: keepLive ? "approved" : "pending",
     building_name: (b.address || "").trim() || (b.type ? `${b.type}, ${city}` : "Объект"),
     kind: /новострой/i.test(b.type || "") || (b.complex || "").trim() ? "complex" : "house",
     district: city,
@@ -79,10 +82,12 @@ export async function POST(req) {
     floor: (b.floor || "—").toString(), year: parseInt(b.year, 10) || null,
     complex: (b.complex || "").toString().trim(), amenities, no_commission: !!b.noCommission,
     ...(canMng && b.managed !== undefined ? { managed_by_baylux: !!b.managed } : {}),
-    // Админ может назначить владельца — объект появится в его личном кабинете.
-    ...(canMng && b.ownerEmail !== undefined ? { owner_email: b.ownerEmail || null, tg_user_id: b.ownerTg != null ? Number(b.ownerTg) : null } : {}),
-    // Договор с арендатором (ссылка) — только админ.
-    ...(canMng && b.contractUrl !== undefined ? { contract_url: (b.contractUrl || "").toString().trim() || null } : {}),
+    // Назначение владельца (аккаунт) — управляющий или ответственный за объект.
+    ...(canManageThis && b.ownerEmail !== undefined ? { owner_email: b.ownerEmail || null, tg_user_id: b.ownerTg != null ? Number(b.ownerTg) : null } : {}),
+    // Контакты реального владельца (имя, телефон) — управляющий или ответственный.
+    ...(canManageThis && (b.ownerName !== undefined || b.ownerPhone !== undefined) ? { owner_name: (b.ownerName || "").toString().trim() || null, owner_phone: (b.ownerPhone || "").toString().trim() || null } : {}),
+    // Договор с арендатором (ссылка) — управляющий или ответственный.
+    ...(canManageThis && b.contractUrl !== undefined ? { contract_url: (b.contractUrl || "").toString().trim() || null } : {}),
     // Ответственный сотрудник за объект — только админ.
     ...(canMng && b.responsibleEmail !== undefined ? { responsible_email: b.responsibleEmail || null, responsible_tg: b.responsibleTg != null ? Number(b.responsibleTg) : null } : {}),
     price: fmtPrice(priceNum, currency), currency, price_num: priceNum, per: deal === "rent" ? "в месяц" : deal === "daily" ? "в сутки" : "",

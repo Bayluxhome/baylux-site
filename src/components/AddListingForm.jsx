@@ -61,6 +61,8 @@ export default function AddListingForm({ initial, editId }) {
   const curOwner = editId ? (init.f?.ownerEmail || (init.f?.ownerUsername ? "@" + init.f.ownerUsername : (init.f?.ownerTg != null ? "tg:" + init.f.ownerTg : ""))) : "";
   const [respSel, setRespSel] = useState("");
   const curResp = editId ? (init.f?.responsibleEmail || (init.f?.responsibleTg != null ? "tg:" + init.f.responsibleTg : "")) : "";
+  // Управлять объектом (владелец/контакты/договор) может право managed ИЛИ ответственный за этот объект.
+  const showManage = canMng || !!init.f?.canManage;
   const upd = (k, v) => setF((s) => ({ ...s, [k]: v }));
   const dragIdx = useRef(null);
   const dragIdx2 = useRef(null);
@@ -138,7 +140,7 @@ export default function AddListingForm({ initial, editId }) {
       }
       const payload = { ...f, contact: phone, amenities, lat: geo?.lat, lng: geo?.lng, photos, photo_hashes, lang, facade: facadeUrl };
       if (editId) payload.id = editId;
-      if (canMng && editId &&ownerSel) {
+      if (showManage && editId && ownerSel) {
         const ou = ownerList.find((x) => ownerVal(x) === ownerSel);
         if (ou) { payload.ownerEmail = ou.email || ""; payload.ownerTg = ou.tg_user_id ?? null; }
       }
@@ -235,19 +237,31 @@ export default function AddListingForm({ initial, editId }) {
           <span>🏠 {t("managed_badge")} <span style={{ color: "var(--ink-soft)", fontWeight: 400 }}>({t("af_admin_only")})</span></span>
         </label>
       )}
-      {canMng && editId && (
+      {showManage && editId && (
         <div className="af-full" style={{ background: "var(--cream)", borderRadius: 10, padding: "12px 14px" }}>
-          <div className="af-lbl">👤 {t("af_owner_h")} <span style={{ color: "var(--ink-soft)", fontWeight: 400, fontSize: 13 }}>({t("af_admin_only")})</span></div>
-          <div style={{ fontSize: 13, color: "var(--ink-soft)", margin: "2px 0 8px" }}>{t("af_owner_cur")}: <b>{curOwner || "—"}</b></div>
-          <select value={ownerSel} onChange={(e) => setOwnerSel(e.target.value)} style={{ width: "100%" }}>
-            <option value="">{t("af_owner_keep")}</option>
-            {ownerList.map((u) => (
-              <option key={ownerVal(u)} value={ownerVal(u)}>
-                {(u.name || u.username || u.email || u.tg_user_id) + " · " + (u.email || ("@" + (u.username || u.tg_user_id)))}
-              </option>
-            ))}
-          </select>
-          <div className="af-hint">{t("af_owner_hint")}</div>
+          <div className="af-lbl">👤 {t("af_owner_h")}</div>
+          {canMng && (
+            <>
+              <div style={{ fontSize: 13, color: "var(--ink-soft)", margin: "2px 0 8px" }}>{t("af_owner_cur")}: <b>{curOwner || "—"}</b></div>
+              <select value={ownerSel} onChange={(e) => setOwnerSel(e.target.value)} style={{ width: "100%" }}>
+                <option value="">{t("af_owner_keep")}</option>
+                {ownerList.map((u) => (
+                  <option key={ownerVal(u)} value={ownerVal(u)}>
+                    {(u.name || u.username || u.email || u.tg_user_id) + " · " + (u.email || ("@" + (u.username || u.tg_user_id)))}
+                  </option>
+                ))}
+              </select>
+              <div className="af-hint">{t("af_owner_hint")}</div>
+            </>
+          )}
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8, marginTop: 12 }}>
+            <label style={{ fontSize: 13, color: "var(--navy)", fontWeight: 600 }}>{t("af_owner_name")}
+              <input value={f.ownerName || ""} onChange={(e) => upd("ownerName", e.target.value)} placeholder={t("af_owner_name")} style={{ width: "100%", marginTop: 4, border: "1px solid var(--line)", borderRadius: 8, padding: "9px 11px", fontFamily: "inherit", fontSize: 14 }} />
+            </label>
+            <label style={{ fontSize: 13, color: "var(--navy)", fontWeight: 600 }}>{t("af_owner_phone")}
+              <input value={f.ownerPhone || ""} onChange={(e) => upd("ownerPhone", e.target.value)} placeholder="+995 ..." inputMode="tel" style={{ width: "100%", marginTop: 4, border: "1px solid var(--line)", borderRadius: 8, padding: "9px 11px", fontFamily: "inherit", fontSize: 14 }} />
+            </label>
+          </div>
         </div>
       )}
       {canMng && editId && (
@@ -265,8 +279,8 @@ export default function AddListingForm({ initial, editId }) {
           <div className="af-hint">{t("af_resp_hint")}</div>
         </div>
       )}
-      {canMng && editId && (
-        <label className="af-full">📄 {t("af_contract_h")} <span style={{ color: "var(--ink-soft)", fontWeight: 400, fontSize: 13 }}>({t("af_admin_only")})</span>
+      {showManage && editId && (
+        <label className="af-full">📄 {t("af_contract_h")}
           <input value={f.contractUrl || ""} onChange={(e) => upd("contractUrl", e.target.value)} placeholder="https://..." />
           <span className="af-hint">{t("af_contract_hint")}</span>
         </label>

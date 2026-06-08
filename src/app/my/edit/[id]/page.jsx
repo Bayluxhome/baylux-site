@@ -1,7 +1,7 @@
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import Link from "next/link";
-import { verifySession, can, owns } from "@/lib/session";
+import { verifySession, can, owns, isResponsible } from "@/lib/session";
 import { supa } from "@/lib/supabase";
 import AddListingForm from "@/components/AddListingForm";
 
@@ -16,10 +16,13 @@ export default async function EditListingPage({ params }) {
   const canMod = can(session, "moderate");
   const canMng = can(session, "managed");
   const mine = owns(session, r);
-  // Редактировать может: владелец; модератор (любое); управляющий (объекты в управлении).
-  if (!r || (!mine && !canMod && !(canMng && r.managed_by_baylux))) redirect("/my");
-  // Объект под управлением: владелец не редактирует — только модератор или управляющий.
-  if (r.managed_by_baylux && !canMod && !canMng) redirect("/my");
+  // Управлять объектом может право managed ИЛИ ответственный за него сотрудник.
+  const canManageThis = (canMng || isResponsible(session, r)) && !!r?.managed_by_baylux;
+  const keepLive = canMod || canManageThis;
+  // Редактировать может: владелец; модератор; управляющий/ответственный (свой объект в управлении).
+  if (!r || (!mine && !canMod && !canManageThis)) redirect("/my");
+  // Объект под управлением: владелец не редактирует — только модератор/управляющий/ответственный.
+  if (r.managed_by_baylux && !canMod && !canManageThis) redirect("/my");
 
   const initial = {
     f: {
@@ -47,6 +50,9 @@ export default async function EditListingPage({ params }) {
       contractUrl: r.contract_url || "",
       responsibleEmail: r.responsible_email || "",
       responsibleTg: r.responsible_tg ?? null,
+      canManage: canManageThis,
+      ownerName: r.owner_name || "",
+      ownerPhone: r.owner_phone || "",
     },
     amenities: typeof r.amenities === "string" && r.amenities ? r.amenities.split(",").map((s) => s.trim()).filter(Boolean) : [],
     geo: r.lat && r.lng ? { lat: Number(r.lat), lng: Number(r.lng) } : null,
@@ -58,7 +64,7 @@ export default async function EditListingPage({ params }) {
     <div className="wrap" style={{ paddingBlock: "26px 50px" }}>
       <div className="crumbs"><Link href="/my">← Мои объявления</Link></div>
       <h1 style={{ color: "var(--navy)", marginBottom: 6 }}>Редактирование объявления</h1>
-      <p style={{ color: "var(--ink-soft)", marginBottom: 14 }}>{canMod ? "Изменения публикуются сразу — без модерации." : "После сохранения объявление снова уйдёт на модерацию и временно скроется с сайта."}</p>
+      <p style={{ color: "var(--ink-soft)", marginBottom: 14 }}>{keepLive ? "Изменения публикуются сразу — без модерации." : "После сохранения объявление снова уйдёт на модерацию и временно скроется с сайта."}</p>
       <AddListingForm initial={initial} editId={r.id} />
     </div>
   );
