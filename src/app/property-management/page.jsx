@@ -1,11 +1,9 @@
-import Link from "next/link";
-import PropertyCard from "@/components/PropertyCard";
-import HolidaySearch from "@/components/HolidaySearch";
+import HolidayBrowser from "@/components/HolidayBrowser";
 import PMCalc from "@/components/PMCalc";
 import PMLeadForm from "@/components/PMLeadForm";
 import { getAllUnits } from "@/data/source";
 import { getLang } from "@/lib/serverLang";
-import { t as tr } from "@/lib/dict";
+import { t as tr, translitAddress } from "@/lib/dict";
 
 export const revalidate = 300;
 
@@ -33,8 +31,24 @@ export default async function PropertyManagementPage() {
 
   const all = await getAllUnits();
   const managed = all.filter((u) => u.managed);
-  // Пока объекты не помечены флагом — временно показываем аренду/посуточно как витрину.
-  const showcase = (managed.length ? managed : all.filter((u) => ["daily", "rent"].includes(u.deal))).slice(0, 12);
+  // Пока объекты не помечены флагом — временно показываем аренду/посуточно как витрину (только Батуми).
+  const base = managed.length ? managed : all.filter((u) => ["daily", "rent"].includes(u.deal));
+  const showcase = base.filter((u) => u.building?.district === "Батуми").slice(0, 12);
+  const items = showcase.map((u) => ({
+    id: u.id,
+    slug: u.slug,
+    photo: (u.photos && u.photos[0]) || u.unit_image || u.img || "/placeholder-baylux.jpg",
+    price: u.price,
+    priceNum: u.priceNum || null,
+    currency: u.currency || "USD",
+    deal: u.deal,
+    rooms: u.rooms || 0,
+    area: u.area || 0,
+    district: u.building?.district || "Батуми",
+    bname: translitAddress(u.building?.["name_" + lang] || u.building?.name || "", lang, u.building?.kind),
+    desc: (u["desc_" + lang] || u.about || "").replace(/\s+/g, " ").trim().slice(0, 160),
+    managed: !!u.managed,
+  }));
 
   const cards = [
     ["📸", t("pm_c1_h"), t("pm_c1_p")],
@@ -77,26 +91,13 @@ export default async function PropertyManagementPage() {
           <img src="/baylux_logo_white.svg" alt="Baylux Holiday Homes" style={{ height: 54, margin: "0 auto 6px", display: "block" }} />
           <div style={{ color: "var(--gold)", letterSpacing: 3, fontSize: 13, fontWeight: 700, textTransform: "uppercase", marginBottom: 18 }}>Holiday Homes</div>
           <h1 style={{ color: "#fff", maxWidth: 740, margin: "0 auto", fontSize: "clamp(26px,4vw,40px)", lineHeight: 1.2 }}>{t("hh_h1")}</h1>
-          <p style={{ color: "rgba(255,255,255,.85)", maxWidth: 600, margin: "14px auto 26px", fontSize: 16, lineHeight: 1.55 }}>{t("hh_sub")}</p>
-          <HolidaySearch />
+          <p style={{ color: "rgba(255,255,255,.85)", maxWidth: 600, margin: "14px auto 40px", fontSize: 16, lineHeight: 1.55 }}>{t("hh_sub")}</p>
         </div>
       </section>
 
-      <div className="wrap" style={{ paddingBlock: "40px 60px" }}>
-        {/* Витрина управляемых объектов */}
-        <h2 style={{ color: "var(--navy)", margin: "0 0 16px" }}>{t("hh_list_h")}</h2>
-        {showcase.length === 0 ? (
-          <p style={{ color: "var(--ink-soft)", maxWidth: 700 }}>{t("hh_empty")}</p>
-        ) : (
-          <>
-            <div className="cards">
-              {showcase.map((u) => <PropertyCard key={u.id} unit={u} />)}
-            </div>
-            <div style={{ marginTop: 22, textAlign: "center" }}>
-              <Link className="btn btn-ghost" href="/catalog?managed=1">{t("ld_all")}</Link>
-            </div>
-          </>
-        )}
+      <div className="wrap" style={{ paddingBlock: "0 60px" }}>
+        {/* Поиск + витрина управляемых объектов (фильтрует на этой же странице) */}
+        <HolidayBrowser items={items} />
 
         {/* ===== Блок для собственников ===== */}
         <section style={{ marginTop: 60, borderTop: "2px solid var(--line)", paddingTop: 40 }}>
