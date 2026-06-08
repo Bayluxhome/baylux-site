@@ -34,8 +34,10 @@ export default async function MyPage() {
     );
   }
 
+  const admin = isAdmin(session);
   let rows = [];
   let realtor = null;
+  let managedRows = [];
   if (supa) {
     let q = supa.from("listings").select("*");
     q = session.id != null ? q.eq("tg_user_id", session.id) : q.eq("owner_email", session.email);
@@ -46,9 +48,22 @@ export default async function MyPage() {
     rq = session.id != null ? rq.eq("tg_user_id", session.id) : rq.eq("email", session.email);
     const { data: rd } = await rq.maybeSingle();
     realtor = rd || null;
+
+    // Объекты в управлении: админ видит ВСЕ; ответственный — назначенные ему; владелец — свои.
+    if (admin) {
+      const { data: md } = await supa.from("listings").select("*").eq("managed_by_baylux", true).order("created_at", { ascending: false });
+      managedRows = md || [];
+    } else {
+      const ownManaged = rows.filter((r) => r.managed_by_baylux);
+      let mq = supa.from("listings").select("*").eq("managed_by_baylux", true);
+      mq = session.id != null ? mq.eq("responsible_tg", session.id) : mq.eq("responsible_email", session.email);
+      const { data: rdm } = await mq;
+      const seen = new Set(ownManaged.map((r) => r.id));
+      managedRows = [...ownManaged, ...(rdm || []).filter((r) => !seen.has(r.id))];
+    }
   }
 
-  const items = rows.map((r) => {
+  const mapItem = (r) => {
     const bn = cleanAddress(r.building_name);
     return {
       id: r.id,
@@ -59,10 +74,12 @@ export default async function MyPage() {
       slug: r.status === "approved" ? slugify(`${bn}-${r.type || ""}-${r.price || ""}`) : null,
       managed: !!r.managed_by_baylux,
       contract: r.contract_url || "",
+      owner: r.owner_email || (r.tg_username ? "@" + r.tg_username : (r.tg_user_id != null ? "tg:" + r.tg_user_id : "")),
+      responsible: r.responsible_email || (r.responsible_tg != null ? "tg:" + r.responsible_tg : ""),
     };
-  });
-  const ownItems = items.filter((x) => !x.managed);
-  const managedItems = items.filter((x) => x.managed);
+  };
+  const ownItems = rows.map(mapItem).filter((x) => !x.managed);
+  const managedItems = managedRows.map(mapItem);
 
   return (
     <div className="wrap" style={{ paddingBlock: "30px 50px" }}>
@@ -78,7 +95,7 @@ export default async function MyPage() {
       <p style={{ color: "var(--ink-soft)", margin: "6px 0 20px" }}>
         {session.name ? session.name + " — " : ""}{t("cab_objs")} ({rows.length}). {t("cab_addnew")}
       </p>
-      <CabinetTabs listings={ownItems} managed={managedItems} />
+      <CabinetTabs listings={ownItems} managed={managedItems} adminView={admin} />
       <RealtorPanel initial={realtor} />
       <DataRights />
     </div>

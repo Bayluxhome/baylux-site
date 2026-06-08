@@ -4,7 +4,7 @@ import { useLang } from "@/components/LangContext";
 import MyListings from "@/components/MyListings";
 import ManagedPanel from "@/components/ManagedPanel";
 
-export default function CabinetTabs({ listings, managed }) {
+export default function CabinetTabs({ listings, managed, adminView }) {
   const { t } = useLang();
   const [tab, setTab] = useState("mine");
 
@@ -33,7 +33,7 @@ export default function CabinetTabs({ listings, managed }) {
           </button>
         ))}
       </div>
-      {tab === "mine" ? <MyListings items={listings} /> : <ManagedPanel items={managed} />}
+      {tab === "mine" ? <MyListings items={listings} /> : <ManagedPanel items={managed} adminView={adminView} />}
     </div>
   );
 }

@@ -41,6 +41,8 @@ export default async function EditListingPage({ params }) {
       ownerTg: r.tg_user_id ?? null,
       ownerUsername: r.tg_username || "",
       contractUrl: r.contract_url || "",
+      responsibleEmail: r.responsible_email || "",
+      responsibleTg: r.responsible_tg ?? null,
     },
     amenities: typeof r.amenities === "string" && r.amenities ? r.amenities.split(",").map((s) => s.trim()).filter(Boolean) : [],
     geo: r.lat && r.lng ? { lat: Number(r.lat), lng: Number(r.lng) } : null,

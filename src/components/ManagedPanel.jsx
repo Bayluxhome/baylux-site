@@ -4,7 +4,7 @@ import { useLang } from "@/components/LangContext";
 
 // Объекты владельца, переданные в управление Baylux. Редактировать нельзя — только сводка.
 // Сводка пока заглушка («в разработке»): метрики дохода, загрузки, коммуналки, календарь.
-export default function ManagedPanel({ items }) {
+export default function ManagedPanel({ items, adminView }) {
   const { t } = useLang();
   const [open, setOpen] = useState(null);
 
@@ -35,8 +35,14 @@ export default function ManagedPanel({ items }) {
               <div className="my-main">
                 <b>{r.title}</b>
                 <span>{r.sub}</span>
+                {adminView && (
+                  <span style={{ fontSize: 12, color: "var(--ink-soft)" }}>
+                    👤 {r.owner || "—"} · 🧑‍💼 {r.responsible || t("mg_resp_none")}
+                  </span>
+                )}
                 <div className="my-actions">
                   {r.slug && <a className="my-link" href={"/property/" + r.slug}>{t("my_view")}</a>}
+                  {adminView && <a className="my-link" href={"/my/edit/" + r.id}>{t("my_edit")}</a>}
                   <button className="my-link" type="button" onClick={() => setOpen(open === r.id ? null : r.id)} style={{ background: "none", border: "none", cursor: "pointer", padding: 0 }}>
                     {open === r.id ? "▲ " : "▼ "}{t("mg_summary")}
                   </button>

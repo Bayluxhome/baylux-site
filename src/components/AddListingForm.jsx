@@ -58,6 +58,8 @@ export default function AddListingForm({ initial, editId }) {
   useEffect(() => { if (!isAdm) return; fetch("/api/admin/users-list").then((r) => r.json()).then((j) => setOwnerList(j.users || [])).catch(() => {}); }, [isAdm]);
   const ownerVal = (u) => u.email || (u.tg_user_id != null ? "tg:" + u.tg_user_id : "");
   const curOwner = editId ? (init.f?.ownerEmail || (init.f?.ownerUsername ? "@" + init.f.ownerUsername : (init.f?.ownerTg != null ? "tg:" + init.f.ownerTg : ""))) : "";
+  const [respSel, setRespSel] = useState("");
+  const curResp = editId ? (init.f?.responsibleEmail || (init.f?.responsibleTg != null ? "tg:" + init.f.responsibleTg : "")) : "";
   const upd = (k, v) => setF((s) => ({ ...s, [k]: v }));
   const dragIdx = useRef(null);
   const dragIdx2 = useRef(null);
@@ -138,6 +140,10 @@ export default function AddListingForm({ initial, editId }) {
       if (isAdm && editId && ownerSel) {
         const ou = ownerList.find((x) => ownerVal(x) === ownerSel);
         if (ou) { payload.ownerEmail = ou.email || ""; payload.ownerTg = ou.tg_user_id ?? null; }
+      }
+      if (isAdm && editId && respSel) {
+        const ru = ownerList.find((x) => ownerVal(x) === respSel);
+        if (ru) { payload.responsibleEmail = ru.email || ""; payload.responsibleTg = ru.tg_user_id ?? null; }
       }
       const r = await fetch(editId ? "/api/edit-listing" : "/api/add-listing", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) });
       const j = await r.json();
@@ -241,6 +247,21 @@ export default function AddListingForm({ initial, editId }) {
             ))}
           </select>
           <div className="af-hint">{t("af_owner_hint")}</div>
+        </div>
+      )}
+      {isAdm && editId && (
+        <div className="af-full" style={{ background: "var(--cream)", borderRadius: 10, padding: "12px 14px" }}>
+          <div className="af-lbl">🧑‍💼 {t("af_resp_h")} <span style={{ color: "var(--ink-soft)", fontWeight: 400, fontSize: 13 }}>({t("af_admin_only")})</span></div>
+          <div style={{ fontSize: 13, color: "var(--ink-soft)", margin: "2px 0 8px" }}>{t("af_resp_cur")}: <b>{curResp || "—"}</b></div>
+          <select value={respSel} onChange={(e) => setRespSel(e.target.value)} style={{ width: "100%" }}>
+            <option value="">{t("af_resp_keep")}</option>
+            {ownerList.map((u) => (
+              <option key={"r" + ownerVal(u)} value={ownerVal(u)}>
+                {(u.name || u.username || u.email || u.tg_user_id) + " · " + (u.email || ("@" + (u.username || u.tg_user_id)))}
+              </option>
+            ))}
+          </select>
+          <div className="af-hint">{t("af_resp_hint")}</div>
         </div>
       )}
       {isAdm && editId && (

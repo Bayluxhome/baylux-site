@@ -81,6 +81,8 @@ export async function POST(req) {
     ...(admin && b.ownerEmail !== undefined ? { owner_email: b.ownerEmail || null, tg_user_id: b.ownerTg != null ? Number(b.ownerTg) : null } : {}),
     // Договор с арендатором (ссылка) — только админ.
     ...(admin && b.contractUrl !== undefined ? { contract_url: (b.contractUrl || "").toString().trim() || null } : {}),
+    // Ответственный сотрудник за объект — только админ.
+    ...(admin && b.responsibleEmail !== undefined ? { responsible_email: b.responsibleEmail || null, responsible_tg: b.responsibleTg != null ? Number(b.responsibleTg) : null } : {}),
     price: fmtPrice(priceNum, currency), currency, price_num: priceNum, per: deal === "rent" ? "в месяц" : deal === "daily" ? "в сутки" : "",
     about: (b.about || "").toString(), photos: Array.isArray(b.photos) ? b.photos.slice(0, 10) : [],
     facade_photo: (b.facade || "").toString() || null,
