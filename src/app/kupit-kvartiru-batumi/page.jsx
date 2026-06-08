@@ -1,22 +1,21 @@
 import SeoLanding from "@/components/SeoLanding";
 import { getAllUnits } from "@/data/source";
 import { unitCat } from "@/data/data";
+import { getLang } from "@/lib/serverLang";
+import { t as tr } from "@/lib/dict";
 
 export const revalidate = 300;
 
-export const metadata = {
-  title: "Купить квартиру в Батуми — цены, фото, вторичка и новостройки",
-  description:
-    "Купить квартиру в Батуми: проверенные объявления с ценами и фото — студии, 1-3-комнатные и апартаменты у моря. Сопровождение сделки под ключ от Baylux.",
-  alternates: { canonical: "/kupit-kvartiru-batumi" },
-  openGraph: {
-    title: "Купить квартиру в Батуми — Baylux",
-    description: "Проверенные квартиры на продажу в Батуми: цены, фото, сопровождение сделки.",
-    type: "website",
-    url: "https://bayluxhome.com/kupit-kvartiru-batumi",
-    images: ["/hero-batumi.jpg"],
-  },
-};
+export async function generateMetadata() {
+  const lang = getLang();
+  const t = (k) => tr(lang, k);
+  return {
+    title: t("kb_mt"),
+    description: t("kb_md"),
+    alternates: { canonical: "/kupit-kvartiru-batumi" },
+    openGraph: { title: t("kb_mt"), description: t("kb_md"), type: "website", url: "https://bayluxhome.com/kupit-kvartiru-batumi", images: ["/hero-batumi.jpg"] },
+  };
+}
 
 export default async function Page() {
   let units = await getAllUnits();

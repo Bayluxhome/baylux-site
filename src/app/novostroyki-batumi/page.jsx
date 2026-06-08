@@ -1,22 +1,21 @@
 import SeoLanding from "@/components/SeoLanding";
 import { getAllUnits } from "@/data/source";
 import { unitIsNew } from "@/data/data";
+import { getLang } from "@/lib/serverLang";
+import { t as tr } from "@/lib/dict";
 
 export const revalidate = 300;
 
-export const metadata = {
-  title: "Новостройки Батуми — квартиры от застройщиков, цены и рассрочка",
-  description:
-    "Новостройки в Батуми: квартиры и апартаменты от застройщиков с рассрочкой. Цены, сроки сдачи, проверка договора — Baylux.",
-  alternates: { canonical: "/novostroyki-batumi" },
-  openGraph: {
-    title: "Новостройки Батуми — Baylux",
-    description: "Квартиры от застройщиков: цены, рассрочка, проверка договора.",
-    type: "website",
-    url: "https://bayluxhome.com/novostroyki-batumi",
-    images: ["/hero-batumi.jpg"],
-  },
-};
+export async function generateMetadata() {
+  const lang = getLang();
+  const t = (k) => tr(lang, k);
+  return {
+    title: t("nb_mt"),
+    description: t("nb_md"),
+    alternates: { canonical: "/novostroyki-batumi" },
+    openGraph: { title: t("nb_mt"), description: t("nb_md"), type: "website", url: "https://bayluxhome.com/novostroyki-batumi", images: ["/hero-batumi.jpg"] },
+  };
+}
 
 export default async function Page() {
   let units = await getAllUnits();

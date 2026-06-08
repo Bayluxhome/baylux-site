@@ -1,21 +1,20 @@
 import SeoLanding from "@/components/SeoLanding";
 import { getAllUnits } from "@/data/source";
+import { getLang } from "@/lib/serverLang";
+import { t as tr } from "@/lib/dict";
 
 export const revalidate = 300;
 
-export const metadata = {
-  title: "Посуточная аренда квартир в Батуми — снять жильё посуточно у моря",
-  description:
-    "Снять квартиру в Батуми посуточно: проверенные квартиры и апартаменты у моря с фото и ценами. Заселение в день обращения — Baylux.",
-  alternates: { canonical: "/posutochno-batumi" },
-  openGraph: {
-    title: "Посуточная аренда в Батуми — Baylux",
-    description: "Квартиры посуточно у моря: фото, цены, быстрое заселение.",
-    type: "website",
-    url: "https://bayluxhome.com/posutochno-batumi",
-    images: ["/hero-batumi.jpg"],
-  },
-};
+export async function generateMetadata() {
+  const lang = getLang();
+  const t = (k) => tr(lang, k);
+  return {
+    title: t("pb_mt"),
+    description: t("pb_md"),
+    alternates: { canonical: "/posutochno-batumi" },
+    openGraph: { title: t("pb_mt"), description: t("pb_md"), type: "website", url: "https://bayluxhome.com/posutochno-batumi", images: ["/hero-batumi.jpg"] },
+  };
+}
 
 export default async function Page() {
   let units = await getAllUnits();

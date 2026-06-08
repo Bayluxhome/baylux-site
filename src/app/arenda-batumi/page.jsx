@@ -7,19 +7,16 @@ import { t as tr } from "@/lib/dict";
 
 export const revalidate = 300;
 
-export const metadata = {
-  title: "Снять квартиру в Батуми — долгосрочная аренда жилья",
-  description:
-    "Снять квартиру в Батуми на длительный срок: проверенные квартиры и апартаменты у моря, прозрачные цены и помощь местной команды Baylux.",
-  alternates: { canonical: "/arenda-batumi" },
-  openGraph: {
-    title: "Снять квартиру в Батуми — долгосрочная аренда",
-    description: "Долгосрочная аренда квартир и апартаментов в Батуми у моря — проверенные объекты, прозрачные цены.",
-    type: "website",
-    url: "https://bayluxhome.com/arenda-batumi",
-    images: ["/hero-batumi.jpg"],
-  },
-};
+export async function generateMetadata() {
+  const lang = getLang();
+  const t = (k) => tr(lang, k);
+  return {
+    title: t("ar_mt"),
+    description: t("ar_md"),
+    alternates: { canonical: "/arenda-batumi" },
+    openGraph: { title: t("ar_mt"), description: t("ar_md"), type: "website", url: "https://bayluxhome.com/arenda-batumi", images: ["/hero-batumi.jpg"] },
+  };
+}
 
 export default async function ArendaBatumiPage() {
   const lang = getLang();
