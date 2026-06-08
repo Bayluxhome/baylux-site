@@ -23,7 +23,7 @@ const CURR = [
 // Верхнее меню с выпадающими подменю (как korter, адаптировано под Baylux)
 const NAV = [
   { label: "Продажа", href: "/catalog?deal=sale", sub: [
-    { d: "sale", c: "apartment", href: "/catalog?deal=sale&cat=apartment" },
+    { d: "sale", c: "apartment", href: "/kupit-kvartiru-batumi" },
     { d: "sale", c: "house", href: "/catalog?deal=sale&cat=house" },
     { d: "sale", c: "commercial", href: "/catalog?deal=sale&cat=commercial" },
     { d: "sale", c: "office", href: "/catalog?deal=sale&cat=office" },
@@ -32,19 +32,19 @@ const NAV = [
     { d: "sale", c: "garage", href: "/catalog?deal=sale&cat=garage" },
   ] },
   { label: "Аренда", href: "/catalog?deal=rent", sub: [
-    { d: "rent", c: "apartment", href: "/catalog?deal=rent&cat=apartment" },
+    { d: "rent", c: "apartment", href: "/arenda-batumi" },
     { d: "rent", c: "house", href: "/catalog?deal=rent&cat=house" },
     { d: "rent", c: "commercial", href: "/catalog?deal=rent&cat=commercial" },
     { d: "rent", c: "office", href: "/catalog?deal=rent&cat=office" },
     { d: "rent", c: "warehouse", href: "/catalog?deal=rent&cat=warehouse" },
     { d: "rent", c: "garage", href: "/catalog?deal=rent&cat=garage" },
   ] },
-  { label: "Новостройки", href: "/catalog?new=1", sub: [
-    { lk: "cat_jk", href: "/catalog?new=1" },
+  { label: "Новостройки", href: "/novostroyki-batumi", sub: [
+    { lk: "cat_jk", href: "/novostroyki-batumi" },
     { lk: "cat_cottage", href: "/catalog?cat=house&new=1" },
   ] },
-  { label: "Посуточно", href: "/catalog?deal=daily", sub: [
-    { d: "daily", c: "apartment", href: "/catalog?deal=daily&cat=apartment" },
+  { label: "Посуточно", href: "/posutochno-batumi", sub: [
+    { d: "daily", c: "apartment", href: "/posutochno-batumi" },
     { d: "daily", c: "house", href: "/catalog?deal=daily&cat=house" },
   ] },
   { label: "Услуги", href: "/property-management", sub: [

@@ -29,11 +29,11 @@ export default function Footer() {
           </div>
           <div>
             <h4>{t("foot_realty")}</h4>
-            <Link href="/catalog?deal=sale">{t("nav_sale")}</Link>
-            <Link href="/catalog?deal=rent">{t("nav_rent")}</Link>
+            <Link href="/kupit-kvartiru-batumi">{t("nav_sale")}</Link>
             <Link href="/arenda-batumi">{t("ar_foot")}</Link>
-            <Link href="/catalog?new=1">{t("nav_new")}</Link>
-            <Link href="/catalog?deal=daily">{t("nav_daily")}</Link>
+            <Link href="/apartamenty-batumi">{t("ap_foot")}</Link>
+            <Link href="/novostroyki-batumi">{t("nav_new")}</Link>
+            <Link href="/posutochno-batumi">{t("nav_daily")}</Link>
           </div>
           <div>
             <h4>{t("nav_services")}</h4>
