@@ -79,7 +79,10 @@ export async function POST(req) {
     rooms: parseInt(b.rooms, 10) || 0, area: parseInt(b.area, 10) || 0,
     bathrooms: parseInt(b.bathrooms, 10) || null,
     floor: (b.floor || "—").toString(), year: parseInt(b.year, 10) || null,
-    complex: (b.complex || "").toString().trim(), amenities, no_commission: !!b.noCommission, managed_by_baylux: !!b.managed,
+    complex: (b.complex || "").toString().trim(), amenities, no_commission: !!b.noCommission,
+    // ВАЖНО: «под управлением Baylux» может выставить только админ. Заявка владельца (b.managed)
+    // не доверяется напрямую — она показывается модератору в боте, флаг ставит админ при одобрении.
+    managed_by_baylux: admin ? !!b.managed : false,
     price: priceStr, currency, price_num: priceNum, per: deal === "rent" ? "в месяц" : deal === "daily" ? "в сутки" : "",
     about: (b.about || "").toString(), photos: Array.isArray(b.photos) ? b.photos.slice(0, 10) : [], photo_hashes: Array.isArray(b.photo_hashes) ? b.photo_hashes.slice(0, 10) : [], facade_photo: (b.facade || "").toString() || null,
     tg_user_id: session.id ?? null, owner_email: session.email || null, tg_username: cleanTg(b.tg) || session.username || "", contact: phone, phone,
@@ -112,7 +115,8 @@ export async function POST(req) {
       } catch (e) { console.error("author phone:", e?.message); }
       authorLine = `\n👤 Автор: ${esc(session.email)}${authorPhone ? ` · ${esc(authorPhone)}` : ""}`;
     }
-    const summary = `🆕 <b>Новое объявление (с сайта)</b>\n${DEAL_RU[deal]} · ${row.type}\n🏙 ${esc(city)}\n🏠 ${esc(row.building_name)}\n💰 ${row.price}\n📐 ${row.area} м² · 🛏 ${row.rooms} комн. · 🏢 ${esc(row.floor)}\n📷 ${row.photos.length} фото${geoLine}${authorLine}\n📞 ${phone}\n\n${esc(row.about)}`;
+    const mgmtReq = b.managed ? `\n🏠 <b>ЗАЯВКА: взять в управление Baylux</b> (при одобрении выставьте managed)` : "";
+    const summary = `🆕 <b>Новое объявление (с сайта)</b>${mgmtReq}\n${DEAL_RU[deal]} · ${row.type}\n🏙 ${esc(city)}\n🏠 ${esc(row.building_name)}\n💰 ${row.price}\n📐 ${row.area} м² · 🛏 ${row.rooms} комн. · 🏢 ${esc(row.floor)}\n📷 ${row.photos.length} фото${geoLine}${authorLine}\n📞 ${phone}\n\n${esc(row.about)}`;
     const kb = modButtons(ins.id);
     if (authorRows.length) kb.inline_keyboard = [...kb.inline_keyboard, ...authorRows];
     await tg("sendMessage", { chat_id: ADMIN, text: summary, parse_mode: "HTML", disable_web_page_preview: true, reply_markup: kb });
