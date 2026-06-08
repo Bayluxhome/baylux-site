@@ -41,6 +41,7 @@ export default async function MyPage() {
   let managedRows = [];
   let msgsByListing = {};
   let reportsByListing = {};
+  let summaryByListing = {};
   if (supa) {
     let q = supa.from("listings").select("*");
     q = session.id != null ? q.eq("tg_user_id", session.id) : q.eq("owner_email", session.email);
@@ -71,6 +72,12 @@ export default async function MyPage() {
       (msgs || []).forEach((m) => { (msgsByListing[m.listing_id] = msgsByListing[m.listing_id] || []).push({ id: m.id, body: m.body, at: m.created_at }); });
       const { data: reps } = await supa.from("photo_reports").select("*").in("listing_id", ids).order("created_at", { ascending: false });
       (reps || []).forEach((p) => { (reportsByListing[p.listing_id] = reportsByListing[p.listing_id] || []).push({ id: p.id, photos: Array.isArray(p.photos) ? p.photos : [], note: p.note || "", at: p.created_at }); });
+      const { data: sum } = await supa.from("management_reports").select("*").in("listing_id", ids).order("period", { ascending: false });
+      (sum || []).forEach((m) => {
+        const d = (summaryByListing[m.listing_id] = summaryByListing[m.listing_id] || { data: {}, periods: [] });
+        d.data[m.period] = { income: m.income, payout: m.payout, commission: m.commission, utilities: m.utilities, expenses: m.expenses, note: m.note };
+        if (!d.periods.includes(m.period)) d.periods.push(m.period);
+      });
     }
   }
 
@@ -94,6 +101,8 @@ export default async function MyPage() {
       canManage: canMng || isResponsible(session, r),
       messages: msgsByListing[String(r.id)] || [],
       reports: reportsByListing[String(r.id)] || [],
+      reportData: (summaryByListing[String(r.id)] || {}).data || {},
+      periods: (summaryByListing[String(r.id)] || {}).periods || [],
     };
   };
   const ownItems = rows.map(mapItem).filter((x) => !x.managed);

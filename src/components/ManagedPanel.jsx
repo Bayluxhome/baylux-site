@@ -3,6 +3,7 @@ import { useState } from "react";
 import { useLang } from "@/components/LangContext";
 import OwnerMessages from "@/components/OwnerMessages";
 import PhotoReports from "@/components/PhotoReports";
+import ReportSummary from "@/components/ReportSummary";
 
 // Объекты владельца, переданные в управление Baylux. Редактировать нельзя — только сводка.
 // Сводка пока заглушка («в разработке»): метрики дохода, загрузки, коммуналки, календарь.
@@ -17,15 +18,6 @@ export default function ManagedPanel({ items, adminView }) {
       </div>
     );
   }
-
-  const tiles = [
-    ["💰", t("mg_income"), "—"],
-    ["💸", t("mg_payout"), "—"],
-    ["📊", t("mg_occ"), "—"],
-    ["🧾", t("mg_utils"), "—"],
-    ["🛎️", t("mg_checkins"), "—"],
-    ["📅", t("mg_calendar"), t("mg_soon")],
-  ];
 
   return (
     <div className="my-list">
@@ -56,7 +48,6 @@ export default function ManagedPanel({ items, adminView }) {
 
           {open === r.id && (
             <div style={{ borderTop: "1px solid var(--line)", padding: "16px 16px 18px", background: "var(--cream)" }}>
-              <div style={{ display: "inline-block", background: "rgba(201,162,75,.18)", color: "var(--gold-dk)", fontWeight: 700, fontSize: 12, padding: "3px 10px", borderRadius: 20, marginBottom: 14 }}>⚙️ {t("mg_dev")}</div>
               <div style={{ background: "#fff", border: "1px solid var(--line)", borderRadius: 12, padding: "12px 14px", marginBottom: 12, display: "flex", justifyContent: "space-between", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
                 <span style={{ color: "var(--navy)", fontWeight: 700, fontSize: 14 }}>📄 {t("mg_contract")}</span>
                 {r.contract
@@ -72,17 +63,9 @@ export default function ManagedPanel({ items, adminView }) {
                   <div style={{ color: "var(--ink-soft)", fontSize: 14, marginTop: 4 }}>{[r.ownerName, r.ownerPhone, r.ownerEmail].filter(Boolean).join(" · ")}</div>
                 </div>
               )}
+              <ReportSummary item={r} />
               <OwnerMessages item={r} />
               <PhotoReports item={r} />
-              <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(150px, 1fr))", gap: 10 }}>
-                {tiles.map(([ic, label, val]) => (
-                  <div key={label} style={{ background: "#fff", border: "1px solid var(--line)", borderRadius: 12, padding: "12px 14px" }}>
-                    <div style={{ fontSize: 20 }}>{ic}</div>
-                    <div style={{ color: "var(--ink-soft)", fontSize: 12, margin: "4px 0 2px" }}>{label}</div>
-                    <div style={{ color: "var(--navy)", fontWeight: 800, fontSize: 17 }}>{val}</div>
-                  </div>
-                ))}
-              </div>
             </div>
           )}
         </div>

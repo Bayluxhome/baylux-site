@@ -77,6 +77,7 @@ export default async function AdminPage() {
         {can(session, "news") && <a className="btn btn-ghost" href="/admin/news" style={{ padding: "9px 16px" }}>📰 Управление новостями</a>}
         {can(session, "realtors") && <a className="btn btn-ghost" href="/admin/realtors" style={{ padding: "9px 16px" }}>👤 Риелторы{realtorPending ? ` · ${realtorPending} новых` : ""}</a>}
         {can(session, "users") && <a className="btn btn-ghost" href="/admin/users" style={{ padding: "9px 16px" }}>👥 Пользователи{usersCount ? ` · ${usersCount}` : ""}</a>}
+        {can(session, "managed") && <a className="btn btn-ghost" href="/admin/reports" style={{ padding: "9px 16px" }}>📊 Импорт сводки</a>}
         {isSuperAdmin(session) && <a className="btn btn-gold" href="/admin/staff" style={{ padding: "9px 16px" }}>🛡️ Сотрудники</a>}
       </div>
       {can(session, "moderate") ? (
