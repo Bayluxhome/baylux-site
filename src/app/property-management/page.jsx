@@ -30,11 +30,9 @@ export default async function PropertyManagementPage() {
   const t = (k) => tr(lang, k);
 
   const all = await getAllUnits();
-  const managed = all.filter((u) => u.managed);
-  // Пока объекты не помечены флагом — временно показываем аренду/посуточно как витрину (только Батуми).
-  const base = managed.length ? managed : all.filter((u) => ["daily", "rent"].includes(u.deal));
-  const showcase = base.filter((u) => u.building?.district === "Батуми").slice(0, 12);
-  const items = showcase.map((u) => ({
+  // Только реальные объекты под управлением Baylux в Батуми. Пусто → витрина покажет заглушки.
+  const managed = all.filter((u) => u.managed && u.building?.district === "Батуми");
+  const items = managed.slice(0, 12).map((u) => ({
     id: u.id,
     slug: u.slug,
     photo: (u.photos && u.photos[0]) || u.unit_image || u.img || "/placeholder-baylux.jpg",
