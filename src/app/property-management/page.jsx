@@ -93,8 +93,8 @@ export default async function PropertyManagementPage() {
         </div>
       </section>
 
-      <div className="wrap" style={{ paddingBlock: "0 60px" }}>
-        {/* Поиск + витрина управляемых объектов (фильтрует на этой же странице) */}
+      <div className="wrap" style={{ paddingBlock: "44px 60px" }}>
+        {/* Витрина управляемых объектов (табы фильтруют на этой же странице) */}
         <HolidayBrowser items={items} />
 
         {/* ===== Блок для собственников ===== */}
