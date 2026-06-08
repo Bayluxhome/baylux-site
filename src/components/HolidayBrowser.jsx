@@ -30,7 +30,7 @@ export default function HolidayBrowser({ items }) {
 
   return (
     <div>
-      <div style={{ textAlign: "center", marginBottom: 8 }}>
+      <div id="hh-list" style={{ textAlign: "center", marginBottom: 8, scrollMarginTop: 80 }}>
         <div style={{ color: "var(--gold-dk)", letterSpacing: 2, fontSize: 12, fontWeight: 700, textTransform: "uppercase" }}>Baylux Holiday Homes</div>
         <h2 style={{ color: "var(--navy)", margin: "6px 0 0", fontSize: "clamp(22px,3vw,30px)" }}>{t("hh_list_h")}</h2>
       </div>

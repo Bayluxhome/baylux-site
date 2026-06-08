@@ -1,4 +1,5 @@
 import HolidayBrowser from "@/components/HolidayBrowser";
+import HolidaySearch from "@/components/HolidaySearch";
 import PMCalc from "@/components/PMCalc";
 import PMLeadForm from "@/components/PMLeadForm";
 import { getAllUnits } from "@/data/source";
@@ -89,7 +90,8 @@ export default async function PropertyManagementPage() {
           <img src="/baylux_logo_white.svg" alt="Baylux Holiday Homes" style={{ height: 54, margin: "0 auto 6px", display: "block" }} />
           <div style={{ color: "var(--gold)", letterSpacing: 3, fontSize: 13, fontWeight: 700, textTransform: "uppercase", marginBottom: 18 }}>Holiday Homes</div>
           <h1 style={{ color: "#fff", maxWidth: 740, margin: "0 auto", fontSize: "clamp(26px,4vw,40px)", lineHeight: 1.2 }}>{t("hh_h1")}</h1>
-          <p style={{ color: "rgba(255,255,255,.85)", maxWidth: 600, margin: "14px auto 40px", fontSize: 16, lineHeight: 1.55 }}>{t("hh_sub")}</p>
+          <p style={{ color: "rgba(255,255,255,.85)", maxWidth: 600, margin: "14px auto 26px", fontSize: 16, lineHeight: 1.55 }}>{t("hh_sub")}</p>
+          <HolidaySearch />
         </div>
       </section>
 

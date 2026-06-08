@@ -1,28 +1,22 @@
 "use client";
 import { useState } from "react";
-import { useRouter } from "next/navigation";
 import { useLang } from "@/components/LangContext";
 
 // Поиск по объектам под управлением Baylux. Без даты (онлайн-бронирование — позже).
-// Ведёт в каталог с managed=1 + выбранные фильтры.
-const CITIES = ["Батуми", "Тбилиси"];
+// Пока прокручивает к витрине ниже (каталог управляемых наполняется через кабинет).
+const CITIES = ["Батуми"]; // позже: Тбилиси и др.
 const HTYPES = [["", "hh_any_type"], ["studio", "ht_studio"], ["1", "ht_1"]]; // позже: 2, 3, виллы
 const GUESTS = ["", "1", "2", "3", "4", "5"];
 
 export default function HolidaySearch() {
   const { t } = useLang();
-  const router = useRouter();
   const [city, setCity] = useState("");
   const [htype, setHtype] = useState("");
   const [guests, setGuests] = useState("");
 
   function go() {
-    const p = new URLSearchParams();
-    p.set("managed", "1");
-    if (city) p.set("city", city);
-    if (htype === "studio") p.set("rooms", "0");
-    else if (htype) p.set("rooms", htype);
-    router.push("/catalog?" + p.toString());
+    const el = typeof document !== "undefined" && document.getElementById("hh-list");
+    if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
   }
 
   const field = { display: "flex", flexDirection: "column", gap: 4, flex: "1 1 160px", minWidth: 0, textAlign: "left" };
