@@ -1,5 +1,5 @@
 "use client";
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import MapPicker from "./MapPicker";
 import { useLang } from "@/components/LangContext";
 import { typeLabel, amenLabel } from "@/lib/dict";
@@ -51,6 +51,8 @@ export default function AddListingForm({ initial, editId }) {
   const [geo, setGeo] = useState(init.geo || null);
   const [geoNote, setGeoNote] = useState("");
   const [state, setState] = useState("");
+  const [isAdm, setIsAdm] = useState(false);
+  useEffect(() => { fetch("/api/me").then((r) => r.json()).then((j) => setIsAdm(!!j.admin)).catch(() => {}); }, []);
   const upd = (k, v) => setF((s) => ({ ...s, [k]: v }));
   const toggleAmenity = (a) => setAmenities((arr) => arr.includes(a) ? arr.filter((x) => x !== a) : [...arr, a]);
   const geoTimer = useRef(null);
@@ -183,6 +185,12 @@ export default function AddListingForm({ initial, editId }) {
         <input type="checkbox" checked={f.noCommission} onChange={(e) => upd("noCommission", e.target.checked)} />
         <span>{t("af_nc")}</span>
       </label>
+      {isAdm && (
+        <label className="af-full af-check" style={{ background: "var(--cream)", borderRadius: 10, padding: "10px 12px" }}>
+          <input type="checkbox" checked={!!f.managed} onChange={(e) => upd("managed", e.target.checked)} />
+          <span>🏠 {t("managed_badge")} <span style={{ color: "var(--ink-soft)", fontWeight: 400 }}>({t("af_admin_only")})</span></span>
+        </label>
+      )}
       <label className="af-full">{t("af_phone")}
         <input value={f.contact} onChange={(e) => upd("contact", e.target.value)} inputMode="tel" placeholder="+995 555 12 34 56" required />
       </label>

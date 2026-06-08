@@ -34,6 +34,7 @@ export default async function EditListingPage({ params }) {
       contact: r.phone || r.contact || "",
       tg: r.tg_username || "",
       noCommission: !!r.no_commission,
+      managed: !!r.managed_by_baylux,
     },
     amenities: typeof r.amenities === "string" && r.amenities ? r.amenities.split(",").map((s) => s.trim()).filter(Boolean) : [],
     geo: r.lat && r.lng ? { lat: Number(r.lat), lng: Number(r.lng) } : null,
