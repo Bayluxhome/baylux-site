@@ -1,25 +1,7 @@
 "use client";
 import { useState } from "react";
 import { useLang } from "@/components/LangContext";
-
-// Сжатие фото в браузере до 1600px (как в форме объявления).
-function compress(file) {
-  return new Promise((resolve) => {
-    const img = new Image();
-    const url = URL.createObjectURL(file);
-    img.onload = () => {
-      const max = 1600;
-      let w = img.width, h = img.height;
-      if (w > max || h > max) { if (w > h) { h = Math.round((h * max) / w); w = max; } else { w = Math.round((w * max) / h); h = max; } }
-      const c = document.createElement("canvas");
-      c.width = w; c.height = h;
-      c.getContext("2d").drawImage(img, 0, 0, w, h);
-      c.toBlob((bl) => { URL.revokeObjectURL(url); resolve(bl || file); }, "image/jpeg", 0.8);
-    };
-    img.onerror = () => resolve(file);
-    img.src = url;
-  });
-}
+import { compressImage } from "@/lib/imageCompress";
 
 export default function PhotoReports({ item }) {
   const { t } = useLang();
@@ -37,7 +19,7 @@ export default function PhotoReports({ item }) {
     const urls = [];
     for (const f of files) {
       try {
-        const blob = await compress(f);
+        const blob = await compressImage(f, { maxDim: 1280, targetKB: 200 });
         const fd = new FormData();
         fd.append("photo", blob, "report.jpg");
         const r = await fetch("/api/upload-photo", { method: "POST", body: fd });
