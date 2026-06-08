@@ -75,6 +75,8 @@ export async function POST(req) {
     floor: (b.floor || "—").toString(), year: parseInt(b.year, 10) || null,
     complex: (b.complex || "").toString().trim(), amenities, no_commission: !!b.noCommission,
     ...(admin && b.managed !== undefined ? { managed_by_baylux: !!b.managed } : {}),
+    // Админ может назначить владельца — объект появится в его личном кабинете.
+    ...(admin && b.ownerEmail !== undefined ? { owner_email: b.ownerEmail || null, tg_user_id: b.ownerTg != null ? Number(b.ownerTg) : null } : {}),
     price: fmtPrice(priceNum, currency), currency, price_num: priceNum, per: deal === "rent" ? "в месяц" : deal === "daily" ? "в сутки" : "",
     about: (b.about || "").toString(), photos: Array.isArray(b.photos) ? b.photos.slice(0, 10) : [],
     tg_username: cleanTg(b.tg) || session.username || "", contact: phone, phone, tg_post_id: null,

@@ -53,6 +53,11 @@ export default function AddListingForm({ initial, editId }) {
   const [state, setState] = useState("");
   const [isAdm, setIsAdm] = useState(false);
   useEffect(() => { fetch("/api/me").then((r) => r.json()).then((j) => setIsAdm(!!j.admin)).catch(() => {}); }, []);
+  const [ownerList, setOwnerList] = useState([]);
+  const [ownerSel, setOwnerSel] = useState("");
+  useEffect(() => { if (!isAdm) return; fetch("/api/admin/users-list").then((r) => r.json()).then((j) => setOwnerList(j.users || [])).catch(() => {}); }, [isAdm]);
+  const ownerVal = (u) => u.email || (u.tg_user_id != null ? "tg:" + u.tg_user_id : "");
+  const curOwner = editId ? (init.f?.ownerEmail || (init.f?.ownerUsername ? "@" + init.f.ownerUsername : (init.f?.ownerTg != null ? "tg:" + init.f.ownerTg : ""))) : "";
   const upd = (k, v) => setF((s) => ({ ...s, [k]: v }));
   const dragIdx = useRef(null);
   const dragIdx2 = useRef(null);
@@ -128,6 +133,10 @@ export default function AddListingForm({ initial, editId }) {
       }
       const payload = { ...f, contact: phone, amenities, lat: geo?.lat, lng: geo?.lng, photos, photo_hashes, lang, facade: facadeUrl };
       if (editId) payload.id = editId;
+      if (isAdm && editId && ownerSel) {
+        const ou = ownerList.find((x) => ownerVal(x) === ownerSel);
+        if (ou) { payload.ownerEmail = ou.email || ""; payload.ownerTg = ou.tg_user_id ?? null; }
+      }
       const r = await fetch(editId ? "/api/edit-listing" : "/api/add-listing", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) });
       const j = await r.json();
       setState(j.ok ? "done" : "error");
@@ -216,6 +225,21 @@ export default function AddListingForm({ initial, editId }) {
           <input type="checkbox" checked={!!f.managed} onChange={(e) => upd("managed", e.target.checked)} />
           <span>🏠 {t("managed_badge")} <span style={{ color: "var(--ink-soft)", fontWeight: 400 }}>({t("af_admin_only")})</span></span>
         </label>
+      )}
+      {isAdm && editId && (
+        <div className="af-full" style={{ background: "var(--cream)", borderRadius: 10, padding: "12px 14px" }}>
+          <div className="af-lbl">👤 {t("af_owner_h")} <span style={{ color: "var(--ink-soft)", fontWeight: 400, fontSize: 13 }}>({t("af_admin_only")})</span></div>
+          <div style={{ fontSize: 13, color: "var(--ink-soft)", margin: "2px 0 8px" }}>{t("af_owner_cur")}: <b>{curOwner || "—"}</b></div>
+          <select value={ownerSel} onChange={(e) => setOwnerSel(e.target.value)} style={{ width: "100%" }}>
+            <option value="">{t("af_owner_keep")}</option>
+            {ownerList.map((u) => (
+              <option key={ownerVal(u)} value={ownerVal(u)}>
+                {(u.name || u.username || u.email || u.tg_user_id) + " · " + (u.email || ("@" + (u.username || u.tg_user_id)))}
+              </option>
+            ))}
+          </select>
+          <div className="af-hint">{t("af_owner_hint")}</div>
+        </div>
       )}
       <label className="af-full">{t("af_phone")}
         <input value={f.contact} onChange={(e) => upd("contact", e.target.value)} inputMode="tel" placeholder="+995 555 12 34 56" required />
