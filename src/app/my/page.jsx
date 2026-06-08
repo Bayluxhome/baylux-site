@@ -39,6 +39,7 @@ export default async function MyPage() {
   let rows = [];
   let realtor = null;
   let managedRows = [];
+  let msgsByListing = {};
   if (supa) {
     let q = supa.from("listings").select("*");
     q = session.id != null ? q.eq("tg_user_id", session.id) : q.eq("owner_email", session.email);
@@ -62,6 +63,12 @@ export default async function MyPage() {
       const seen = new Set(ownManaged.map((r) => r.id));
       managedRows = [...ownManaged, ...(rdm || []).filter((r) => !seen.has(r.id))];
     }
+    // Сообщения собственнику по управляемым объектам.
+    if (managedRows.length) {
+      const ids = managedRows.map((r) => String(r.id));
+      const { data: msgs } = await supa.from("owner_messages").select("*").in("listing_id", ids).order("created_at", { ascending: false });
+      (msgs || []).forEach((m) => { (msgsByListing[m.listing_id] = msgsByListing[m.listing_id] || []).push({ id: m.id, body: m.body, at: m.created_at }); });
+    }
   }
 
   const mapItem = (r) => {
@@ -79,7 +86,10 @@ export default async function MyPage() {
       responsible: r.responsible_email || (r.responsible_tg != null ? "tg:" + r.responsible_tg : ""),
       ownerName: r.owner_name || "",
       ownerPhone: r.owner_phone || "",
+      ownerEmail: r.owner_contact_email || r.owner_email || "",
+      internalNo: r.internal_no || "",
       canManage: canMng || isResponsible(session, r),
+      messages: msgsByListing[String(r.id)] || [],
     };
   };
   const ownItems = rows.map(mapItem).filter((x) => !x.managed);

@@ -238,6 +238,11 @@ export default function AddListingForm({ initial, editId }) {
         </label>
       )}
       {showManage && editId && (
+        <label className="af-full">🔢 {t("af_internal_no")} <span style={{ color: "var(--ink-soft)", fontWeight: 400, fontSize: 13 }}>({t("af_internal_hint")})</span>
+          <input value={f.internalNo || ""} onChange={(e) => upd("internalNo", e.target.value)} placeholder="A-101" />
+        </label>
+      )}
+      {showManage && editId && (
         <div className="af-full" style={{ background: "var(--cream)", borderRadius: 10, padding: "12px 14px" }}>
           <div className="af-lbl">👤 {t("af_owner_h")}</div>
           {canMng && (
@@ -262,6 +267,10 @@ export default function AddListingForm({ initial, editId }) {
               <input value={f.ownerPhone || ""} onChange={(e) => upd("ownerPhone", e.target.value)} placeholder="+995 ..." inputMode="tel" style={{ width: "100%", marginTop: 4, border: "1px solid var(--line)", borderRadius: 8, padding: "9px 11px", fontFamily: "inherit", fontSize: 14 }} />
             </label>
           </div>
+          <label style={{ display: "block", fontSize: 13, color: "var(--navy)", fontWeight: 600, marginTop: 8 }}>{t("af_owner_email")}
+            <input type="email" value={f.ownerEmailC || ""} onChange={(e) => upd("ownerEmailC", e.target.value)} placeholder="owner@email.com" style={{ width: "100%", marginTop: 4, border: "1px solid var(--line)", borderRadius: 8, padding: "9px 11px", fontFamily: "inherit", fontSize: 14 }} />
+            <span className="af-hint">{t("af_owner_email_hint")}</span>
+          </label>
         </div>
       )}
       {canMng && editId && (

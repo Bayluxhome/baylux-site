@@ -48,3 +48,17 @@ export async function sendMagicLink(to, url, lang) {
   if (!tr) throw new Error("mailer_not_configured");
   await tr.sendMail({ from: FROM, to, subject: subj, text, html, replyTo: REPLY_TO });
 }
+
+const esc = (s) => String(s == null ? "" : s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+
+// Сообщение собственнику по его объекту (доп. взносы, ремонты и т.д.).
+export async function sendOwnerMessage(to, listingTitle, body, lang) {
+  const subj = lang === "ka" ? "Baylux — შეტყობინება თქვენი ბინის შესახებ" : lang === "en" ? "Baylux — a message about your apartment" : "Baylux — сообщение по вашей квартире";
+  const intro = lang === "ka" ? "Baylux-ის გუნდის შეტყობინება თქვენი ობიექტის შესახებ:" : lang === "en" ? "A message from the Baylux team about your property:" : "Сообщение от команды Baylux по вашему объекту:";
+  const text = `${intro}\n${listingTitle}\n\n${body}`;
+  const html = `<div style="font-family:Arial,sans-serif;font-size:15px;color:#1b2a3a"><p>${esc(intro)}</p><p style="font-weight:700">${esc(listingTitle)}</p><p style="white-space:pre-line;background:#f5efe3;border-radius:10px;padding:12px 14px">${esc(body)}</p><p style="color:#7a8aa0;font-size:12px">Baylux · bayluxhome.com</p></div>`;
+  if (RESEND_KEY) { await sendViaResend({ to, subject: subj, text, html }); return; }
+  const tr = getTransporter();
+  if (!tr) throw new Error("mailer_not_configured");
+  await tr.sendMail({ from: FROM, to, subject: subj, text, html, replyTo: REPLY_TO });
+}

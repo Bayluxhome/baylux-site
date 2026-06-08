@@ -53,6 +53,8 @@ export default async function EditListingPage({ params }) {
       canManage: canManageThis,
       ownerName: r.owner_name || "",
       ownerPhone: r.owner_phone || "",
+      ownerEmailC: r.owner_contact_email || "",
+      internalNo: r.internal_no || "",
     },
     amenities: typeof r.amenities === "string" && r.amenities ? r.amenities.split(",").map((s) => s.trim()).filter(Boolean) : [],
     geo: r.lat && r.lng ? { lat: Number(r.lat), lng: Number(r.lng) } : null,

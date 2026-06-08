@@ -84,8 +84,10 @@ export async function POST(req) {
     ...(canMng && b.managed !== undefined ? { managed_by_baylux: !!b.managed } : {}),
     // Назначение владельца (аккаунт) — управляющий или ответственный за объект.
     ...(canManageThis && b.ownerEmail !== undefined ? { owner_email: b.ownerEmail || null, tg_user_id: b.ownerTg != null ? Number(b.ownerTg) : null } : {}),
-    // Контакты реального владельца (имя, телефон) — управляющий или ответственный.
-    ...(canManageThis && (b.ownerName !== undefined || b.ownerPhone !== undefined) ? { owner_name: (b.ownerName || "").toString().trim() || null, owner_phone: (b.ownerPhone || "").toString().trim() || null } : {}),
+    // Контакты реального владельца (имя, телефон, email) — управляющий или ответственный.
+    ...(canManageThis && (b.ownerName !== undefined || b.ownerPhone !== undefined || b.ownerEmailC !== undefined) ? { owner_name: (b.ownerName || "").toString().trim() || null, owner_phone: (b.ownerPhone || "").toString().trim() || null, owner_contact_email: (b.ownerEmailC || "").toString().trim() || null } : {}),
+    // Внутренний номер квартиры (для привязки XLS) — управляющий или ответственный.
+    ...(canManageThis && b.internalNo !== undefined ? { internal_no: (b.internalNo || "").toString().trim() || null } : {}),
     // Договор с арендатором (ссылка) — управляющий или ответственный.
     ...(canManageThis && b.contractUrl !== undefined ? { contract_url: (b.contractUrl || "").toString().trim() || null } : {}),
     // Ответственный сотрудник за объект — только админ.

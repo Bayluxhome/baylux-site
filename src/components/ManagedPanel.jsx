@@ -1,6 +1,7 @@
 "use client";
 import { useState } from "react";
 import { useLang } from "@/components/LangContext";
+import OwnerMessages from "@/components/OwnerMessages";
 
 // Объекты владельца, переданные в управление Baylux. Редактировать нельзя — только сводка.
 // Сводка пока заглушка («в разработке»): метрики дохода, загрузки, коммуналки, календарь.
@@ -61,12 +62,16 @@ export default function ManagedPanel({ items, adminView }) {
                   ? <a href={r.contract} target="_blank" rel="noopener noreferrer" className="my-link">{t("mg_contract_open")} →</a>
                   : <span style={{ color: "var(--ink-soft)", fontSize: 13 }}>{t("mg_no_contract")}</span>}
               </div>
-              {(r.ownerName || r.ownerPhone) && (
+              {r.internalNo && (
+                <div style={{ color: "var(--ink-soft)", fontSize: 13, marginBottom: 10 }}>🔢 {t("mg_internal_no")}: <b style={{ color: "var(--navy)" }}>{r.internalNo}</b></div>
+              )}
+              {(r.ownerName || r.ownerPhone || r.ownerEmail) && (
                 <div style={{ background: "#fff", border: "1px solid var(--line)", borderRadius: 12, padding: "12px 14px", marginBottom: 12 }}>
                   <span style={{ color: "var(--navy)", fontWeight: 700, fontSize: 14 }}>👤 {t("mg_owner_contact")}</span>
-                  <div style={{ color: "var(--ink-soft)", fontSize: 14, marginTop: 4 }}>{[r.ownerName, r.ownerPhone].filter(Boolean).join(" · ")}</div>
+                  <div style={{ color: "var(--ink-soft)", fontSize: 14, marginTop: 4 }}>{[r.ownerName, r.ownerPhone, r.ownerEmail].filter(Boolean).join(" · ")}</div>
                 </div>
               )}
+              <OwnerMessages item={r} />
               <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(150px, 1fr))", gap: 10 }}>
                 {tiles.map(([ic, label, val]) => (
                   <div key={label} style={{ background: "#fff", border: "1px solid var(--line)", borderRadius: 12, padding: "12px 14px" }}>
