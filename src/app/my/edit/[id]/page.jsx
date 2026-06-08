@@ -42,6 +42,7 @@ export default async function EditListingPage({ params }) {
     amenities: typeof r.amenities === "string" && r.amenities ? r.amenities.split(",").map((s) => s.trim()).filter(Boolean) : [],
     geo: r.lat && r.lng ? { lat: Number(r.lat), lng: Number(r.lng) } : null,
     photos: Array.isArray(r.photos) ? r.photos : [],
+    facade: r.facade_photo || "",
   };
 
   return (

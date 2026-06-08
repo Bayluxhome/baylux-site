@@ -79,6 +79,7 @@ export async function POST(req) {
     ...(admin && b.ownerEmail !== undefined ? { owner_email: b.ownerEmail || null, tg_user_id: b.ownerTg != null ? Number(b.ownerTg) : null } : {}),
     price: fmtPrice(priceNum, currency), currency, price_num: priceNum, per: deal === "rent" ? "в месяц" : deal === "daily" ? "в сутки" : "",
     about: (b.about || "").toString(), photos: Array.isArray(b.photos) ? b.photos.slice(0, 10) : [],
+    facade_photo: (b.facade || "").toString() || null,
     tg_username: cleanTg(b.tg) || session.username || "", contact: phone, phone, tg_post_id: null,
   };
   const { error } = await supa.from("listings").update(row).eq("id", b.id);

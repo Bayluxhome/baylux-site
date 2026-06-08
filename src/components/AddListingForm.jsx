@@ -77,6 +77,8 @@ export default function AddListingForm({ initial, editId }) {
   });
   const filePreviews = useMemo(() => files.map((f) => URL.createObjectURL(f)), [files]);
   useEffect(() => () => filePreviews.forEach((u) => URL.revokeObjectURL(u)), [filePreviews]);
+  const facadePrev = useMemo(() => (facadeFile ? URL.createObjectURL(facadeFile) : ""), [facadeFile]);
+  useEffect(() => () => { if (facadePrev) URL.revokeObjectURL(facadePrev); }, [facadePrev]);
   const toggleAmenity = (a) => setAmenities((arr) => arr.includes(a) ? arr.filter((x) => x !== a) : [...arr, a]);
   const geoTimer = useRef(null);
 
@@ -303,7 +305,12 @@ export default function AddListingForm({ initial, editId }) {
       <div className="af-full">
         <div className="af-lbl">🏢 {t("af_facade")}</div>
         <input type="file" accept="image/*" onChange={(e) => setFacadeFile(e.target.files[0] || null)} />
-        {(facadeFile || facade) && <div className="af-hint">✓ 1</div>}
+        {(facadePrev || facade) && (
+          <div style={{ position: "relative", width: 120, height: 80, marginTop: 8, borderRadius: 8, overflow: "hidden", border: "1px solid var(--line)" }}>
+            <img src={facadePrev || facade} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+            <button type="button" onClick={() => { setFacadeFile(null); setFacade(""); }} style={{ position: "absolute", top: 2, right: 2, width: 20, height: 20, borderRadius: "50%", border: "none", background: "rgba(0,0,0,.6)", color: "#fff", cursor: "pointer", lineHeight: 1, fontSize: 12 }}>✕</button>
+          </div>
+        )}
       </div>
       <div className="af-full" style={{ fontSize: 13, color: "var(--ink-soft)" }}>
         {t("af_rules_pre")}<a href="/rules" target="_blank" style={{ color: "var(--gold-dk)", fontWeight: 600 }}>{t("af_rules_link")}</a>.
