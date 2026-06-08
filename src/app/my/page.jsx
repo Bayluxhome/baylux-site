@@ -58,6 +58,7 @@ export default async function MyPage() {
       photo: (Array.isArray(r.photos) && r.photos[0]) || "/placeholder-baylux.jpg",
       slug: r.status === "approved" ? slugify(`${bn}-${r.type || ""}-${r.price || ""}`) : null,
       managed: !!r.managed_by_baylux,
+      contract: r.contract_url || "",
     };
   });
   const ownItems = items.filter((x) => !x.managed);

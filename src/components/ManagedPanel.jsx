@@ -49,6 +49,12 @@ export default function ManagedPanel({ items }) {
           {open === r.id && (
             <div style={{ borderTop: "1px solid var(--line)", padding: "16px 16px 18px", background: "var(--cream)" }}>
               <div style={{ display: "inline-block", background: "rgba(201,162,75,.18)", color: "var(--gold-dk)", fontWeight: 700, fontSize: 12, padding: "3px 10px", borderRadius: 20, marginBottom: 14 }}>⚙️ {t("mg_dev")}</div>
+              <div style={{ background: "#fff", border: "1px solid var(--line)", borderRadius: 12, padding: "12px 14px", marginBottom: 12, display: "flex", justifyContent: "space-between", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
+                <span style={{ color: "var(--navy)", fontWeight: 700, fontSize: 14 }}>📄 {t("mg_contract")}</span>
+                {r.contract
+                  ? <a href={r.contract} target="_blank" rel="noopener noreferrer" className="my-link">{t("mg_contract_open")} →</a>
+                  : <span style={{ color: "var(--ink-soft)", fontSize: 13 }}>{t("mg_no_contract")}</span>}
+              </div>
               <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(150px, 1fr))", gap: 10 }}>
                 {tiles.map(([ic, label, val]) => (
                   <div key={label} style={{ background: "#fff", border: "1px solid var(--line)", borderRadius: 12, padding: "12px 14px" }}>

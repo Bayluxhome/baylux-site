@@ -243,6 +243,12 @@ export default function AddListingForm({ initial, editId }) {
           <div className="af-hint">{t("af_owner_hint")}</div>
         </div>
       )}
+      {isAdm && editId && (
+        <label className="af-full">📄 {t("af_contract_h")} <span style={{ color: "var(--ink-soft)", fontWeight: 400, fontSize: 13 }}>({t("af_admin_only")})</span>
+          <input value={f.contractUrl || ""} onChange={(e) => upd("contractUrl", e.target.value)} placeholder="https://..." />
+          <span className="af-hint">{t("af_contract_hint")}</span>
+        </label>
+      )}
       <label className="af-full">{t("af_phone")}
         <input value={f.contact} onChange={(e) => upd("contact", e.target.value)} inputMode="tel" placeholder="+995 555 12 34 56" required />
       </label>

@@ -79,6 +79,8 @@ export async function POST(req) {
     ...(admin && b.managed !== undefined ? { managed_by_baylux: !!b.managed } : {}),
     // Админ может назначить владельца — объект появится в его личном кабинете.
     ...(admin && b.ownerEmail !== undefined ? { owner_email: b.ownerEmail || null, tg_user_id: b.ownerTg != null ? Number(b.ownerTg) : null } : {}),
+    // Договор с арендатором (ссылка) — только админ.
+    ...(admin && b.contractUrl !== undefined ? { contract_url: (b.contractUrl || "").toString().trim() || null } : {}),
     price: fmtPrice(priceNum, currency), currency, price_num: priceNum, per: deal === "rent" ? "в месяц" : deal === "daily" ? "в сутки" : "",
     about: (b.about || "").toString(), photos: Array.isArray(b.photos) ? b.photos.slice(0, 10) : [],
     facade_photo: (b.facade || "").toString() || null,
