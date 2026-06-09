@@ -100,6 +100,22 @@ export default function AddListingForm({ initial, editId }) {
     } catch (e) { /* ignore */ }
   }
 
+  // Обратное геокодирование: по клику на карту — заполняем поле адреса (улица + дом).
+  async function reverseGeocode(lat, lng) {
+    const key = process.env.NEXT_PUBLIC_MAPTILER_KEY;
+    if (!key) return;
+    try {
+      const r = await fetch(`https://api.maptiler.com/geocoding/${lng},${lat}.json?key=${key}&language=ru&limit=1`);
+      const j = await r.json();
+      const feat = j?.features?.[0];
+      if (!feat) return;
+      const street = feat.text || (feat.place_name || "").split(",")[0] || "";
+      const house = feat.address || feat.properties?.address || "";
+      const line = (street + (house ? ", " + house : "")).trim();
+      if (line) upd("address", line);
+    } catch (e) { /* адрес оставим как есть */ }
+  }
+
   // Адрес: точка двигается сама — авто-геокод с задержкой при вводе и по Enter (Enter НЕ сабмитит форму).
   const onAddrChange = (val) => {
     upd("address", val);
@@ -185,7 +201,7 @@ export default function AddListingForm({ initial, editId }) {
       </label>
       <div className="af-full">
         <div className="af-lbl">{t("af_mapnote")}</div>
-        <MapPicker point={geo} onPick={(lat, lng) => { setGeo({ lat, lng }); setGeoNote(t("af_geo_manual")); }} />
+        <MapPicker point={geo} onPick={(lat, lng) => { setGeo({ lat, lng }); setGeoNote(t("af_geo_manual")); reverseGeocode(lat, lng); }} />
         <div className="af-hint">{geoNote || (geo ? t("af_geo_set") : t("af_geo_hint"))}</div>
       </div>
       <label>{t("af_price")}
