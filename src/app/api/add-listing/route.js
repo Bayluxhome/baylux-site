@@ -76,7 +76,7 @@ export async function POST(req) {
     kind: /новострой/i.test(b.type || "") || (b.complex || "").trim() ? "complex" : "house",
     district: city,
     lat: Number(b.lat) || 41.645, lng: Number(b.lng) || 41.642,
-    deal, type: b.type || "Квартира",
+    deal, type: String(b.rooms).trim() === "0" ? "Студия" : (b.type || "Квартира"),
     rooms: parseInt(b.rooms, 10) || 0, area: parseInt(b.area, 10) || 0,
     bathrooms: parseInt(b.bathrooms, 10) || null,
     floor: (b.floor || "—").toString(), year: parseInt(b.year, 10) || null,

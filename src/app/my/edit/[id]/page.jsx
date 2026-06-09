@@ -35,7 +35,7 @@ export default async function EditListingPage({ params }) {
       price: r.price_num != null ? String(r.price_num) : (String(r.price || "").replace(/[^\d]/g, "") || ""),
       currency: r.currency === "GEL" ? "GEL" : "USD",
       area: r.area ? String(r.area) : "",
-      rooms: r.rooms ? String(r.rooms) : "",
+      rooms: r.rooms != null && r.rooms !== "" ? String(r.rooms) : "",
       bathrooms: r.bathrooms ? String(r.bathrooms) : "",
       floor: r.floor && r.floor !== "—" ? r.floor : "",
       year: r.year ? String(r.year) : "",
