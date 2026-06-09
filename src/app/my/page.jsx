@@ -42,6 +42,8 @@ export default async function MyPage() {
   let msgsByListing = {};
   let reportsByListing = {};
   let summaryByListing = {};
+  let mgrByEmail = {};
+  let mgrByTg = {};
   if (supa) {
     let q = supa.from("listings").select("*");
     q = session.id != null ? q.eq("tg_user_id", session.id) : q.eq("owner_email", session.email);
@@ -64,6 +66,17 @@ export default async function MyPage() {
       const { data: rdm } = await mq;
       const seen = new Set(ownManaged.map((r) => r.id));
       managedRows = [...ownManaged, ...(rdm || []).filter((r) => !seen.has(r.id))];
+    }
+    // Контакты ответственных менеджеров (для блока «Ваш менеджер» у владельца).
+    if (managedRows.length) {
+      const emails = [...new Set(managedRows.map((r) => r.responsible_email).filter(Boolean).map((e) => e.toLowerCase()))];
+      const tgs = [...new Set(managedRows.map((r) => r.responsible_tg).filter((v) => v != null).map(Number))];
+      const collect = (arr) => (arr || []).forEach((u) => {
+        if (u.email) mgrByEmail[u.email.toLowerCase()] = u;
+        if (u.tg_user_id != null) mgrByTg[Number(u.tg_user_id)] = u;
+      });
+      if (emails.length) { const { data } = await supa.from("site_users").select("name, phone, email, username, tg_user_id").in("email", emails); collect(data); }
+      if (tgs.length) { const { data } = await supa.from("site_users").select("name, phone, email, username, tg_user_id").in("tg_user_id", tgs); collect(data); }
     }
     // Сообщения собственнику по управляемым объектам.
     if (managedRows.length) {
@@ -98,6 +111,15 @@ export default async function MyPage() {
       ownerPhone: r.owner_phone || "",
       ownerEmail: r.owner_contact_email || r.owner_email || "",
       internalNo: r.internal_no || "",
+      ...(() => {
+        const mgr = (r.responsible_email && mgrByEmail[String(r.responsible_email).toLowerCase()]) || (r.responsible_tg != null && mgrByTg[Number(r.responsible_tg)]) || null;
+        return {
+          managerName: mgr?.name || "",
+          managerPhone: mgr?.phone || "",
+          managerEmail: mgr?.email || r.responsible_email || "",
+          managerTg: mgr?.username ? "@" + mgr.username : "",
+        };
+      })(),
       canManage: canMng || isResponsible(session, r),
       messages: msgsByListing[String(r.id)] || [],
       reports: reportsByListing[String(r.id)] || [],

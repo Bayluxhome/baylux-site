@@ -54,6 +54,12 @@ export default function ManagedPanel({ items, adminView }) {
                   ? <a href={r.contract} target="_blank" rel="noopener noreferrer" className="my-link">{t("mg_contract_open")} →</a>
                   : <span style={{ color: "var(--ink-soft)", fontSize: 13 }}>{t("mg_no_contract")}</span>}
               </div>
+              {(r.managerName || r.managerPhone || r.managerEmail || r.managerTg) && (
+                <div style={{ background: "#fff", border: "1px solid var(--line)", borderRadius: 12, padding: "12px 14px", marginBottom: 12 }}>
+                  <span style={{ color: "var(--navy)", fontWeight: 700, fontSize: 14 }}>🧑‍💼 {t("mg_manager")}</span>
+                  <div style={{ color: "var(--ink-soft)", fontSize: 14, marginTop: 4 }}>{[r.managerName, r.managerPhone, r.managerEmail, r.managerTg].filter(Boolean).join(" · ")}</div>
+                </div>
+              )}
               {r.internalNo && (
                 <div style={{ color: "var(--ink-soft)", fontSize: 13, marginBottom: 10 }}>🔢 {t("mg_internal_no")}: <b style={{ color: "var(--navy)" }}>{r.internalNo}</b></div>
               )}
