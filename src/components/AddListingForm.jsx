@@ -137,7 +137,7 @@ export default function AddListingForm({ initial, editId }) {
       const newHashes = [];
       for (const file of files.slice(0, 10)) {
         const hash = await sha256Hex(file);     // хэш оригинала ДО сжатия
-        const blob = await compressImage(file, { maxDim: 1600, targetKB: 450, watermark: true });
+        const blob = await compressImage(file, { maxDim: 1600, targetKB: 200, watermark: true });
         const fd = new FormData();
         fd.append("photo", blob, "photo.jpg");
         const r = await fetch("/api/upload-photo", { method: "POST", body: fd });
@@ -148,7 +148,7 @@ export default function AddListingForm({ initial, editId }) {
       const photo_hashes = newHashes.slice(0, 10);
       let facadeUrl = facade;
       if (facadeFile) {
-        const blob = await compressImage(facadeFile, { maxDim: 1600, targetKB: 450, watermark: true });
+        const blob = await compressImage(facadeFile, { maxDim: 1600, targetKB: 200, watermark: true });
         const fd = new FormData();
         fd.append("photo", blob, "facade.jpg");
         const r = await fetch("/api/upload-photo", { method: "POST", body: fd });
