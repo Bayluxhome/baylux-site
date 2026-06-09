@@ -17,10 +17,10 @@ export default function ReportSummary({ item }) {
   // Плитки показываем всегда: с цифрами за выбранный месяц или с прочерками, если данных ещё нет.
   const tiles = [
     ["💰", t("mg_income"), cur ? money(cur.income) : "—"],
-    ["💸", t("mg_payout"), cur ? money(cur.payout) : "—"],
     ["🧮", t("mg_commission"), cur ? money(cur.commission) : "—"],
     ["🧾", t("mg_utils"), cur ? money(cur.utilities) : "—"],
     ["🛠️", t("mg_expenses"), cur ? money(cur.expenses) : "—"],
+    ["💸", t("mg_payout"), cur ? money(cur.payout) : "—"],
   ];
 
   return (

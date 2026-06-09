@@ -2,7 +2,7 @@
 import { useState } from "react";
 import { useLang } from "@/components/LangContext";
 
-const HEADERS = ["внутренний номер", "месяц", "доход", "выплачено владельцу", "комиссия", "коммуналка", "расходы", "заметка"];
+const HEADERS = ["внутренний номер", "месяц", "доход", "комиссия", "коммуналка", "расходы", "выплачено владельцу", "заметка"];
 
 export default function ReportsUpload() {
   const { t } = useLang();
