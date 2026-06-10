@@ -1,6 +1,7 @@
 import { supa } from "@/lib/supabase";
 import { slugify, cleanAddress } from "@/data/sheet";
 import { translateDescriptions, translateNames } from "@/lib/translate";
+import { watermarkBuffer } from "@/lib/watermarkServer";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -285,7 +286,8 @@ async function uploadPhoto(fileId) {
   const path = f?.result?.file_path;
   if (!path) return null;
   const res = await fetch(`https://api.telegram.org/file/bot${TOKEN}/${path}`);
-  const buf = Buffer.from(await res.arrayBuffer());
+  const raw = Buffer.from(await res.arrayBuffer());
+  const buf = await watermarkBuffer(raw, { maxDim: 1600, targetKB: 200 }); // знак + сжатие, как в форме
   const name = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}.jpg`;
   const up = await supa.storage.from("listing-photos").upload(name, buf, { contentType: "image/jpeg", upsert: false });
   if (up.error) return null;
