@@ -115,21 +115,8 @@ export default async function PropertyManagementPage() {
             ))}
           </div>
 
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(320px, 1fr))", gap: 18, marginTop: 28 }}>
+          <div style={{ marginTop: 28 }}>
             <PMCalc />
-            <div style={{ background: "var(--cream)", borderRadius: 16, padding: "24px 22px" }}>
-              <h2 style={{ color: "var(--navy)", margin: "0 0 14px" }}>{t("pm_fee_h")}</h2>
-              {[
-                [t("pm_fee_row1l"), t("pm_fee_row1r"), true],
-                [t("pm_fee_row2l"), t("pm_fee_row2r"), false],
-                [t("pm_fee_row3l"), t("pm_fee_row3r"), false],
-              ].map(([l, r, hot]) => (
-                <div key={l} style={{ display: "grid", gridTemplateColumns: "minmax(120px,38%) 1fr", gap: 12, padding: "12px 0", borderTop: "1px solid rgba(1,29,60,.12)" }}>
-                  <b style={{ color: hot ? "var(--gold-dk)" : "var(--navy)", fontSize: 15 }}>{l}</b>
-                  <span style={{ color: "var(--ink)", fontSize: 14, lineHeight: 1.5 }}>{r}</span>
-                </div>
-              ))}
-            </div>
           </div>
 
           <h2 style={{ color: "var(--navy)", margin: "40px 0 18px" }}>{t("pm_steps_h")}</h2>
