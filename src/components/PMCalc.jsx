@@ -9,7 +9,7 @@ const DISTRICT = { oldblvd: 1.15, newblvd: 1.1, makh: 0.85, gonio: 0.9, khel: 0.
 const NIGHTLY = { studio: 50, r1: 65, r2: 90, r3: 120 }; // посуточно, цена за ночь в сезон
 const OCC = 0.80;                                          // загрузка в сезон (доля)
 const SHORT = { studio: 550, r1: 700, r2: 900, r3: 1150 }; // краткосрочно (межсезонье), $/мес
-const LONG = { studio: 450, r1: 600, r2: 800, r3: 1050 };  // долгосрочно, $/мес
+const LONG = { studio: 450, r1: 600, r2: 850, r3: 1100 };  // долгосрочно, $/мес
 
 // Доли собственника по форматам: краткосрочная 80%, посуточная 70%, долгосрочная 90%.
 const round10 = (n) => Math.round(n / 10) * 10;
@@ -26,9 +26,9 @@ export default function PMCalc() {
     const d = DISTRICT[district] || 1;
     const mk = (gross, ownerPct) => { const g = round10(gross); const income = round10(g * ownerPct); return { gross: g, fee: g - income, income }; };
     return [
-      { ...mk(SHORT[type] * d, 0.80), split: "80 / 20", title: t("pmx_short"), per: t("pmx_short_per"), grossLbl: t("pmx_gross_rent"), util: t("pmx_util_short") },
-      { ...mk(NIGHTLY[type] * d * 30 * OCC, 0.70), split: "70 / 30", title: t("pmx_daily"), per: t("pmx_daily_per"), grossLbl: t("pmx_gross_daily"), util: t("pmx_util_daily"), hot: true },
-      { ...mk(LONG[type] * d, 0.90), split: "90 / 10", title: t("pmx_long"), per: t("pmx_long_per"), grossLbl: t("pmx_gross_rent"), util: t("pmx_util_long") },
+      { ...mk(SHORT[type] * d, 0.80), owner: 80, title: t("pmx_short"), per: t("pmx_short_per"), grossLbl: t("pmx_gross_rent"), util: t("pmx_util_short") },
+      { ...mk(NIGHTLY[type] * d * 30 * OCC, 0.70), owner: 70, title: t("pmx_daily"), per: t("pmx_daily_per"), grossLbl: t("pmx_gross_daily"), util: t("pmx_util_daily"), hot: true },
+      { ...mk(LONG[type] * d, 0.90), owner: 90, title: t("pmx_long"), per: t("pmx_long_per"), grossLbl: t("pmx_gross_rent"), util: t("pmx_util_long") },
     ];
   }, [type, district, t]);
 
@@ -54,9 +54,10 @@ export default function PMCalc() {
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(230px, 1fr))", gap: 14, marginTop: 22 }}>
         {modes.map((m) => (
           <div key={m.title} style={{ border: `1.5px solid ${m.hot ? "var(--gold)" : "var(--line)"}`, borderRadius: 14, padding: "16px 16px 14px", background: m.hot ? "var(--cream)" : "#fff", position: "relative" }}>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 8 }}>
-              <b style={{ color: "var(--navy)", fontSize: 16 }}>{m.title}</b>
-              <span style={{ background: "var(--navy)", color: "#fff", fontWeight: 700, fontSize: 12, padding: "3px 8px", borderRadius: 20, whiteSpace: "nowrap" }}>{m.split}</span>
+            <b style={{ color: "var(--navy)", fontSize: 16 }}>{m.title}</b>
+            <div style={{ margin: "6px 0 2px", fontSize: 13 }}>
+              <span style={{ background: "var(--gold)", color: "var(--navy)", fontWeight: 800, padding: "2px 9px", borderRadius: 20 }}>{t("pmx_you")} {m.owner}%</span>
+              <span style={{ color: "var(--ink-soft)", marginLeft: 6 }}>· Baylux {100 - m.owner}%</span>
             </div>
             <div style={{ color: "var(--ink-soft)", fontSize: 12, margin: "4px 0 12px" }}>{m.per}</div>
 
