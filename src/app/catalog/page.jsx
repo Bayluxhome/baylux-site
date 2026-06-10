@@ -121,8 +121,11 @@ export default async function CatalogPage({ searchParams }) {
   const bmap = new Map();
   for (const u of pageUnits) {
     const b = u.building;
-    if (!bmap.has(b.slug)) bmap.set(b.slug, { slug: b.slug, name: b.name, district: b.district, kind: b.kind, lat: b.lat, lng: b.lng, priceFrom: u.price, units: [] });
-    bmap.get(b.slug).units.push({ slug: u.slug, deal: u.deal, type: u.type, rooms: u.rooms, area: u.area, price: u.price, per: u.per, img: u.unit_image || (u.photos && u.photos[0]) || u.img || "" });
+    if (!bmap.has(b.slug)) bmap.set(b.slug, { slug: b.slug, name: b.name, district: b.district, kind: b.kind, lat: b.lat, lng: b.lng, priceFrom: u.price, _min: priceVal(u) || Infinity, units: [] });
+    const e = bmap.get(b.slug);
+    const pv = priceVal(u) || Infinity;
+    if (pv < e._min) { e._min = pv; e.priceFrom = u.price; } // на точке дома — минимальная цена среди его объектов
+    e.units.push({ slug: u.slug, deal: u.deal, type: u.type, rooms: u.rooms, area: u.area, price: u.price, per: u.per, img: u.unit_image || (u.photos && u.photos[0]) || u.img || "" });
   }
   const mapBuildings = Array.from(bmap.values());
 
