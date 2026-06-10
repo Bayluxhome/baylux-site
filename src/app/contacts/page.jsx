@@ -1,4 +1,4 @@
-import { WA_PHONE, waLink } from "@/config";
+import { PHONE_DISPLAY, WA_DISPLAY, telLink, waLink } from "@/config";
 import { getLang } from "@/lib/serverLang";
 import { t as tr } from "@/lib/dict";
 
@@ -16,7 +16,8 @@ export default function ContactsPage() {
       <p>{t("co_p")}</p>
 
       <div className="contact-row">
-        <a href={waLink("Здравствуйте! Пишу с сайта Baylux.")} target="_blank" rel="noopener">💬 WhatsApp: +{WA_PHONE}</a>
+        <a href={telLink}>📞 {t("co_phone")}: {PHONE_DISPLAY}</a>
+        <a href={waLink("Здравствуйте! Пишу с сайта Baylux.")} target="_blank" rel="noopener">💬 WhatsApp: {WA_DISPLAY}</a>
         <a href="https://t.me/bayluxhome" target="_blank" rel="noopener">✈️ Telegram: @bayluxhome</a>
         <a href="mailto:bayluxhome@gmail.com">✉️ E-mail: bayluxhome@gmail.com</a>
       </div>

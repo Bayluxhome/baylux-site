@@ -10,6 +10,7 @@ import { LangProvider } from "@/components/LangContext";
 import { getUsdGel } from "@/lib/rate";
 import { getCityCounts } from "@/data/source";
 import { getLang } from "@/lib/serverLang";
+import { PHONE_DISPLAY } from "@/config";
 
 export const metadata = {
   metadataBase: new URL("https://bayluxhome.com"),
@@ -76,7 +77,7 @@ export default async function RootLayout({ children }) {
                 "Агентство недвижимости в Батуми: продажа, аренда, посуточная аренда, управление и клининг.",
               areaServed: { "@type": "City", name: "Batumi", address: { "@type": "PostalAddress", addressCountry: "GE" } },
               address: { "@type": "PostalAddress", addressLocality: "Батуми", addressCountry: "GE" },
-              telephone: "+995 599 20 07 96",
+              telephone: PHONE_DISPLAY,
               email: "bayluxhome@gmail.com",
             }),
           }}

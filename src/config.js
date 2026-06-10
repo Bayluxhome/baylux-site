@@ -2,12 +2,30 @@
 export const TG_BOT = "baylux_leads_bot"; // имя бота для входа через Telegram
 export const TG_CONTACT = "bayluxhome"; // основной Telegram-контакт (владелец/агентство), без @ — фолбэк для объявлений без личного ника автора
 
+// Телефоны сайта. ВАЖНО: это два РАЗНЫХ номера.
+// PHONE — основной номер для звонков (tel:), берётся из env NEXT_PUBLIC_PHONE.
+// WA_PHONE — отдельный номер для WhatsApp (wa.me), НЕ менять.
+export const PHONE = process.env.NEXT_PUBLIC_PHONE || "995706070305"; // звонки, без +
+export const WA_PHONE = "995599200796"; // WhatsApp, без + — НЕ менять
+export function fmtPhone(d) {
+  const s = String(d || "").replace(/\D/g, "");
+  const m = s.match(/^(995)(\d{3})(\d{2})(\d{2})(\d{2})$/); // 995 XXX XX XX XX
+  return m ? `+${m[1]} ${m[2]} ${m[3]} ${m[4]} ${m[5]}` : "+" + s;
+}
+export const PHONE_DISPLAY = fmtPhone(PHONE);   // +995 706 07 03 05
+export const WA_DISPLAY = fmtPhone(WA_PHONE);   // +995 599 20 07 96
+export const telLink = "tel:+" + PHONE;
+export function waLink(text) {
+  const t = text || "Здравствуйте! Пишу с сайта Baylux по объекту.";
+  return "https://wa.me/" + WA_PHONE + "?text=" + encodeURIComponent(t);
+}
+
 // Реквизиты оператора для футера (пока физлицо; после регистрации ШПС заменить).
 // ⚠️ Подставь точные ФИО/контакт оператора.
 export const OPERATOR = {
   name: "Parshuto Dmitrii", // ФИО оператора-физлица (до регистрации ШПС)
   email: "bayluxhome@gmail.com",
-  phone: "+995 599 20 07 96",
+  phone: PHONE_DISPLAY, // основной телефон сайта (из NEXT_PUBLIC_PHONE)
 };
 
 // Версия и дата юр-документов (Privacy/Terms/Cookies/Rules)
@@ -43,8 +61,3 @@ export function channelForCity(city) {
 // В коде не храним: GitHub push protection блокирует токены Mapbox даже публичные.
 export const MAPBOX_TOKEN = process.env.NEXT_PUBLIC_MAPBOX_TOKEN || "";
 
-export const WA_PHONE = "995599200796"; // номер сайта для WhatsApp (без + и пробелов) — задан в коде, env больше не используется
-export function waLink(text) {
-  const t = text || "Здравствуйте! Пишу с сайта Baylux по объекту.";
-  return "https://wa.me/" + WA_PHONE + "?text=" + encodeURIComponent(t);
-}
