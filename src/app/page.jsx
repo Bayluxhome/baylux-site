@@ -18,6 +18,18 @@ export default async function HomePage() {
   const lang = getLang();
   const t = (k) => tr(lang, k);
 
+  // Внутренняя перелинковка на SEO-лендинги (ключевые анкоры) — помогает индексации и релевантности.
+  const popular = [
+    ["/kupit-kvartiru-batumi", t("pop_buy_btm")],
+    ["/arenda-batumi", t("pop_rent_btm")],
+    ["/posutochno-batumi", t("pop_daily_btm")],
+    ["/novostroyki-batumi", t("pop_new_btm")],
+    ["/apartamenty-batumi", t("pop_apt_btm")],
+    ["/kupit-kvartiru-tbilisi", t("pop_buy_tbi")],
+    ["/arenda-tbilisi", t("pop_rent_tbi")],
+    ["/posutochno-tbilisi", t("pop_daily_tbi")],
+  ];
+
   return (
     <>
       <Hero count={allUnits.length} />
@@ -63,9 +75,18 @@ export default async function HomePage() {
         </div>
       </section>
 
-      <section className="wrap" style={{ paddingBlock: "30px 50px" }}>
+      <section className="wrap" style={{ paddingBlock: "30px 16px" }}>
         <h2 style={{ color: "var(--navy)", fontSize: 22, marginBottom: 10 }}>{t("seo_home_h")}</h2>
         <p style={{ color: "var(--ink-soft)", lineHeight: 1.7, maxWidth: 820 }}>{t("seo_home_p")}</p>
+      </section>
+
+      <section className="wrap" style={{ paddingBlock: "6px 50px" }}>
+        <h2 style={{ color: "var(--navy)", fontSize: 20, marginBottom: 12 }}>{t("pop_h")}</h2>
+        <div style={{ display: "flex", flexWrap: "wrap", gap: 10 }}>
+          {popular.map(([href, label]) => (
+            <Link key={href} href={href} style={{ display: "inline-block", padding: "8px 14px", border: "1px solid var(--line)", borderRadius: 20, color: "var(--navy)", fontSize: 14, fontWeight: 600, background: "#fff" }}>{label}</Link>
+          ))}
+        </div>
       </section>
     </>
   );
