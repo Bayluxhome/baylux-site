@@ -10,7 +10,7 @@ import { LangProvider } from "@/components/LangContext";
 import { getUsdGel } from "@/lib/rate";
 import { getCityCounts } from "@/data/source";
 import { getLang } from "@/lib/serverLang";
-import { PHONE_DISPLAY } from "@/config";
+import { PHONE_DISPLAY, SOCIAL } from "@/config";
 
 export const metadata = {
   metadataBase: new URL("https://bayluxhome.com"),
@@ -70,7 +70,9 @@ export default async function RootLayout({ children }) {
               "@context": "https://schema.org",
               "@type": "RealEstateAgent",
               name: "Baylux",
+              alternateName: ["Baylux Home", "bayluxhome", "bayluxhome.com"],
               url: "https://bayluxhome.com",
+              sameAs: [SOCIAL.instagram, SOCIAL.facebook].filter(Boolean),
               logo: "https://bayluxhome.com/baylux_logo.svg",
               image: "https://bayluxhome.com/hero-batumi.jpg",
               description:
