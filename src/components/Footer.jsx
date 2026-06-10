@@ -55,7 +55,7 @@ export default function Footer() {
         </div>
         <div className="fbar" style={{ flexWrap: "wrap", gap: 6 }}>
           <span>{t("foot_operator")}: {OPERATOR.name} · {OPERATOR.email} · {OPERATOR.phone}</span>
-          <span>© Baylux 2026 · Batumi, Georgia</span>
+          <span>© Baylux Home (bayluxhome.com) 2026 · Batumi, Georgia</span>
         </div>
       </div>
     </footer>

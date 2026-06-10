@@ -28,7 +28,7 @@ export const metadata = {
     description: "Купить, продать, снять или сдать квартиру в Грузии и Батуми у моря.",
     type: "website",
     locale: "ru_RU",
-    siteName: "Baylux",
+    siteName: "Baylux Home",
     url: "https://bayluxhome.com",
     images: [
       { url: "/hero-batumi.jpg", width: 1200, height: 630, alt: "Baylux — недвижимость в Батуми" },
