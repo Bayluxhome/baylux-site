@@ -31,7 +31,7 @@ export async function POST(req) {
     await sendMagicLink(email, `${SITE}/api/email-login-verify?token=${token}`, lang);
   } catch (e) {
     console.error("magic link send:", e?.message);
-    return Response.json({ ok: false, error: "send", detail: (e?.message || "").slice(0, 300) }, { status: 500 });
+    return Response.json({ ok: false, error: "send" }, { status: 500 });
   }
   return Response.json({ ok: true });
 }
