@@ -13,7 +13,7 @@ export default function EmailLogin({ marketing = false }) {
     try {
       const r = await fetch("/api/email-login-init", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ email, lang, marketing, consent: true }) });
       const j = await r.json();
-      setSt(j.ok ? "sent" : "error");
+      setSt(j.ok ? "sent" : (j.error === "mail_off" ? "off" : "error"));
     } catch {
       setSt("error");
     }
@@ -34,6 +34,7 @@ export default function EmailLogin({ marketing = false }) {
           {st === "sending" ? t("el_sending") : t("el_btn")}
         </button>
         {st === "error" && <div className="af-err" style={{ flexBasis: "100%" }}>{t("el_err")}</div>}
+        {st === "off" && <div className="af-err" style={{ flexBasis: "100%" }}>{t("el_err_off")}</div>}
       </form>
       <div style={{ marginTop: 8, fontSize: 12.5, color: "var(--ink-soft)", lineHeight: 1.5 }}>{t("el_hint")}</div>
     </>
