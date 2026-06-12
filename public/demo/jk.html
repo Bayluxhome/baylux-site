@@ -242,6 +242,31 @@ table.crm{width:100%;border-collapse:collapse;font-size:12.5px;min-width:1020px}
   .panel{width:auto;position:static;max-height:none;border-left:none;border-top:1px solid #e4ddcd}
   .legend{margin-left:0}
 }
+@media (max-width:700px){
+  .bar{padding:8px 10px;gap:6px}
+  .bar .logo{font-size:12px;letter-spacing:.18em}
+  .tabs{margin-left:0;gap:3px;overflow-x:auto;flex-wrap:nowrap;max-width:100%;-webkit-overflow-scrolling:touch}
+  .tab{padding:7px 11px;font-size:12px;white-space:nowrap}
+  .bar-right{margin-left:auto;gap:6px}
+  .bar-stat{font-size:10.5px}
+  .filters{padding:8px 10px;gap:5px}
+  .chip{padding:6px 11px;font-size:11.5px}
+  .flabel{display:none}
+  .legend{display:none}
+  .stage{padding:10px;gap:7px}
+  .view-sw{gap:5px}
+  .view-btn{padding:8px 11px;font-size:11.5px}
+  .view-btn .vb-ico{margin-right:4px}
+  .panel{padding:12px}
+  .cell-mini{width:9px;height:9px}
+  .fr-cells{gap:2px}
+  .fr-num{width:26px;font-size:13px}
+  .fr-av{font-size:10px}
+  .chess-grid{grid-template-columns:24px repeat(8,38px);gap:3px}
+  .chess-sides{grid-template-columns:24px repeat(8,38px);gap:3px}
+  .chess-cell{height:34px;font-size:8.5px}
+  .chess-cell small{font-size:7.5px}
+}
 </style>
 </head>
 <body>
@@ -338,7 +363,7 @@ table.crm{width:100%;border-collapse:collapse;font-size:12.5px;min-width:1020px}
         <svg viewBox="0 0 2560 1717" preserveAspectRatio="xMidYMid meet" id="overlay"></svg>
         <div class="corner-note" id="cornerNote" style="display:none">Художественный ракурс. Выбор квартир — на <b onclick="setFacadeView('sea')">фронтальных видах</b></div>
       </div>
-      <div style="font-size:12px;color:#7a8699;text-align:center" id="canvasHint">Вид со стороны моря • наведите или коснитесь квартиры на фасаде</div>
+      <div style="font-size:12px;color:#7a8699;text-align:center" id="canvasHint">Вид со стороны моря • коснитесь квартиры на фасаде</div>
     </div>
     <aside class="panel" id="panel"></aside>
   </div>
@@ -561,7 +586,7 @@ function setFacadeView(k){
   document.getElementById('cornerNote').style.display=k==='corner'?'block':'none';
   const hint=document.getElementById('canvasHint');
   if(k==='corner'){hint.textContent='Вид с угла • художественный ракурс';}
-  else hint.textContent=FVIEWS[k].label+' • наведите или коснитесь квартиры на фасаде';
+  else hint.textContent=FVIEWS[k].label+(window.matchMedia&&window.matchMedia('(hover: none)').matches?' • коснитесь квартиры на фасаде':' • наведите или коснитесь квартиры на фасаде');
   drawOverlay();
   if(selFloor)renderFloorDetail(selFloor); else floorRows();
 }
