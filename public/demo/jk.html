@@ -111,6 +111,7 @@ button{font-family:inherit;cursor:pointer;border:none;background:none}
 .u.av-sold{fill:rgba(80,90,105,.45);stroke:rgba(139,147,161,.8)}
 .u.dim{fill:rgba(30,40,55,.55)!important;stroke:transparent!important;cursor:default}
 @media (hover:hover){.u:hover:not(.dim){fill:rgba(201,169,97,.5);stroke:var(--gold);stroke-width:3}}
+.u.tapped{fill:rgba(201,169,97,.55)!important;stroke:var(--gold)!important;stroke-width:4!important}
 .floor-glow{fill:rgba(201,169,97,.22);stroke:var(--gold);stroke-width:3;pointer-events:none;opacity:0;transition:opacity .15s}
 .floor-glow.on{opacity:1}
 
@@ -594,7 +595,11 @@ function drawOverlay(){
     r.addEventListener('mousemove',e=>showTip(e,UNITS.find(x=>x.id===r.dataset.id)));
     r.addEventListener('mouseleave',hideTip);
     let ts=null;
-    r.addEventListener('touchstart',e=>{ts=[e.touches[0].clientX,e.touches[0].clientY]},{passive:true});
+    r.addEventListener('touchstart',e=>{
+      ts=[e.touches[0].clientX,e.touches[0].clientY];
+      r.classList.add('tapped');
+      setTimeout(()=>r.classList.remove('tapped'),400);
+    },{passive:true});
     r.addEventListener('touchend',e=>{
       if(!ts)return;
       const t=e.changedTouches[0];
@@ -1117,6 +1122,11 @@ function heroInit(){
 
 /* ================= INIT ================= */
 (function init(){
+  // телефон/планшет: нет hover — включаем подсветку статусов сразу
+  if(window.matchMedia&&window.matchMedia('(hover: none)').matches){
+    availOn=true;
+    document.getElementById('chip-av').classList.add('on');
+  }
   const {t,f,s}=stats();
   document.getElementById('hs-total').textContent=t;
   document.getElementById('hs-free').textContent=f;
