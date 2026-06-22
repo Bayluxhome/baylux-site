@@ -130,6 +130,88 @@ export const ARTICLES = [
 <p>ხარისხიანი ფოტოები, გულახდილი აღწერა, სისუფთავე და სწრაფი პასუხები. იხილეთ <a href="/posutochno-batumi">დღიური ქირა ბათუმში</a> ან სრული <a href="/catalog">კატალოგი</a>.</p>`,
     },
   },
+  {
+    slug: "arenda-kvartiry-batumi",
+    date: "2026-06-21",
+    image: "/hero-batumi.jpg",
+    ru: {
+      title: "Аренда квартиры в Батуми: цены, районы, долгосрочно и помесячно",
+      excerpt: "Сколько стоит снять квартиру в Батуми, чем отличаются районы у моря и в городе, и как выбрать между помесячной и долгосрочной арендой.",
+      body: `
+<p>Батуми сочетает курорт и город, поэтому аренда здесь интересна и туристам, и тем, кто переезжает надолго. Цена зависит от близости к морю, новизны дома и наличия инфраструктуры.</p>
+<h2>Районы и цены</h2>
+<p>Новый бульвар и первая линия у моря — самые дорогие; студии тут обычно от $500–800 в месяц. Дальше от моря и в городской части — доступнее. Видовые квартиры в новых ЖК с бассейном стоят выше, но и сдаются быстрее.</p>
+<h2>Помесячно или на год</h2>
+<p>Долгосрочная аренда (от 12 месяцев) даёт лучшую цену за месяц и стабильность; коммунальные платит арендатор. Помесячная гибче, но дороже. Если вы собственник и хотите стабильный доход без хлопот — посмотрите <a href="/property-management">управление недвижимостью</a> и прикиньте доход в калькуляторе.</p>
+<h2>Как выбрать и не нарваться</h2>
+<p>Смотрите реальные фото, уточняйте, что входит в цену, и избегайте предоплат без договора. Актуальные варианты — в разделе <a href="/arenda-batumi">аренда квартир в Батуми</a> или в общем <a href="/catalog?city=%D0%91%D0%B0%D1%82%D1%83%D0%BC%D0%B8">каталоге по Батуми</a>.</p>`,
+    },
+    en: {
+      title: "Renting an apartment in Batumi: prices, districts, long-term and monthly",
+      excerpt: "How much it costs to rent in Batumi, how seaside and city districts differ, and how to choose between monthly and long-term rental.",
+      body: `
+<p>Batumi combines resort and city, so renting here appeals both to tourists and to people relocating long-term. Price depends on proximity to the sea, how new the building is, and its amenities.</p>
+<h2>Districts and prices</h2>
+<p>The New Boulevard and the seafront first line are the priciest; studios here usually start at $500–800 per month. Further from the sea and in the city it's more affordable. View apartments in new complexes with a pool cost more but rent faster.</p>
+<h2>Monthly or yearly</h2>
+<p>Long-term rental (12+ months) gives a better monthly price and stability; utilities are paid by the tenant. Monthly is more flexible but pricier. If you're an owner who wants steady income without the hassle, see <a href="/property-management">property management</a> and estimate income in the calculator.</p>
+<h2>How to choose safely</h2>
+<p>Check real photos, confirm what's included, and avoid prepayments without a contract. See current options in <a href="/arenda-batumi">apartments for rent in Batumi</a> or the full <a href="/catalog?city=%D0%91%D0%B0%D1%82%D1%83%D0%BC%D0%B8">Batumi catalogue</a>.</p>`,
+    },
+    ka: {
+      title: "ბინის ქირაობა ბათუმში: ფასები, უბნები, გრძელვადიანი და თვიური",
+      excerpt: "რა ღირს ბინის ქირაობა ბათუმში, რით განსხვავდება ზღვისპირა და ქალაქის უბნები და როგორ ავირჩიოთ თვიურსა და გრძელვადიანს შორის.",
+      body: `
+<p>ბათუმი აერთიანებს კურორტსა და ქალაქს, ამიტომ ქირაობა აქ საინტერესოა როგორც ტურისტებისთვის, ისე გრძელვადიანად ჩამოსულთათვის. ფასი დამოკიდებულია ზღვასთან სიახლოვეზე, შენობის სიახლესა და ინფრასტრუქტურაზე.</p>
+<h2>უბნები და ფასები</h2>
+<p>ახალი ბულვარი და ზღვის პირველი ხაზი ყველაზე ძვირია; სტუდიო აქ ჩვეულებრივ თვეში $500–800-დან. ზღვიდან მოშორებით უფრო ხელმისაწვდომია. ხედიანი ბინები აუზიან ახალ კომპლექსებში უფრო ძვირია, მაგრამ სწრაფად ქირავდება.</p>
+<h2>თვიური თუ წლიური</h2>
+<p>გრძელვადიანი ქირა (12+ თვე) უკეთეს ფასსა და სტაბილურობას იძლევა; კომუნალურს მოიჯარე იხდის. თუ მფლობელი ხართ — იხილეთ <a href="/property-management">ქონების მართვა</a>.</p>
+<h2>როგორ ავირჩიოთ უსაფრთხოდ</h2>
+<p>იხილეთ რეალური ფოტოები, დააზუსტეთ რა შედის ფასში და მოერიდეთ წინასწარ გადახდას ხელშეკრულების გარეშე. იხილეთ <a href="/arenda-batumi">ბინების ქირა ბათუმში</a> ან <a href="/catalog?city=%D0%91%D0%B0%D1%82%D1%83%D0%BC%D0%B8">კატალოგი</a>.</p>`,
+    },
+  },
+  {
+    slug: "pokupka-kvartiry-v-batumi",
+    date: "2026-06-19",
+    image: "/hero-georgia.webp",
+    ru: {
+      title: "Как купить квартиру в Батуми: новостройки, цены и оформление сделки",
+      excerpt: "Пошагово о покупке квартиры в Батуми: первичка и вторичка, на что смотреть в новостройке, как проходит сделка и оформление для иностранцев.",
+      body: `
+<p>Батуми — один из главных рынков недвижимости Грузии, где покупают и для жизни, и под инвестицию/сдачу. Иностранцы могут покупать квартиры свободно — это одно из преимуществ рынка.</p>
+<h2>Первичка или вторичка</h2>
+<p>Новостройки привлекают современными планировками, инфраструктурой (бассейн, спа) и рассрочкой от застройщика; важно проверить стадию готовности и репутацию девелопера. Вторичка — это готовое жильё с понятным состоянием и без рисков долгостроя.</p>
+<h2>На что смотреть</h2>
+<p>Реальные фото и документы, юридическая чистота, что входит в цену и обслуживание ЖК. По инвестиционной квартире сразу прикиньте доходность от сдачи — особенно если планируете <a href="/property-management">управление под ключ</a>.</p>
+<h2>С чего начать</h2>
+<p>Определите бюджет и цель (жить или сдавать), затем подбирайте район. Смотрите <a href="/kupit-kvartiru-batumi">квартиры на продажу в Батуми</a> и <a href="/novostroyki-batumi">новостройки</a>. Юридические и налоговые детали стоит финально сверить с местным специалистом.</p>`,
+    },
+    en: {
+      title: "How to buy an apartment in Batumi: new builds, prices and the deal",
+      excerpt: "A step-by-step guide to buying in Batumi: new vs resale, what to check in a new building, how the deal works and ownership for foreigners.",
+      body: `
+<p>Batumi is one of Georgia's main property markets, with buyers purchasing both to live and to invest/rent out. Foreigners can buy apartments freely — one of the market's advantages.</p>
+<h2>New build or resale</h2>
+<p>New buildings attract with modern layouts, amenities (pool, spa) and developer installment plans; check the construction stage and the developer's reputation. Resale means a ready home with a clear condition and no construction risk.</p>
+<h2>What to check</h2>
+<p>Real photos and documents, legal cleanliness, what's included in the price and the complex's service. For an investment unit, estimate rental yield in advance — especially if you plan <a href="/property-management">turnkey management</a>.</p>
+<h2>Where to start</h2>
+<p>Define your budget and goal (live or rent out), then choose a district. Browse <a href="/kupit-kvartiru-batumi">apartments for sale in Batumi</a> and <a href="/novostroyki-batumi">new buildings</a>. Verify legal and tax details with a local specialist.</p>`,
+    },
+    ka: {
+      title: "როგორ ვიყიდოთ ბინა ბათუმში: ახალაშენებები, ფასები და გარიგება",
+      excerpt: "ნაბიჯ-ნაბიჯ ბათუმში ბინის ყიდვაზე: ახალი თუ მეორადი, რას მივაქციოთ ყურადღება ახალ შენობაში და უცხოელთა საკუთრება.",
+      body: `
+<p>ბათუმი საქართველოს ერთ-ერთი მთავარი უძრავი ქონების ბაზარია — ყიდულობენ როგორც საცხოვრებლად, ისე ინვესტიციად. უცხოელებს ბინების ყიდვა თავისუფლად შეუძლიათ — ეს ბაზრის უპირატესობაა.</p>
+<h2>ახალი თუ მეორადი</h2>
+<p>ახალაშენებები იზიდავს თანამედროვე გეგმარებით, ინფრასტრუქტურით (აუზი, სპა) და განვადებით; შეამოწმეთ მზადყოფნის ეტაპი და დეველოპერის რეპუტაცია. მეორადი — მზა საცხოვრებელია გასაგები მდგომარეობით.</p>
+<h2>რას მივაქციოთ ყურადღება</h2>
+<p>რეალური ფოტოები და დოკუმენტები, იურიდიული სისუფთავე, რა შედის ფასსა და მომსახურებაში. საინვესტიციო ბინაზე შეაფასეთ შემოსავლიანობა — განსაკუთრებით თუ გეგმავთ <a href="/property-management">მართვას გასაღებზე</a>.</p>
+<h2>საიდან დავიწყოთ</h2>
+<p>განსაზღვრეთ ბიუჯეტი და მიზანი, შემდეგ აირჩიეთ უბანი. იხილეთ <a href="/kupit-kvartiru-batumi">ბინები გასაყიდად ბათუმში</a> და <a href="/novostroyki-batumi">ახალაშენებები</a>. იურიდიული დეტალები გადაამოწმეთ ადგილობრივ სპეციალისტთან.</p>`,
+    },
+  },
 ];
 
 export function getArticle(slug) {
