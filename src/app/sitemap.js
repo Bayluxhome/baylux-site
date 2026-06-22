@@ -1,5 +1,6 @@
 import { getBuildingsList } from "@/data/source";
 import { supa } from "@/lib/supabase";
+import { ARTICLES } from "@/data/articles";
 
 const BASE = "https://bayluxhome.com";
 
@@ -21,7 +22,11 @@ export default async function sitemap() {
     { url: `${BASE}/cleaning`, lastModified: now, priority: 0.5 },
     { url: `${BASE}/realtors`, lastModified: now, priority: 0.6 },
     { url: `${BASE}/news`, lastModified: now, priority: 0.6 },
+    { url: `${BASE}/blog`, lastModified: now, priority: 0.7 },
   ];
+  for (const a of ARTICLES) {
+    urls.push({ url: `${BASE}/blog/${a.slug}`, lastModified: new Date(a.date), priority: 0.6 });
+  }
   if (supa) {
     try {
       const { data } = await supa.from("news").select("id,created_at").eq("published", true);
