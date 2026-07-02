@@ -23,7 +23,7 @@ export function waLink(text) {
 // Реквизиты оператора для футера (пока физлицо; после регистрации ШПС заменить).
 // ⚠️ Подставь точные ФИО/контакт оператора.
 export const OPERATOR = {
-  name: "Parshuto Dmitrii", // ФИО оператора-физлица (до регистрации ШПС)
+  name: "Kologrivova Tatiana", // ФИО оператора-физлица (до регистрации ШПС)
   email: "bayluxhome@gmail.com",
   phone: PHONE_DISPLAY, // основной телефон сайта (из NEXT_PUBLIC_PHONE)
 };
