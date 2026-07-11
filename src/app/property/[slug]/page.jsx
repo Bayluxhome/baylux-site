@@ -4,17 +4,17 @@ import MapView from "@/components/MapView";
 import Gallery from "@/components/Gallery";
 import AdminEdit from "@/components/AdminEdit";
 import { DEAL_LABEL, fmtMoney } from "@/data/data";
-import { getBuildingsList, findUnit } from "@/data/source";
+import { findUnit } from "@/data/source";
 import LeadButton from "@/components/LeadButton";
 import { waLink, TG_CONTACT } from "@/config";
 import { getLang } from "@/lib/serverLang";
 import { t as tr, typeLabel, amenLabel, translitAddress } from "@/lib/dict";
 
 export const revalidate = 300;
+export const dynamicParams = true; // страницы объектов рендерятся по запросу и кэшируются (ISR), а не все на сборке
 
 export async function generateStaticParams() {
-  const bs = await getBuildingsList();
-  return bs.flatMap((b) => b.units.map((u) => ({ slug: u.slug })));
+  return []; // не пре-рендерим объекты на билде — сборка быстрая; страница создаётся при первом открытии и кэшируется
 }
 
 export async function generateMetadata({ params }) {

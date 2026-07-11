@@ -4,17 +4,17 @@ import MapView from "@/components/MapView";
 import Gallery from "@/components/Gallery";
 import AdminEdit from "@/components/AdminEdit";
 import { DEAL_LABEL, buildingPriceFrom, fmtMoney } from "@/data/data";
-import { getBuildingsList, findBuilding } from "@/data/source";
+import { findBuilding } from "@/data/source";
 import LeadButton from "@/components/LeadButton";
 import { waLink, TG_CONTACT } from "@/config";
 import { getLang } from "@/lib/serverLang";
 import { t as tr, typeLabel, translitAddress } from "@/lib/dict";
 
 export const revalidate = 300;
+export const dynamicParams = true; // страницы домов рендерятся по запросу и кэшируются (ISR), а не все на сборке
 
 export async function generateStaticParams() {
-  const bs = await getBuildingsList();
-  return bs.map((b) => ({ slug: b.slug }));
+  return []; // не пре-рендерим дома на билде — сборка быстрая
 }
 
 export async function generateMetadata({ params }) {
