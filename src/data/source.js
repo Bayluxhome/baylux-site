@@ -81,17 +81,28 @@ function groupRows(rows) {
 
 async function fetchSupabase() {
   if (!supa) return [];
+  // PostgREST отдаёт максимум 1000 строк за запрос — тянем постранично, пока не кончатся.
+  const PAGE = 1000;
+  const all = [];
   try {
-    const { data, error } = await supa
-      .from("listings")
-      .select("*")
-      .eq("status", "approved")
-      .order("created_at", { ascending: false });
-    if (error || !data) return [];
-    return groupRows(data);
+    for (let page = 0; page < 50; page++) { // потолок 50 000 объектов, с большим запасом
+      const from = page * PAGE;
+      const { data, error } = await supa
+        .from("listings")
+        .select("*")
+        .eq("status", "approved")
+        .order("created_at", { ascending: false })
+        .order("id", { ascending: false }) // уникальный тай-брейк, чтобы страницы не дублировались
+        .range(from, from + PAGE - 1);
+      if (error) { console.error("Supabase load failed:", error.message); break; }
+      if (!data || data.length === 0) break;
+      all.push(...data);
+      if (data.length < PAGE) break; // последняя страница
+    }
+    return groupRows(all);
   } catch (e) {
     console.error("Supabase load failed:", e.message);
-    return [];
+    return groupRows(all); // вернём то, что успели собрать
   }
 }
 
