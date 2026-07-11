@@ -12,7 +12,12 @@ export default function SeoLanding({ prefix, slug, units, catalogHref, crumbLk, 
   const p = (k) => t(`${prefix}_${k}`);
   const shown = units.slice(0, 24);
 
-  const faq = [1, 2, 3].map((i) => [p("fq" + i), p("fa" + i)]);
+  // FAQ переменной длины: берём fq1..fq8, пока ключи существуют (t возвращает сам ключ, если его нет).
+  const faq = [];
+  for (let i = 1; i <= 8; i++) {
+    const q = p("fq" + i), a = p("fa" + i);
+    if (q !== `${prefix}_fq${i}` && a !== `${prefix}_fa${i}`) faq.push([q, a]);
+  }
   const faqJson = {
     "@context": "https://schema.org",
     "@type": "FAQPage",
@@ -59,6 +64,10 @@ export default function SeoLanding({ prefix, slug, units, catalogHref, crumbLk, 
             </div>
           )}
         </>
+      )}
+
+      {p("guide") !== `${prefix}_guide` && (
+        <section className="landing-guide article-body" style={{ marginTop: 44, maxWidth: 820 }} dangerouslySetInnerHTML={{ __html: p("guide") }} />
       )}
 
       <section style={{ marginTop: 44, maxWidth: 820 }}>

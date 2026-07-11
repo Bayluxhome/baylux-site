@@ -397,6 +397,46 @@ export const DICT = {
     kb_fa2: "Налога на покупку нет. Регистрация в реестре занимает 1–4 рабочих дня и стоит 50–200 лари.",
     kb_fq3: "Как проходит сделка?",
     kb_fa3: "Проверяем объект и собственника, готовим договор, сделка регистрируется в Доме юстиции. Возможно дистанционное оформление по доверенности.",
+    kb_fq4: "Могут ли иностранцы покупать квартиру в Батуми?",
+    kb_fa4: "Да, без ограничений — так же, как граждане Грузии. Не нужны спецразрешения, местный партнёр или минимальная сумма, достаточно загранпаспорта.",
+    kb_fq5: "Сколько стоит квартира в Батуми?",
+    kb_fa5: "Новостройки в среднем $1200–1600 за м², у моря и в центре — $1800–3500 за м². Цены растут примерно на 5–10% в год.",
+    kb_fq6: "Какие налоги при покупке и владении?",
+    kb_fa6: "НДС при покупке нет. Налог на владение — до 1% в год (для квартир максимум ~200 GEL), при годовом доходе семьи ниже 40 000 GEL — освобождение. При перепродаже через 2+ года налог 0%.",
+    kb_fq7: "Можно ли получить ВНЖ при покупке?",
+    kb_fa7: "Да, при покупке недвижимости на сумму от $150 000 можно претендовать на инвестиционный вид на жительство в Грузии.",
+    kb_guide: `<h2>Сколько стоит квартира в Батуми в 2026 году</h2>
+<p>Средняя цена новостройки в Батуми — около <b>$1200–1600 за м²</b>, а в центре и на первой линии у моря доходит до <b>$1800–3500 за м²</b>. Ориентир по районам (новостройки, цена за м²):</p>
+<table><thead><tr><th>Район</th><th>Цена за м²</th></tr></thead><tbody>
+<tr><td>Химшиашвили</td><td>от $1200</td></tr>
+<tr><td>Район аэропорта</td><td>~$1370</td></tr>
+<tr><td>Новый бульвар</td><td>от $1300</td></tr>
+<tr><td>Кахабери</td><td>~$2150</td></tr>
+<tr><td>Руставели / Старый город</td><td>$1800–3500</td></tr>
+</tbody></table>
+<p>Цены растут примерно на <b>5–10% в год</b>, сильнее всего — у моря и в районе Нового бульвара. Актуальные предложения смотрите в <a href="/novostroyki-batumi">новостройках Батуми</a> и разделе <a href="/apartamenty-batumi">апартаментов</a>.</p>
+<h2>Как купить квартиру в Батуми: пошагово</h2>
+<ol>
+<li><b>Подбор объекта</b> — определяем бюджет, район и цель: для жизни, аренды или инвестиции.</li>
+<li><b>Бронирование</b> — вносится задаток, объект снимается с продажи.</li>
+<li><b>Проверка</b> — проверяем юридическую чистоту объекта и собственника по Публичному реестру.</li>
+<li><b>Договор у нотариуса</b> — подписываем договор купли-продажи.</li>
+<li><b>Регистрация</b> — сделка регистрируется в Доме юстиции за 1–2 дня.</li>
+<li><b>Ключи</b> — получаете выписку о праве собственности и ключи.</li>
+</ol>
+<p>Обычно вся сделка занимает <b>7–14 дней</b>. Возможно дистанционное оформление по доверенности.</p>
+<h2>Налоги и расходы</h2>
+<ul>
+<li><b>НДС при покупке — нет.</b></li>
+<li><b>Налог на владение</b> — до 1% в год (для квартир максимум ~200 GEL); при годовом доходе семьи ниже 40 000 GEL — освобождение.</li>
+<li><b>При перепродаже</b> — 0%, если владели объектом 2 года и дольше.</li>
+<li><b>Налог с аренды</b> — 5%, если будете сдавать (см. <a href="/property-management">управление недвижимостью</a>).</li>
+</ul>
+<h2>Документы для иностранца</h2>
+<p>Иностранцы покупают недвижимость в Грузии <b>без ограничений</b> — так же, как граждане. Не нужны спецразрешения, местный партнёр или минимальная сумма. Достаточно <b>загранпаспорта</b> (действителен ещё минимум 6 месяцев); апостиль и заверенные переводы не требуются.</p>
+<h2>ВНЖ через покупку</h2>
+<p>При покупке недвижимости на сумму от <b>$150 000</b> можно претендовать на инвестиционный вид на жительство в Грузии.</p>
+<p class="guide-note">⚠️ Ставки налогов и условия ВНЖ периодически меняются — перед сделкой уточните актуальные цифры у местного юриста или в Доме юстиции. Baylux сопровождает сделку: проверка объекта, договор и документы.</p>`,
     ap_h1: "Апартаменты в Батуми — купить или снять у моря",
     ap_intro: "Апартаменты в Батуми — самый востребованный формат у моря: подходят и для жизни, и для сдачи в аренду. В каталоге Baylux — проверенные апартаменты в новых комплексах с реальными фото и ценами. Поможем выбрать, оформить сделку или передать в управление.",
     ap_list_h: "Апартаменты в Батуми",
@@ -859,6 +899,46 @@ export const DICT = {
     kb_fa2: "There is no purchase tax. Registration takes 1–4 business days and costs 50–200 GEL.",
     kb_fq3: "How does the deal work?",
     kb_fa3: "We check the property and the owner, prepare the contract, and the deal is registered at the Public Service Hall. Remote purchase by power of attorney is possible.",
+    kb_fq4: "Can foreigners buy an apartment in Batumi?",
+    kb_fa4: "Yes, with no restrictions — the same as Georgian citizens. No special permits, local partner or minimum amount required; a foreign passport is enough.",
+    kb_fq5: "How much does an apartment in Batumi cost?",
+    kb_fa5: "New builds average $1,200–1,600 per m²; by the sea and in the centre $1,800–3,500 per m². Prices rise about 5–10% per year.",
+    kb_fq6: "What taxes apply on purchase and ownership?",
+    kb_fa6: "No VAT on purchase. Ownership tax is up to 1% per year (max ~200 GEL for apartments), with an exemption if household annual income is below 40,000 GEL. On resale after 2+ years the tax is 0%.",
+    kb_fq7: "Can I get residency by buying property?",
+    kb_fa7: "Yes — buying property worth $150,000 or more qualifies you to apply for Georgia's investment residence permit.",
+    kb_guide: `<h2>How much does an apartment in Batumi cost in 2026</h2>
+<p>New builds in Batumi average about <b>$1,200–1,600 per m²</b>, while central and seafront locations reach <b>$1,800–3,500 per m²</b>. A rough guide by district (new builds, price per m²):</p>
+<table><thead><tr><th>District</th><th>Price per m²</th></tr></thead><tbody>
+<tr><td>Khimshiashvili</td><td>from $1,200</td></tr>
+<tr><td>Airport area</td><td>~$1,370</td></tr>
+<tr><td>New Boulevard</td><td>from $1,300</td></tr>
+<tr><td>Kakhaberi</td><td>~$2,150</td></tr>
+<tr><td>Rustaveli / Old Town</td><td>$1,800–3,500</td></tr>
+</tbody></table>
+<p>Prices grow roughly <b>5–10% per year</b>, most of all by the sea and around New Boulevard. See current offers in <a href="/novostroyki-batumi">Batumi new builds</a> and the <a href="/apartamenty-batumi">apartments</a> section.</p>
+<h2>How to buy an apartment in Batumi: step by step</h2>
+<ol>
+<li><b>Choose the property</b> — define budget, district and goal: living, rental or investment.</li>
+<li><b>Reservation</b> — a deposit is paid and the property is taken off the market.</li>
+<li><b>Due diligence</b> — we verify the property and owner via the Public Registry.</li>
+<li><b>Notary contract</b> — the sale-purchase agreement is signed.</li>
+<li><b>Registration</b> — the deal is registered at the Public Service Hall within 1–2 days.</li>
+<li><b>Keys</b> — you receive the ownership extract and the keys.</li>
+</ol>
+<p>The whole deal usually takes <b>7–14 days</b>. Remote purchase by power of attorney is possible.</p>
+<h2>Taxes and costs</h2>
+<ul>
+<li><b>No VAT on purchase.</b></li>
+<li><b>Ownership tax</b> — up to 1% per year (max ~200 GEL for apartments); exempt if household annual income is below 40,000 GEL.</li>
+<li><b>On resale</b> — 0% if you owned the property for 2 years or more.</li>
+<li><b>Rental tax</b> — 5% if you let it out (see <a href="/property-management">property management</a>).</li>
+</ul>
+<h2>Documents for foreigners</h2>
+<p>Foreigners buy property in Georgia <b>without restrictions</b> — just like citizens. No special permits, local partner or minimum amount. A valid <b>foreign passport</b> (at least 6 months) is enough; no apostille or certified translations required.</p>
+<h2>Residency through purchase</h2>
+<p>Buying property worth <b>$150,000</b> or more lets you apply for Georgia's investment residence permit.</p>
+<p class="guide-note">⚠️ Tax rates and residency terms change from time to time — confirm current figures with a local lawyer or the Public Service Hall before the deal. Baylux supports the transaction: due diligence, contract and paperwork.</p>`,
     ap_h1: "Apartments in Batumi — buy or rent by the sea",
     ap_intro: "Serviced apartments are Batumi's most popular seaside format — good both for living and for rental income. Baylux lists verified apartments in new complexes with real photos and prices. We help you choose, close the deal or hand it over to management.",
     ap_list_h: "Apartments in Batumi",
@@ -1321,6 +1401,46 @@ export const DICT = {
     kb_fa2: "ყიდვის გადასახადი არ არსებობს. რეესტრში რეგისტრაციას 1–4 სამუშაო დღე სჭირდება და 50–200 ლარი ღირს.",
     kb_fq3: "როგორ მიმდინარეობს გარიგება?",
     kb_fa3: "ვამოწმებთ ობიექტს და მესაკუთრეს, ვამზადებთ ხელშეკრულებას, გარიგება რეგისტრირდება იუსტიციის სახლში. შესაძლებელია დისტანციური გაფორმება მინდობილობით.",
+    kb_fq4: "შეუძლიათ თუ არა უცხოელებს ბინის ყიდვა ბათუმში?",
+    kb_fa4: "დიახ, შეზღუდვების გარეშე — ისევე როგორც საქართველოს მოქალაქეებს. არ არის საჭირო სპეციალური ნებართვა, ადგილობრივი პარტნიორი ან მინიმალური თანხა, საკმარისია უცხოური პასპორტი.",
+    kb_fq5: "რა ღირს ბინა ბათუმში?",
+    kb_fa5: "ახალ კორპუსებში საშუალოდ $1200–1600 კვ.მ-ზე, ზღვასთან და ცენტრში — $1800–3500 კვ.მ-ზე. ფასები წელიწადში დაახლოებით 5–10%-ით იზრდება.",
+    kb_fq6: "რა გადასახადებია ყიდვისა და მფლობელობისას?",
+    kb_fa6: "ყიდვისას დღგ არ არის. ქონების გადასახადი — წელიწადში 1%-მდე (ბინებზე მაქსიმუმ ~200 ლარი), ოჯახის წლიური შემოსავალი 40 000 ლარზე დაბალი თუ არის — გათავისუფლება. 2+ წლის შემდეგ გადაყიდვისას გადასახადი 0%.",
+    kb_fq7: "შესაძლებელია თუ არა ბინადრობის მოპოვება ყიდვით?",
+    kb_fa7: "დიახ — $150 000 ან მეტ ღირებულების ქონების შეძენა გაძლევთ საქართველოს საინვესტიციო ბინადრობის ნებართვაზე განაცხადის უფლებას.",
+    kb_guide: `<h2>რა ღირს ბინა ბათუმში 2026 წელს</h2>
+<p>ბათუმში ახალი კორპუსების საშუალო ფასი დაახლოებით <b>$1200–1600 კვ.მ-ზეა</b>, ცენტრსა და ზღვის პირველ ხაზზე კი <b>$1800–3500 კვ.მ-ს</b> აღწევს. სავარაუდო ფასები უბნების მიხედვით (ახალი კორპუსები, ფასი კვ.მ-ზე):</p>
+<table><thead><tr><th>უბანი</th><th>ფასი კვ.მ-ზე</th></tr></thead><tbody>
+<tr><td>ხიმშიაშვილი</td><td>$1200-დან</td></tr>
+<tr><td>აეროპორტის უბანი</td><td>~$1370</td></tr>
+<tr><td>ახალი ბულვარი</td><td>$1300-დან</td></tr>
+<tr><td>კახაბერი</td><td>~$2150</td></tr>
+<tr><td>რუსთაველი / ძველი ქალაქი</td><td>$1800–3500</td></tr>
+</tbody></table>
+<p>ფასები წელიწადში დაახლოებით <b>5–10%-ით</b> იზრდება, ყველაზე მეტად — ზღვასთან და ახალი ბულვარის უბანში. მიმდინარე შეთავაზებები იხილეთ <a href="/novostroyki-batumi">ბათუმის ახალ კორპუსებში</a> და <a href="/apartamenty-batumi">აპარტამენტების</a> განყოფილებაში.</p>
+<h2>როგორ ვიყიდოთ ბინა ბათუმში: ნაბიჯ-ნაბიჯ</h2>
+<ol>
+<li><b>ობიექტის შერჩევა</b> — განვსაზღვრავთ ბიუჯეტს, უბანს და მიზანს: საცხოვრებლად, გასაქირავებლად თუ ინვესტიციისთვის.</li>
+<li><b>დაჯავშნა</b> — შეიტანება ბე, ობიექტი იხსნება გაყიდვიდან.</li>
+<li><b>შემოწმება</b> — ვამოწმებთ ობიექტისა და მესაკუთრის იურიდიულ სისუფთავეს საჯარო რეესტრში.</li>
+<li><b>ხელშეკრულება ნოტარიუსთან</b> — ვაფორმებთ ნასყიდობის ხელშეკრულებას.</li>
+<li><b>რეგისტრაცია</b> — გარიგება რეგისტრირდება იუსტიციის სახლში 1–2 დღეში.</li>
+<li><b>გასაღები</b> — იღებთ საკუთრების ამონაწერს და გასაღებებს.</li>
+</ol>
+<p>ჩვეულებრივ, გარიგება <b>7–14 დღეს</b> გრძელდება. შესაძლებელია დისტანციური გაფორმება მინდობილობით.</p>
+<h2>გადასახადები და ხარჯები</h2>
+<ul>
+<li><b>ყიდვისას დღგ არ არის.</b></li>
+<li><b>ქონების გადასახადი</b> — წელიწადში 1%-მდე (ბინებზე მაქსიმუმ ~200 ლარი); ოჯახის წლიური შემოსავალი 40 000 ლარზე დაბალი თუ არის — გათავისუფლება.</li>
+<li><b>გადაყიდვისას</b> — 0%, თუ ობიექტს 2 წელი ან მეტი ხანი ფლობდით.</li>
+<li><b>ქირის გადასახადი</b> — 5%, თუ გააქირავებთ (იხ. <a href="/property-management">უძრავი ქონების მართვა</a>).</li>
+</ul>
+<h2>დოკუმენტები უცხოელისთვის</h2>
+<p>უცხოელები საქართველოში ქონებას <b>შეზღუდვების გარეშე</b> ყიდულობენ — ისევე როგორც მოქალაქეები. არ არის საჭირო სპეციალური ნებართვა, ადგილობრივი პარტნიორი ან მინიმალური თანხა. საკმარისია მოქმედი <b>უცხოური პასპორტი</b> (მინიმუმ 6 თვე); აპოსტილი და დამოწმებული თარგმანები საჭირო არ არის.</p>
+<h2>ბინადრობა ყიდვის გზით</h2>
+<p><b>$150 000</b> ან მეტ ღირებულების ქონების შეძენა გაძლევთ საქართველოს საინვესტიციო ბინადრობის ნებართვაზე განაცხადის უფლებას.</p>
+<p class="guide-note">⚠️ გადასახადების განაკვეთები და ბინადრობის პირობები დროდადრო იცვლება — გარიგებამდე დააზუსტეთ მიმდინარე მონაცემები ადგილობრივ იურისტთან ან იუსტიციის სახლში. Baylux უზრუნველყოფს გარიგების თანხლებას: შემოწმება, ხელშეკრულება და დოკუმენტები.</p>`,
     ap_h1: "აპარტამენტები ბათუმში — ყიდვა ან ქირაობა ზღვის პირას",
     ap_intro: "აპარტამენტები ბათუმში — ყველაზე მოთხოვნადი ფორმატი ზღვის პირას: გამოდგება როგორც საცხოვრებლად, ისე გასაქირავებლად. Baylux-ის კატალოგში — შემოწმებული აპარტამენტები ახალ კომპლექსებში რეალური ფოტოებითა და ფასებით.",
     ap_list_h: "აპარტამენტები ბათუმში",
