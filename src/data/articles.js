@@ -5,6 +5,71 @@
 
 export const ARTICLES = [
   {
+    slug: "kak-kupit-kvartiru-v-batumi",
+    date: "2026-07-11",
+    image: "/hero-batumi.webp",
+    ru: {
+      title: "Как купить квартиру в Батуми: пошаговый гид для покупателя (2026)",
+      excerpt: "Как выбрать район и объект, проверить квартиру, оформить сделку за 7–14 дней, какие налоги платит иностранец и как получить ВНЖ при покупке в Батуми.",
+      body: `
+<p>Батуми — один из самых доступных для входа приморских рынков: цены ниже, чем в центре Тбилиси и на европейских курортах, а порог покупки для иностранца минимальный. Разберём по шагам, как выбрать и купить квартиру в Батуми, на что смотреть и каких ошибок избегать.</p>
+<h2>Определите цель покупки</h2>
+<p>От цели зависит и район, и тип объекта. <b>Для жизни</b> — важны инфраструктура, тишина и готовый ремонт. <b>Для сдачи в аренду</b> — близость к морю и бульвару, апартаменты в комплексах с управляющей компанией. <b>Для инвестиции</b> — новостройки на ранней стадии, где цена ниже, а рост выше. Если планируете сдавать — заранее прикиньте доходность и посмотрите <a href="/property-management">управление недвижимостью</a>.</p>
+<h2>Выберите район</h2>
+<p>Ориентир по ценам новостроек: Химшиашвили — от $1200/м², Новый бульвар — от $1300/м², Кахабери — около $2150/м², Руставели и Старый город — $1800–3500/м². Чем ближе к морю и центру, тем дороже и ликвиднее. Полный разбор районов и цен — на странице <a href="/kupit-kvartiru-batumi">покупки квартиры в Батуми</a>.</p>
+<h2>Новостройка или вторичка</h2>
+<p><b>Новостройка</b> — ниже цена на старте, современные планировки, рассрочка от застройщика, но нужно дождаться сдачи. <b>Вторичка</b> — можно заезжать сразу и видно реальное состояние дома. Актуальные проекты смотрите в разделе <a href="/novostroyki-batumi">новостроек Батуми</a>.</p>
+<h2>Проверьте объект перед сделкой</h2>
+<p>Ключевой этап — юридическая чистота. Проверяется по Публичному реестру: кто собственник, нет ли обременений и арестов. Для новостройки — репутация застройщика, разрешение на строительство и стадия готовности. Не вносите задаток до проверки.</p>
+<h2>Сама сделка</h2>
+<p>Иностранцы покупают в Грузии без ограничений — достаточно загранпаспорта, без спецразрешений и апостиля. Договор подписывается у нотариуса, сделка регистрируется в Доме юстиции за 1–2 дня. Весь процесс обычно занимает 7–14 дней и возможен дистанционно по доверенности.</p>
+<h2>Налоги и ВНЖ</h2>
+<p>НДС при покупке нет. Налог на владение — до 1% в год (для квартир максимум ~200 GEL). При перепродаже через 2 года и больше — 0%. А покупка на сумму от $150 000 даёт право претендовать на инвестиционный ВНЖ. Ставки периодически меняются — уточняйте актуальные у местного юриста.</p>
+<h2>Частые ошибки</h2>
+<p>Покупка по фото без видеосвязи; задаток до проверки собственника; выбор только по цене без учёта ликвидности при перепродаже; игнорирование расходов на управление при сдаче. Baylux сопровождает сделку от подбора до ключей и проверяет каждый объект — начните с <a href="/kupit-kvartiru-batumi">каталога квартир на продажу в Батуми</a>.</p>`,
+    },
+    en: {
+      title: "How to buy an apartment in Batumi: a step-by-step buyer's guide (2026)",
+      excerpt: "How to choose a district and property, check the apartment, close the deal in 7–14 days, what taxes a foreigner pays and how to get residency when buying in Batumi.",
+      body: `
+<p>Batumi is one of the most affordable seaside property markets to enter: prices are lower than in central Tbilisi or European resorts, and the entry barrier for a foreigner is minimal. Here is a step-by-step guide on how to choose and buy an apartment in Batumi, what to look for and which mistakes to avoid.</p>
+<h2>Define your goal</h2>
+<p>Your goal drives both the district and the type of property. <b>To live in</b> — infrastructure, quiet and a finished renovation matter most. <b>To rent out</b> — proximity to the sea and boulevard, apartments in complexes with a management company. <b>To invest</b> — early-stage new builds where the price is lower and growth higher. If you plan to rent it out, estimate the yield in advance and look at <a href="/property-management">property management</a>.</p>
+<h2>Choose a district</h2>
+<p>New-build price guide: Khimshiashvili from $1,200/m², New Boulevard from $1,300/m², Kakhaberi around $2,150/m², Rustaveli and the Old Town $1,800–3,500/m². The closer to the sea and centre, the more expensive and liquid. A full district and price breakdown is on the <a href="/kupit-kvartiru-batumi">buying an apartment in Batumi</a> page.</p>
+<h2>New build or resale</h2>
+<p><b>New build</b> — lower entry price, modern layouts, developer instalments, but you wait for completion. <b>Resale</b> — move in immediately and see the real condition of the building. See current projects in the <a href="/novostroyki-batumi">Batumi new builds</a> section.</p>
+<h2>Check the property before the deal</h2>
+<p>The key stage is legal due diligence. It is verified via the Public Registry: who owns it and whether there are encumbrances or seizures. For a new build — the developer's reputation, the construction permit and the stage of completion. Do not pay a deposit before the check.</p>
+<h2>The deal itself</h2>
+<p>Foreigners buy in Georgia without restrictions — a foreign passport is enough, no special permits or apostille. The contract is signed at a notary and the deal is registered at the Public Service Hall within 1–2 days. The whole process usually takes 7–14 days and can be done remotely by power of attorney.</p>
+<h2>Taxes and residency</h2>
+<p>No VAT on purchase. Ownership tax is up to 1% per year (max ~200 GEL for apartments). On resale after two years or more — 0%. And buying property worth $150,000 or more lets you apply for an investment residence permit. Rates change from time to time — confirm current ones with a local lawyer.</p>
+<h2>Common mistakes</h2>
+<p>Buying from photos without a video call; a deposit before checking the owner; choosing on price alone without considering resale liquidity; ignoring management costs when renting out. Baylux supports the deal from selection to keys and verifies every property — start with the <a href="/kupit-kvartiru-batumi">catalog of apartments for sale in Batumi</a>.</p>`,
+    },
+    ka: {
+      title: "როგორ ვიყიდოთ ბინა ბათუმში: მყიდველის სახელმძღვანელო ნაბიჯ-ნაბიჯ (2026)",
+      excerpt: "როგორ ავირჩიოთ უბანი და ობიექტი, შევამოწმოთ ბინა, გავაფორმოთ გარიგება 7–14 დღეში, რა გადასახადებს იხდის უცხოელი და როგორ მივიღოთ ბინადრობა ბათუმში ყიდვისას.",
+      body: `
+<p>ბათუმი ერთ-ერთი ყველაზე ხელმისაწვდომი ზღვისპირა ბაზარია: ფასები დაბალია ვიდრე თბილისის ცენტრში ან ევროპულ კურორტებზე, უცხოელისთვის კი შესვლის ბარიერი მინიმალურია. განვიხილოთ ნაბიჯ-ნაბიჯ, როგორ ავირჩიოთ და ვიყიდოთ ბინა ბათუმში, რას მივაქციოთ ყურადღება და რომელი შეცდომები ავიცილოთ.</p>
+<h2>განსაზღვრეთ ყიდვის მიზანი</h2>
+<p>მიზანზეა დამოკიდებული უბანიც და ობიექტის ტიპიც. <b>საცხოვრებლად</b> — მნიშვნელოვანია ინფრასტრუქტურა, სიმშვიდე და მზა რემონტი. <b>გასაქირავებლად</b> — ზღვასთან და ბულვართან სიახლოვე, აპარტამენტები მმართველი კომპანიის მქონე კომპლექსებში. <b>ინვესტიციისთვის</b> — ადრეული ეტაპის ახალი კორპუსები, სადაც ფასი დაბალია, ზრდა კი მაღალი. თუ გაქირავებას გეგმავთ — წინასწარ შეაფასეთ სარგებელი და იხილეთ <a href="/property-management">უძრავი ქონების მართვა</a>.</p>
+<h2>აირჩიეთ უბანი</h2>
+<p>ახალი კორპუსების ფასების ორიენტირი: ხიმშიაშვილი — $1200/მ²-დან, ახალი ბულვარი — $1300/მ²-დან, კახაბერი — დაახლოებით $2150/მ², რუსთაველი და ძველი ქალაქი — $1800–3500/მ². რაც უფრო ახლოს ზღვასა და ცენტრთან, მით უფრო ძვირი და ლიკვიდურია. უბნებისა და ფასების სრული მიმოხილვა — გვერდზე <a href="/kupit-kvartiru-batumi">ბინის ყიდვა ბათუმში</a>.</p>
+<h2>ახალი კორპუსი თუ მეორადი</h2>
+<p><b>ახალი კორპუსი</b> — დაბალი საწყისი ფასი, თანამედროვე დაგეგმარება, განვადება დეველოპერისგან, თუმცა უნდა დაელოდოთ ჩაბარებას. <b>მეორადი</b> — მაშინვე შეგიძლიათ შესვლა და ჩანს შენობის რეალური მდგომარეობა. მიმდინარე პროექტები იხილეთ <a href="/novostroyki-batumi">ბათუმის ახალი კორპუსების</a> განყოფილებაში.</p>
+<h2>შეამოწმეთ ობიექტი გარიგებამდე</h2>
+<p>მთავარი ეტაპი — იურიდიული სისუფთავე. მოწმდება საჯარო რეესტრში: ვინ არის მესაკუთრე, ხომ არ არის ყადაღა ან სხვა შეზღუდვა. ახალი კორპუსისთვის — დეველოპერის რეპუტაცია, მშენებლობის ნებართვა და მზადყოფნის ეტაპი. ნუ შეიტანთ ბეს შემოწმებამდე.</p>
+<h2>თავად გარიგება</h2>
+<p>უცხოელები საქართველოში ყიდულობენ შეზღუდვების გარეშე — საკმარისია უცხოური პასპორტი, სპეციალური ნებართვისა და აპოსტილის გარეშე. ხელშეკრულება ფორმდება ნოტარიუსთან, გარიგება რეგისტრირდება იუსტიციის სახლში 1–2 დღეში. მთელი პროცესი ჩვეულებრივ 7–14 დღეს გრძელდება და შესაძლებელია დისტანციურადაც მინდობილობით.</p>
+<h2>გადასახადები და ბინადრობა</h2>
+<p>ყიდვისას დღგ არ არის. ქონების გადასახადი — წელიწადში 1%-მდე (ბინებზე მაქსიმუმ ~200 ლარი). 2 წლის ან მეტის შემდეგ გადაყიდვისას — 0%. ხოლო $150 000-დან ქონების შეძენა გაძლევთ საინვესტიციო ბინადრობის ნებართვაზე განაცხადის უფლებას. განაკვეთები დროდადრო იცვლება — დააზუსტეთ ადგილობრივ იურისტთან.</p>
+<h2>ხშირი შეცდომები</h2>
+<p>ყიდვა ფოტოებით ვიდეოზარის გარეშე; ბე მესაკუთრის შემოწმებამდე; არჩევანი მხოლოდ ფასით, გადაყიდვის ლიკვიდურობის გათვალისწინების გარეშე; მართვის ხარჯების იგნორირება გაქირავებისას. Baylux უზრუნველყოფს გარიგების თანხლებას შერჩევიდან გასაღებამდე და ამოწმებს ყველა ობიექტს — დაიწყეთ <a href="/kupit-kvartiru-batumi">ბათუმში გასაყიდი ბინების კატალოგით</a>.</p>`,
+    },
+  },
+  {
     slug: "arenda-kvartiry-tbilisi",
     date: "2026-06-20",
     image: "/hero-tbilisi.webp",
