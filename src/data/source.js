@@ -79,11 +79,16 @@ function groupRows(rows) {
   return Array.from(by.values()).filter((b) => b.units.length > 0);
 }
 
+const ARCHIVE_DAYS = 30; // сколько дней объявление живёт на сайте до архива
+
 async function fetchSupabase() {
   if (!supa) return [];
   // PostgREST отдаёт максимум 1000 строк за запрос — тянем постранично, пока не кончатся.
   const PAGE = 1000;
   const all = [];
+  // Объявление живёт ARCHIVE_DAYS дней с момента публикации/поднятия, затем уходит в архив (скрывается).
+  // Исключение — объекты под управлением Baylux: висят постоянно.
+  const cutoff = new Date(Date.now() - ARCHIVE_DAYS * 864e5).toISOString();
   try {
     for (let page = 0; page < 50; page++) { // потолок 50 000 объектов, с большим запасом
       const from = page * PAGE;
@@ -91,6 +96,7 @@ async function fetchSupabase() {
         .from("listings")
         .select("*")
         .eq("status", "approved")
+        .or(`managed_by_baylux.eq.true,bumped_at.is.null,bumped_at.gte.${cutoff}`)
         .order("created_at", { ascending: false })
         .order("id", { ascending: false }) // уникальный тай-брейк, чтобы страницы не дублировались
         .range(from, from + PAGE - 1);
