@@ -76,6 +76,7 @@ export const DICT = {
     bulk_no_phone: "Укажите телефон в профиле риелтора (кабинет → профиль) — он будет показан на ваших объектах. Затем повторите загрузку.",
     my_pending: "На модерации", my_approved: "Опубликовано", my_rejected: "Снято / отклонено",
     my_view: "Посмотреть →", my_notvisible: "на сайте не виден", my_edit: "✏️ Редактировать", my_del: "🗑 Удалить", my_deleting: "Удаляю…",
+    my_archived: "В архиве", my_archived_note: "в архиве — не виден", my_bump: "⬆️ Поднять", my_bumping: "Поднимаю…", my_bump_fail: "Не удалось поднять объявление", my_days_left: "ещё {n} дн.",
     my_empty: "Пока нет объявлений. Откройте бота и отправьте /start.", my_del_confirm: "Удалить это объявление? Действие необратимо.", my_del_fail: "Не удалось удалить. Попробуйте позже.", my_neterr: "Ошибка сети.",
     my_sel_all: "Выбрать все", my_sel_count: "Выбрано: {n}", my_del_selected: "🗑 Удалить выбранные", my_del_sel_confirm: "Удалить выбранные объявления ({n})? Действие необратимо.",
     // статические страницы
@@ -539,6 +540,7 @@ export const DICT = {
     bulk_no_phone: "Add a phone number to your realtor profile (cabinet → profile) — it will be shown on your listings. Then upload again.",
     my_pending: "Under review", my_approved: "Published", my_rejected: "Removed / rejected",
     my_view: "View →", my_notvisible: "not visible on the site", my_edit: "✏️ Edit", my_del: "🗑 Delete", my_deleting: "Deleting…",
+    my_archived: "Archived", my_archived_note: "archived — not shown", my_bump: "⬆️ Renew", my_bumping: "Renewing…", my_bump_fail: "Could not renew the listing", my_days_left: "{n} d left",
     my_empty: "No listings yet. Open the bot and send /start.", my_del_confirm: "Delete this listing? This cannot be undone.", my_del_fail: "Couldn't delete. Try again later.", my_neterr: "Network error.",
     my_sel_all: "Select all", my_sel_count: "Selected: {n}", my_del_selected: "🗑 Delete selected", my_del_sel_confirm: "Delete selected listings ({n})? This cannot be undone.",
     ab_title: "About Baylux",
@@ -1000,6 +1002,7 @@ export const DICT = {
     bulk_no_phone: "მიუთითეთ ტელეფონი რიელტორის პროფილში (კაბინეტი → პროფილი) — ის გამოჩნდება თქვენს ობიექტებზე. შემდეგ თავიდან ატვირთეთ.",
     my_pending: "მოდერაციაზე", my_approved: "გამოქვეყნებული", my_rejected: "მოხსნილი / უარყოფილი",
     my_view: "ნახვა →", my_notvisible: "საიტზე არ ჩანს", my_edit: "✏️ რედაქტირება", my_del: "🗑 წაშლა", my_deleting: "ვშლი…",
+    my_archived: "არქივში", my_archived_note: "არქივში — არ ჩანს", my_bump: "⬆️ განახლება", my_bumping: "ვანახლებ…", my_bump_fail: "განახლება ვერ მოხერხდა", my_days_left: "დარჩა {n} დღე",
     my_empty: "ჯერ არ არის განცხადებები. გახსენით ბოტი და გაგზავნეთ /start.", my_del_confirm: "წავშალო ეს განცხადება? ქმედება შეუქცევადია.", my_del_fail: "ვერ წაიშალა. სცადეთ მოგვიანებით.", my_neterr: "ქსელის შეცდომა.",
     my_sel_all: "ყველას მონიშვნა", my_sel_count: "მონიშნულია: {n}", my_del_selected: "🗑 მონიშნულის წაშლა", my_del_sel_confirm: "წავშალო მონიშნული განცხადებები ({n})? ქმედება შეუქცევადია.",
     ab_title: "Baylux-ის შესახებ",

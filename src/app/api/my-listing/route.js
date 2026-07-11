@@ -43,6 +43,9 @@ export async function POST(req) {
     await supa.from("listings").delete().eq("id", id);
   } else if (action === "unpublish") {
     await supa.from("listings").update({ status: "rejected" }).eq("id", id);
+  } else if (action === "bump") {
+    // «Поднять» — обновляем дату свежести: объявление снова висит 60 дней. Сбрасываем флаг уведомления.
+    await supa.from("listings").update({ bumped_at: new Date().toISOString(), archive_notified: false }).eq("id", id);
   } else {
     return Response.json({ ok: false, error: "bad_action" });
   }

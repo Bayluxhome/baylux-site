@@ -43,6 +43,17 @@ export default function MyListings({ items }) {
     setBulkBusy(false);
   }
 
+  async function bump(id) {
+    setBusy(id);
+    try {
+      const r = await fetch("/api/my-listing", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ id, action: "bump" }) });
+      const j = await r.json();
+      if (j.ok) setList((l) => l.map((x) => (x.id === id ? { ...x, archived: false, daysLeft: 60 } : x)));
+      else alert(t("my_bump_fail"));
+    } catch (e) { alert(t("my_neterr")); }
+    setBusy(null);
+  }
+
   if (!list.length) return <p style={{ color: "var(--ink-soft)" }}>{t("my_empty")}</p>;
 
   return (
@@ -66,13 +77,19 @@ export default function MyListings({ items }) {
                 <b>{r.title}</b>
                 <span>{r.sub}</span>
                 <div className="my-actions">
-                  {r.slug ? <a className="my-link" href={"/property/" + r.slug}>{t("my_view")}</a> : <span className="my-note">{t("my_notvisible")}</span>}
+                  {r.archived
+                    ? <span className="my-note">{t("my_archived_note")}</span>
+                    : (r.slug ? <a className="my-link" href={"/property/" + r.slug}>{t("my_view")}</a> : <span className="my-note">{t("my_notvisible")}</span>)}
                   <a className="my-link" href={"/my/edit/" + r.id}>{t("my_edit")}</a>
+                  {r.archived && <button className="my-bump" onClick={() => bump(r.id)} disabled={busy === r.id}>{busy === r.id ? t("my_bumping") : t("my_bump")}</button>}
                   <button className="my-del" onClick={() => del(r.id)} disabled={busy === r.id}>{busy === r.id ? t("my_deleting") : t("my_del")}</button>
                 </div>
               </div>
             </div>
-            <span className={"my-status st-" + r.status}>{STATUS[r.status] || r.status}</span>
+            <div className="my-statuswrap">
+              <span className={"my-status " + (r.archived ? "st-archived" : "st-" + r.status)}>{r.archived ? t("my_archived") : (STATUS[r.status] || r.status)}</span>
+              {!r.archived && r.daysLeft != null && r.daysLeft <= 7 && <span className="my-daysleft">{t("my_days_left").replace("{n}", r.daysLeft)}</span>}
+            </div>
           </div>
         ))}
       </div>

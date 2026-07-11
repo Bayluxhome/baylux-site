@@ -94,10 +94,17 @@ export default async function MyPage() {
     }
   }
 
+  const ARCHIVE_DAYS = 60;
   const mapItem = (r) => {
     const bn = cleanAddress(r.building_name);
+    const freshTs = new Date(r.bumped_at || r.created_at || Date.now()).getTime();
+    const ageDays = (Date.now() - freshTs) / 864e5;
+    const archived = !r.managed_by_baylux && r.status === "approved" && ageDays >= ARCHIVE_DAYS;
+    const daysLeft = (r.managed_by_baylux || r.status !== "approved") ? null : Math.max(0, Math.ceil(ARCHIVE_DAYS - ageDays));
     return {
       id: r.id,
+      archived,
+      daysLeft,
       title: `${t("deal_" + r.deal)} · ${typeLabel(lang, r.type)}`,
       sub: `${bn} · ${r.price}${r.area ? ` · ${r.area} м²` : ""}`,
       status: r.status,

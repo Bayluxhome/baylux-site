@@ -79,7 +79,7 @@ function groupRows(rows) {
   return Array.from(by.values()).filter((b) => b.units.length > 0);
 }
 
-const ARCHIVE_DAYS = 30; // сколько дней объявление живёт на сайте до архива
+const ARCHIVE_DAYS = 60; // сколько дней объявление живёт на сайте до архива
 
 async function fetchSupabase() {
   if (!supa) return [];

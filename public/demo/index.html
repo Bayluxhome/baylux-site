@@ -33,7 +33,7 @@ a{text-decoration:none;color:inherit}
 main{position:relative;z-index:2}
 
 /* ====== Типографика заголовков ====== */
-.h1{font-size:clamp(36px,5.2vw,64px);font-weight:800;line-height:1.06;letter-spacing:.01em;text-transform:uppercase;margin-bottom:6px;min-height:2.1em}
+.h1{font-size:clamp(40px,7.4vw,100px);font-weight:800;line-height:1.0;letter-spacing:.01em;text-transform:uppercase;margin-bottom:6px;min-height:2.1em}
 .gld,.goldt{background:linear-gradient(100deg,var(--gold) 20%,var(--gold2) 50%,var(--gold) 80%);-webkit-background-clip:text;background-clip:text;color:transparent}
 .sec-title{font-size:clamp(28px,3.6vw,46px);font-weight:800;text-transform:uppercase;line-height:1.14;color:#fff}
 
@@ -129,10 +129,23 @@ main{position:relative;z-index:2}
 /* ====== СЕКЦИИ ====== */
 section{position:relative}
 .wrap{max-width:1280px;margin:0 auto;padding:120px 36px}
-.sec-kicker{font-size:11.5px;letter-spacing:.32em;font-weight:700;color:var(--gold);margin-bottom:18px;text-transform:uppercase}
+.sec-kicker{display:flex;align-items:center;gap:14px;font-size:11.5px;letter-spacing:.32em;font-weight:700;color:var(--gold);margin-bottom:18px;text-transform:uppercase}
+.sec-kicker::after{content:'';flex:0 0 90px;height:1px;background:linear-gradient(90deg,var(--gold),transparent)}
+.sec-kicker .no{font-family:Georgia,serif;font-style:italic;font-size:15px;color:rgba(232,206,150,.7);letter-spacing:0}
 .sec-sub{font-size:16px;color:#aebccb;max-width:640px;line-height:1.65;margin-top:18px}
-.rv{opacity:0;transform:translateY(36px);transition:opacity .7s ease,transform .7s ease}
-.rv.in{opacity:1;transform:none}
+/* ====== сборка блоков при скролле ====== */
+.rv{opacity:0;transform:translateY(46px);filter:blur(7px);
+  transition:opacity .85s cubic-bezier(.2,.65,.25,1),transform .85s cubic-bezier(.2,.65,.25,1),filter .85s;will-change:transform,opacity}
+.rv.rv-l{transform:translateX(-90px) translateY(24px) rotate(-2deg)}
+.rv.rv-r{transform:translateX(90px) translateY(24px) rotate(2deg)}
+.rv.rv-sc{transform:scale(.82) translateY(34px)}
+.rv.in{opacity:1;transform:none;filter:blur(0)}
+@media (max-width:760px){
+  .rv,.rv.rv-l,.rv.rv-r,.rv.rv-sc{filter:none;transform:translateY(26px)}
+}
+@media (prefers-reduced-motion: reduce){
+  .rv,.rv.rv-l,.rv.rv-r,.rv.rv-sc{transition:none;transform:none;filter:none;opacity:1}
+}
 
 .steps{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:18px;margin-top:56px}
 .step{background:linear-gradient(155deg,rgba(14,77,140,.28),rgba(3,12,24,.66));border:1px solid rgba(201,169,97,.22);
@@ -186,6 +199,38 @@ section{position:relative}
 
 .foot{position:relative;z-index:2;border-top:1px solid rgba(201,169,97,.15);padding:30px 36px 100px;text-align:center;font-size:12.5px;color:#5f7186;line-height:1.9}
 .foot b{color:var(--gold);letter-spacing:.22em}
+
+/* ====== свечение за курсором ====== */
+#cursorGlow{position:fixed;left:0;top:0;width:760px;height:760px;margin:-380px 0 0 -380px;
+  pointer-events:none;z-index:1;opacity:0;transition:opacity .5s;mix-blend-mode:screen;will-change:transform;
+  background:radial-gradient(circle,rgba(201,169,97,.20) 0%,rgba(201,169,97,.08) 32%,rgba(14,77,140,.07) 55%,transparent 70%)}
+#cursorCore{position:fixed;left:0;top:0;width:150px;height:150px;margin:-75px 0 0 -75px;pointer-events:none;z-index:1;
+  opacity:0;transition:opacity .5s;mix-blend-mode:screen;will-change:transform;
+  background:radial-gradient(circle,rgba(232,206,150,.28),transparent 65%)}
+@media (hover:none){#cursorGlow,#cursorCore{display:none}}
+
+
+#sprog{position:fixed;top:0;left:0;height:2px;width:0;z-index:120;background:linear-gradient(90deg,var(--gold),var(--gold2));box-shadow:0 0 12px rgba(201,169,97,.8)}
+.marquee{overflow:hidden;border-top:1px solid rgba(201,169,97,.16);border-bottom:1px solid rgba(201,169,97,.16);padding:16px 0;background:rgba(3,12,24,.4);position:relative;z-index:2}
+.marquee-in{display:flex;gap:48px;white-space:nowrap;width:max-content;animation:mq 28s linear infinite;
+  font-family:'Montserrat',sans-serif;font-weight:800;font-size:clamp(18px,2.4vw,30px);text-transform:uppercase;letter-spacing:.06em}
+.marquee-in span{color:transparent;-webkit-text-stroke:1px rgba(201,169,97,.55)}
+.marquee-in b{color:var(--gold);font-weight:800}
+@keyframes mq{0%{transform:translateX(0)}100%{transform:translateX(-50%)}}
+@media (prefers-reduced-motion: reduce){.marquee-in{animation:none}}
+.ital{font-family:Georgia,'Times New Roman',serif;font-style:italic;font-weight:500;text-transform:none;letter-spacing:0;
+  background:linear-gradient(100deg,var(--gold) 15%,var(--gold2) 50%,var(--gold) 85%);-webkit-background-clip:text;background-clip:text;color:transparent}
+.spot{position:relative}
+.spot::before{content:'';position:absolute;inset:-1px;border-radius:inherit;padding:1px;pointer-events:none;opacity:0;transition:opacity .3s;
+  background:radial-gradient(420px circle at var(--mx,50%) var(--my,50%),rgba(232,206,150,.85),transparent 45%);
+  -webkit-mask:linear-gradient(#fff 0 0) content-box,linear-gradient(#fff 0 0);-webkit-mask-composite:xor;mask-composite:exclude}
+@media (hover:hover){.spot:hover::before{opacity:1}}
+.device::after{content:'';position:absolute;inset:0;z-index:2;pointer-events:none;
+  background:linear-gradient(115deg,rgba(255,255,255,.13) 0%,rgba(255,255,255,0) 28%,rgba(255,255,255,0) 72%,rgba(255,255,255,.05) 100%)}
+@media (hover:hover){.device{animation:none!important;will-change:transform}}
+
+.stat .n{font-variant-numeric:tabular-nums}
+.marquee-in{will-change:transform;backface-visibility:hidden;transform:translateZ(0)}
 </style>
 </head>
 <body>
@@ -209,7 +254,7 @@ section{position:relative}
     <div class="hero-grid">
       <div class="hero-left">
         <div class="kicker"><span class="dotp"></span>ЦИФРОВИЗАЦИЯ ПРОДАЖ НОВОСТРОЕК</div>
-        <h1 class="h1"><span id="scr1">ЗДАНИЕ, КОТОРОЕ</span><br><span class="gld" id="scr2">ПРОДАЁТ СЕБЯ САМО</span></h1>
+        <h1 class="h1"><span id="scr1">ЗДАНИЕ, КОТОРОЕ</span><br><span class="ital" id="scr2">продаёт себя само</span></h1>
         <p class="sub">Покупатель касается квартиры прямо на рендере вашего ЖК — и видит планировку, цену и статус. <b>Заявка у менеджера через минуту.</b> На сайте, планшете и в отделе продаж. 24/7.</p>
         <div class="hero-cta">
           <a class="btn-gold" href="/demo/jk.html">Смотреть живое демо</a>
@@ -248,22 +293,24 @@ section{position:relative}
   </div>
 </div>
 
+<div class="marquee"><div class="marquee-in"></div></div>
+
 <!-- ================= КАК РАБОТАЕТ ================= -->
 <section id="how">
   <div class="wrap">
     <div class="rv">
-      <div class="sec-kicker">Как это работает</div>
+      <div class="sec-kicker"><span class="no">01</span>Как это работает</div>
       <h2 class="sec-title">Три шага — и ваш<br><span class="goldt" data-scr>ЖК кликабелен</span></h2>
       <p class="sec-sub">Никакой разработки с вашей стороны. Не нужно переделывать сайт. Мы берём то, что у вас уже есть.</p>
     </div>
     <div class="steps">
-      <div class="step rv"><div class="num">01</div><h3>Вы присылаете рендеры</h3>
+      <div class="step spot rv"><div class="num">01</div><h3>Вы присылаете рендеры</h3>
         <p>Фасады ЖК, поэтажные планировки и таблицу квартир с ценами — всё, что уже есть у вашего отдела продаж.</p>
         <span class="tm">10 минут вашего времени</span></div>
-      <div class="step rv"><div class="num">02</div><h3>Мы оживляем здание</h3>
+      <div class="step spot rv"><div class="num">02</div><h3>Мы оживляем здание</h3>
         <p>Размечаем каждую квартиру на фасаде, подключаем планировки, цены и статусы. Брендируем под ваш фирменный стиль.</p>
         <span class="tm">48 часов — демо вашего ЖК</span></div>
-      <div class="step rv"><div class="num">03</div><h3>Витрина продаёт</h3>
+      <div class="step spot rv"><div class="num">03</div><h3>Витрина продаёт</h3>
         <p>Страница на вашем домене или виджет на сайте. Статусы обновляются из вашей таблицы, заявки летят менеджерам в Telegram или CRM.</p>
         <span class="tm">Запуск от 5 рабочих дней</span></div>
     </div>
@@ -274,21 +321,21 @@ section{position:relative}
 <section id="feats">
   <div class="wrap">
     <div class="rv">
-      <div class="sec-kicker">Возможности</div>
+      <div class="sec-kicker"><span class="no">02</span>Возможности</div>
       <h2 class="sec-title">Не каталог.<br><span class="goldt" data-scr>Машина продаж</span></h2>
     </div>
     <div class="feats">
-      <div class="feat rv"><div class="ico">🏢</div><h3>Кликабельные фасады с разных ракурсов</h3>
+      <div class="feat spot rv"><div class="ico">🏢</div><h3>Кликабельные фасады с разных ракурсов</h3>
         <p>Вид с моря, вид с улицы — каждая квартира интерактивна на рендере. Одно касание — весь фасад раскрашен по статусам: свободно, бронь, продано.</p></div>
-      <div class="feat rv"><div class="ico">📋</div><h3>Карточки квартир и планировки</h3>
+      <div class="feat spot rv"><div class="ico">📋</div><h3>Карточки квартир и планировки</h3>
         <p>Планировка, метраж, вид из окон, цена и цена за м², условия рассрочки и кнопка «Забронировать показ» — в каждой квартире.</p></div>
-      <div class="feat rv"><div class="ico">♟️</div><h3>Шахматка и поэтажные планы</h3>
+      <div class="feat spot rv"><div class="ico">♟️</div><h3>Шахматка и поэтажные планы</h3>
         <p>Привычный инструмент отдела продаж — теперь кликабельный, с фильтрами и разделением по сторонам: море / город.</p></div>
-      <div class="feat rv"><div class="ico">🔒</div><h3>Кабинет отдела продаж</h3>
+      <div class="feat spot rv"><div class="ico">🔒</div><h3>Кабинет отдела продаж</h3>
         <p>Аналитика продаж и выручки по месяцам, журнал броней со сроками, редактирование цен и статусов — под PIN-кодом, с ролями.</p></div>
-      <div class="feat rv"><div class="ico">🛡️</div><h3>Скидочные коридоры</h3>
+      <div class="feat spot rv"><div class="ico">🛡️</div><h3>Скидочные коридоры</h3>
         <p>РОП задаёт минимальную цену по каждой квартире. Менеджер физически не может продать дешевле — система не пустит.</p></div>
-      <div class="feat rv"><div class="ico">⚡</div><h3>Живая синхронизация</h3>
+      <div class="feat spot rv"><div class="ico">⚡</div><h3>Живая синхронизация</h3>
         <p>Продали квартиру — через минуты она серая на сайте, в шахматке и на планшете каждого менеджера. Источник — ваша Google-таблица или CRM.</p></div>
     </div>
   </div>
@@ -298,12 +345,12 @@ section{position:relative}
 <section id="pricing">
   <div class="wrap">
     <div class="rv">
-      <div class="sec-kicker">Тарифы</div>
+      <div class="sec-kicker"><span class="no">03</span>Тарифы</div>
       <h2 class="sec-title">Дешевле, чем месяц<br><span class="goldt" data-scr>зарплаты менеджера</span></h2>
       <p class="sec-sub">Внедрение — разово, дальше только поддержка. Без скрытых платежей. Скидка 15% при оплате за год.</p>
     </div>
     <div class="plans">
-      <div class="plan rv">
+      <div class="plan spot rv">
         <h3>ВИТРИНА</h3>
         <div class="price">$900 <small>разово</small></div>
         <div class="mo">+ $90/мес поддержка</div>
@@ -318,7 +365,7 @@ section{position:relative}
         </ul>
         <a class="pbtn" href="#cta">Начать с Витрины</a>
       </div>
-      <div class="plan hot rv">
+      <div class="plan hot spot rv">
         <span class="tag">ВЫБИРАЕТ БОЛЬШИНСТВО</span>
         <h3>ВИТРИНА + КАБИНЕТ ПРОДАЖ</h3>
         <div class="price">$1 800 <small>разово</small></div>
@@ -333,7 +380,7 @@ section{position:relative}
         </ul>
         <a class="pbtn" href="#cta">Выбрать этот пакет</a>
       </div>
-      <div class="plan rv">
+      <div class="plan spot rv">
         <h3>ДОПОЛНЕНИЯ</h3>
         <div class="price" style="font-size:30px">Соберём под объект</div>
         <div class="mo">добавляются к любому пакету</div>
@@ -351,16 +398,18 @@ section{position:relative}
   </div>
 </section>
 
+<div class="marquee"><div class="marquee-in"></div></div>
+
 <!-- ================= CTA ================= -->
 <section id="cta">
   <div class="wrap">
     <div class="rv">
-      <div class="sec-kicker">Бесплатно и без обязательств</div>
+      <div class="sec-kicker"><span class="no">04</span>Бесплатно и без обязательств</div>
       <h2 class="sec-title">Пришлите рендеры —<br><span class="goldt" data-scr>получите демо своего ЖК</span></h2>
       <div class="timer48">48<small>часов</small></div>
       <p class="sub" style="max-width:560px;margin-left:auto;margin-right:auto">Вы увидите собственный объект кликабельным — до договора и до оплаты. Если не понравится, просто не отвечайте нам.</p>
       <div class="hero-cta" style="justify-content:center">
-        <a class="btn-gold" href="mailto:parshutodima@gmail.com?subject=Демо витрины для нашего ЖК">Получить демо за 48 часов</a>
+        <a class="btn-gold" href="mailto:bayluxhome@gmail.com?subject=Демо витрины для нашего ЖК">Получить демо за 48 часов</a>
         <a class="btn-line" href="/demo/jk.html">Посмотреть пример вживую</a>
       </div>
     </div>
@@ -378,21 +427,33 @@ section{position:relative}
 /* ============ SCRAMBLE-ЗАГОЛОВКИ ============ */
 const LOWFX=(window.matchMedia&&(matchMedia('(max-width:760px)').matches||matchMedia('(prefers-reduced-motion: reduce)').matches));
 const GL='АБВГДЕЖЗИКЛМНПРСТУФХЦЧШЭЮЯ#%&0123456789';
-function scramble(el, finalText, dur){
-  if(LOWFX){el.textContent=finalText;return}
-  const n=finalText.length; const t0=performance.now();
+function scramble(el,txt,dur){
+  if(LOWFX){el.textContent=txt;return}
+  // стабильная схема: финальный текст держит раскладку, анимация — в absolute-слое
+  if(!el.dataset.scrInit){
+    el.dataset.scrInit='1';
+    el.style.position='relative';
+    const st=document.createElement('span');
+    st.style.visibility='hidden';
+    st.textContent=txt;
+    const an=document.createElement('span');
+    an.style.cssText='position:absolute;left:0;top:0;right:0;bottom:0;white-space:nowrap;overflow:hidden;text-align:inherit';
+    el.textContent='';
+    el.appendChild(st);el.appendChild(an);
+  }
+  const st=el.children[0], an=el.children[1];
+  st.textContent=txt;
+  const t0=performance.now();
   (function tick(){
     const k=Math.min(1,(performance.now()-t0)/dur);
-    let out='';
-    for(let i=0;i<n;i++){
-      out += finalText[i]===' ' ? ' ' : (i/n<k ? finalText[i] : GL[Math.floor(Math.random()*GL.length)]);
-    }
-    el.textContent=out;
-    if(k<1)requestAnimationFrame(tick);
+    let o='';
+    for(let i=0;i<txt.length;i++){o+=txt[i]===' '?' ':(i/txt.length<k?txt[i]:GL[Math.floor(Math.random()*GL.length)])}
+    if(k<1){an.textContent=o;requestAnimationFrame(tick)}
+    else{an.textContent='';st.style.visibility='visible'}
   })();
 }
 scramble(document.getElementById('scr1'),'ЗДАНИЕ, КОТОРОЕ',1100);
-setTimeout(()=>scramble(document.getElementById('scr2'),'ПРОДАЁТ СЕБЯ САМО',1300),420);
+setTimeout(()=>scramble(document.getElementById('scr2'),'продаёт себя само',1300),420);
 // золотые строки секций расшифровываются при появлении
 if('IntersectionObserver' in window){
   const ioScr=new IntersectionObserver(es=>es.forEach(e=>{
@@ -469,6 +530,19 @@ placeCard();
 loop();
 setInterval(loop,8600);
 
+
+/* ============ СБОРКА БЛОКОВ ИЗ ЧАСТЕЙ ============ */
+document.querySelectorAll('.steps,.feats,.plans').forEach(grid=>{
+  [...grid.children].forEach((el,i)=>{
+    el.classList.add(['rv-l','rv-sc','rv-r'][i%3]);
+    el.style.transitionDelay=((i%3)*0.14+Math.floor(i/3)*0.1)+'s';
+  });
+});
+document.querySelectorAll('.strip .stat').forEach((el,i)=>{
+  el.classList.add('rv', i%2?'rv-r':'rv-l');
+  el.style.transitionDelay=(i*0.12)+'s';
+});
+document.querySelectorAll('.pnote').forEach(el=>el.classList.add('rv'));
 /* ============ SCROLL REVEAL + ПАРАЛЛАКС АВРОРЫ ============ */
 if('IntersectionObserver' in window){
   const io=new IntersectionObserver(es=>es.forEach(e=>{
@@ -487,6 +561,71 @@ if(!LOWFX) window.addEventListener('scroll',()=>{
     ticking=false;
   });
 },{passive:true});
+
+/* ============ СВЕЧЕНИЕ ЗА КУРСОРОМ ============ */
+if(window.matchMedia&&matchMedia('(hover:hover)').matches){
+  const g=document.createElement('div');g.id='cursorGlow';document.body.appendChild(g);
+  const cc=document.createElement('div');cc.id='cursorCore';document.body.appendChild(cc);
+  let mx=innerWidth/2,my=innerHeight/2,gx=mx,gy=my,shown=false;
+  addEventListener('mousemove',e=>{
+    mx=e.clientX;my=e.clientY;
+    if(!shown){shown=true;g.style.opacity=1;cc.style.opacity=1}
+  },{passive:true});
+  (function anim(){
+    gx+=(mx-gx)*.07; gy+=(my-gy)*.07;
+    g.style.transform='translate('+gx+'px,'+gy+'px)';
+    cc.style.transform='translate('+mx+'px,'+my+'px)';
+    requestAnimationFrame(anim);
+  })();
+}
+const MQWORDS='<b>КЛИКАБЕЛЬНЫЕ ФАСАДЫ</b>◆<span>ШАХМАТКА</span>◆<b>ПЛАНИРОВКИ</b>◆<span>КАБИНЕТ ПРОДАЖ</span>◆<b>СКИДОЧНЫЕ КОРИДОРЫ</b>◆<span>ДЕМО ЗА 48 ЧАСОВ</span>◆';
+
+(function(){
+  document.querySelectorAll('.marquee-in').forEach(el=>{el.innerHTML=MQWORDS+MQWORDS});
+  function cnt2(el,final,suffix,dur){
+    const t0=performance.now();
+    (function tick(){
+      const k=Math.min(1,(performance.now()-t0)/dur);
+      el.textContent=Math.round(final*(1-Math.pow(1-k,3)))+suffix;
+      if(k<1)requestAnimationFrame(tick);
+    })();
+  }
+  if('IntersectionObserver' in window && !(window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches)){
+    const ioN=new IntersectionObserver(es=>es.forEach(e=>{
+      if(!e.isIntersecting)return;
+      ioN.unobserve(e.target);
+      const w=e.target.offsetWidth;e.target.style.display='inline-block';e.target.style.minWidth=w+'px';
+      const m=e.target.textContent.trim().match(/^(\d+)(.*)$/);
+      if(m)cnt2(e.target,+m[1],m[2],1300);
+    }),{threshold:.6});
+    document.querySelectorAll('.stat .n').forEach(el=>ioN.observe(el));
+  }
+  if(window.matchMedia&&matchMedia('(hover:hover)').matches){
+    document.querySelectorAll('.spot').forEach(card=>{
+      card.addEventListener('mousemove',e=>{
+        const r=card.getBoundingClientRect();
+        card.style.setProperty('--mx',(e.clientX-r.left)+'px');
+        card.style.setProperty('--my',(e.clientY-r.top)+'px');
+      },{passive:true});
+    });
+    const dev=document.querySelector('.device');
+    if(dev){
+      let pmx=0,pmy=0,cx=0,cy=0;
+      addEventListener('mousemove',e=>{
+        pmx=(e.clientX/innerWidth-.5)*2;pmy=(e.clientY/innerHeight-.5)*2;
+      },{passive:true});
+      (function devAnim(){
+        cx+=(pmx-cx)*.05;cy+=(pmy-cy)*.05;
+        dev.style.transform='perspective(1200px) rotateY('+(-6+cx*7)+'deg) rotateX('+(2-cy*5)+'deg) translateY('+(cy*-6)+'px)';
+        requestAnimationFrame(devAnim);
+      })();
+    }
+  }
+  const sp=document.createElement('div');sp.id='sprog';document.body.appendChild(sp);
+  addEventListener('scroll',()=>{
+    sp.style.width=(scrollY/(document.documentElement.scrollHeight-innerHeight)*100)+'%';
+  },{passive:true});
+})();
 </script>
 </body>
 </html>
