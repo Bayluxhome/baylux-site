@@ -10,12 +10,9 @@ import { waLink, TG_CONTACT } from "@/config";
 import { getLang } from "@/lib/serverLang";
 import { t as tr, typeLabel, amenLabel, translitAddress } from "@/lib/dict";
 
-export const revalidate = 300;
-export const dynamicParams = true; // страницы объектов рендерятся по запросу и кэшируются (ISR), а не все на сборке
-
-export async function generateStaticParams() {
-  return []; // не пре-рендерим объекты на билде — сборка быстрая; страница создаётся при первом открытии и кэшируется
-}
+// Язык страницы зависит от посетителя (cookies/headers через getLang) → рендерим по запросу (SSR).
+// Пре-рендера нет → сборка быстрая. ISR-кэш здесь нельзя: он несовместим с динамическими данными запроса.
+export const dynamic = "force-dynamic";
 
 export async function generateMetadata({ params }) {
   const u = await findUnit(params.slug);

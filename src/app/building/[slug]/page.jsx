@@ -10,12 +10,9 @@ import { waLink, TG_CONTACT } from "@/config";
 import { getLang } from "@/lib/serverLang";
 import { t as tr, typeLabel, translitAddress } from "@/lib/dict";
 
-export const revalidate = 300;
-export const dynamicParams = true; // страницы домов рендерятся по запросу и кэшируются (ISR), а не все на сборке
-
-export async function generateStaticParams() {
-  return []; // не пре-рендерим дома на билде — сборка быстрая
-}
+// Язык страницы зависит от посетителя (cookies/headers через getLang) → рендерим по запросу (SSR).
+// Пре-рендера нет → сборка быстрая. ISR-кэш здесь нельзя: он несовместим с динамическими данными запроса.
+export const dynamic = "force-dynamic";
 
 export async function generateMetadata({ params }) {
   const b = await findBuilding(params.slug);
@@ -23,7 +20,7 @@ export async function generateMetadata({ params }) {
   const photo = b.facade_photo || (b.units && b.units[0] && b.units[0].photos && b.units[0].photos[0]) || "/hero-batumi.jpg";
   return {
     title: `${b.name} — ${b.district}, Батуми`,
-    description: `${b.name}: ${b.units.length} объект(ов) на продажу и аренду в районе ${b.district}, Батуми. ${b.about.slice(0, 120)}`,
+    description: `${b.name}: ${b.units.length} объект(ов) на продажу и аренду в районе ${b.district}, Батуми. ${(b.about || "").slice(0, 120)}`,
     alternates: { canonical: `/building/${b.slug}` },
     openGraph: {
       title: `${b.name} — ${b.district}, Батуми`,
