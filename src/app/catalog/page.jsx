@@ -117,9 +117,10 @@ export default async function CatalogPage({ searchParams }) {
   const page = Math.min(totalPages, Math.max(1, parseInt(sp.page, 10) || 1));
   const pageUnits = units.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
 
-  // Карта показывает объекты ТЕКУЩЕЙ страницы (а не все) — чтобы не перегружать при росте каталога.
+  // Карта показывает ВСЕ отфильтрованные объекты (не только текущую страницу списка),
+  // чтобы при выборе «Аренда»/«Продажа» на карте были все точки. Список остаётся постраничным.
   const bmap = new Map();
-  for (const u of pageUnits) {
+  for (const u of units) {
     const b = u.building;
     if (!bmap.has(b.slug)) bmap.set(b.slug, { slug: b.slug, name: b.name, district: b.district, kind: b.kind, lat: b.lat, lng: b.lng, priceFrom: u.price, _min: priceVal(u) || Infinity, units: [] });
     const e = bmap.get(b.slug);
