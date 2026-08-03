@@ -135,10 +135,17 @@ export default function MapView({ buildings = [], center = [41.642, 41.632], zoo
 
       map.on("load", () => {
         try { map.setLanguage("ru"); } catch (e) { /* подписи по умолчанию */ }
-        map.addSource("baylux-sel", { type: "geojson", data: { type: "FeatureCollection", features: [] } });
-        map.addLayer({ id: "baylux-sel-fill", type: "fill", source: "baylux-sel", paint: { "fill-color": "#01274B", "fill-opacity": 0.55 } });
-        map.addLayer({ id: "baylux-sel-line", type: "line", source: "baylux-sel", paint: { "line-color": "#01274B", "line-width": 2 } });
+        // Маркеры рисуем ПЕРВЫМ делом. Раньше renderMarkers стоял ПОСЛЕ addSource/addLayer,
+        // и если те бросали ошибку (стиль ещё не догрузился — по таймингу), до renderMarkers
+        // выполнение не доходило, а Mapbox глотал ошибку внутри обработчика → 0 меток на /map.
         renderMarkers();
+        try {
+          if (!map.getSource("baylux-sel")) {
+            map.addSource("baylux-sel", { type: "geojson", data: { type: "FeatureCollection", features: [] } });
+            map.addLayer({ id: "baylux-sel-fill", type: "fill", source: "baylux-sel", paint: { "fill-color": "#01274B", "fill-opacity": 0.55 } });
+            map.addLayer({ id: "baylux-sel-line", type: "line", source: "baylux-sel", paint: { "line-color": "#01274B", "line-width": 2 } });
+          }
+        } catch (e) { /* слой подсветки дома не критичен — метки уже отрисованы */ }
       });
       // клик по пустому месту карты — закрыть карточку (по маркеру срабатывает свой обработчик)
       map.on("click", () => closeCard());
