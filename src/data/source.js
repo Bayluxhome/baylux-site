@@ -174,6 +174,34 @@ function dedupeUnits(buildings) {
   return buildings.map((b) => ({ ...b, units: b.units.filter((u) => !remove.has(u)) }));
 }
 
+// Город определяем по долготе: Батуми/побережье ≈ 41.6 (запад), Тбилиси/восток ≈ 44.7.
+// Порог 43 надёжно разделяет два кластера. Дома без координат имеют фолбэк 41.63 → запад (Батуми).
+function cityBucket(b) {
+  return Number(b.lng) > 43 ? "east" : "west";
+}
+
+// Порядок по умолчанию: чередуем города по кругу (round-robin), чтобы свежая пачка объявлений
+// одного города не забивала весь верх выдачи. Внутри города сохраняется исходный порядок
+// «новые вперёд» (из запроса created_at DESC). Продвигаемые (boost) — глобально в самом верху.
+// Круг начинаем с запада — Батуми — главный рынок компании.
+function interleaveByCity(list) {
+  const boosted = list.filter((b) => (b.boost || 0) > 0).sort((a, b) => (b.boost || 0) - (a.boost || 0));
+  const rest = list.filter((b) => !(b.boost > 0));
+  const buckets = new Map();
+  for (const b of rest) {
+    const k = cityBucket(b);
+    if (!buckets.has(k)) buckets.set(k, []);
+    buckets.get(k).push(b);
+  }
+  const keys = [...buckets.keys()].sort((a, b) => (a === "west" ? -1 : b === "west" ? 1 : a.localeCompare(b)));
+  const lists = keys.map((k) => buckets.get(k));
+  const out = [...boosted];
+  for (let i = 0; lists.some((l) => i < l.length); i++) {
+    for (const l of lists) if (i < l.length) out.push(l[i]);
+  }
+  return out;
+}
+
 const getBuildings = cache(async () => {
   const fromSupa = await fetchSupabase();
   let fromSheet = [];
@@ -195,8 +223,9 @@ const getBuildings = cache(async () => {
     .map((b) => ({ ...b, units: b.units.filter((u) => Array.isArray(u.photos) && u.photos.length > 0) }));
   // Объединяем дубли (по совпадению фото; фолбэк — адрес+площадь+комнаты+цена), затем убираем пустые дома.
   const deduped = dedupeUnits(withPhotos).filter((b) => b.units.length > 0);
-  // Продвигаемые объекты — выше (boost ставится вручную; оплата позже)
-  return deduped.sort((a, b) => (b.boost || 0) - (a.boost || 0));
+  // Продвигаемые — выше, остальные чередуются по городам (round-robin), чтобы Батуми
+  // не тонул под свежей пачкой Тбилиси. Внутри города — «новые вперёд».
+  return interleaveByCity(deduped);
 });
 
 export async function getBuildingsList() {
