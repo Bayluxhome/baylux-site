@@ -133,6 +133,12 @@ export default function MapView({ buildings = [], center = [41.642, 41.632], zoo
       cardRef.current = card;
       card.addEventListener("click", (e) => { if (e.target.dataset && e.target.dataset.close) closeCard(); });
 
+      // Метки — HTML-оверлеи, им НЕ нужен полностью загруженный стиль. Тайлы/глифы/спрайт
+      // Mapbox иногда не догружаются (лимиты/троттлинг), тогда событие "load" не срабатывает
+      // вовсе и метки не появлялись. Рисуем их сразу, как только распарсился стиль (styledata).
+      map.on("styledata", () => {
+        if (!markersRef.current.length && (buildingsRef.current || []).length) renderMarkers();
+      });
       map.on("load", () => {
         try { map.setLanguage("ru"); } catch (e) { /* подписи по умолчанию */ }
         // Маркеры рисуем ПЕРВЫМ делом. Раньше renderMarkers стоял ПОСЛЕ addSource/addLayer,
@@ -170,8 +176,9 @@ export default function MapView({ buildings = [], center = [41.642, 41.632], zoo
 
   // Смена списка объектов — обновляем маркеры, не трогая саму карту.
   useEffect(() => {
-    const map = mapRef.current;
-    if (map && map.isStyleLoaded && map.isStyleLoaded()) renderMarkers();
+    // Раньше здесь стояла проверка isStyleLoaded() — но стиль может не догрузиться,
+    // а метки (оверлеи) от него не зависят. Достаточно, чтобы карта существовала.
+    if (mapRef.current) renderMarkers();
   }, [buildings]);
 
   return <div className={className} ref={elRef} />;
