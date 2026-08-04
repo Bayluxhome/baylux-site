@@ -67,26 +67,37 @@ export default async function AdminPage() {
 
   const counts = rows.reduce((a, r) => { a[r.status] = (a[r.status] || 0) + 1; return a; }, {});
 
+  // Кнопки разделов панели. navBefore — до фильтра статуса (…«Импорт сводки»),
+  // navAfter — после него («Сотрудники» для супер-админа). Фильтр вставляется между ними.
+  const navBefore = (
+    <>
+      {can(session, "news") && <a className="btn btn-ghost" href="/admin/news" style={{ padding: "9px 16px" }}>📰 Управление новостями</a>}
+      {can(session, "realtors") && <a className="btn btn-ghost" href="/admin/realtors" style={{ padding: "9px 16px" }}>👤 Риелторы{realtorPending ? ` · ${realtorPending} новых` : ""}</a>}
+      {can(session, "users") && <a className="btn btn-ghost" href="/admin/users" style={{ padding: "9px 16px" }}>👥 Пользователи{usersCount ? ` · ${usersCount}` : ""}</a>}
+      {can(session, "managed") && <a className="btn btn-ghost" href="/admin/reports" style={{ padding: "9px 16px" }}>📊 Импорт сводки</a>}
+    </>
+  );
+  const navAfter = (
+    <>
+      {isSuperAdmin(session) && <a className="btn btn-gold" href="/admin/staff" style={{ padding: "9px 16px" }}>🛡️ Сотрудники</a>}
+    </>
+  );
+
   return (
     <div className="wrap" style={{ paddingBlock: "30px 50px" }}>
       <h1 style={{ color: "var(--navy)" }}>Админ-панель</h1>
       <p style={{ color: "var(--ink-soft)", margin: "6px 0 20px" }}>
         Всего {rows.length} · одобрено {counts.approved || 0} · на модерации {counts.pending || 0} · снято {counts.rejected || 0}
       </p>
-      <div style={{ display: "flex", gap: 12, marginBottom: 22, flexWrap: "wrap" }}>
-        {can(session, "news") && <a className="btn btn-ghost" href="/admin/news" style={{ padding: "9px 16px" }}>📰 Управление новостями</a>}
-        {can(session, "realtors") && <a className="btn btn-ghost" href="/admin/realtors" style={{ padding: "9px 16px" }}>👤 Риелторы{realtorPending ? ` · ${realtorPending} новых` : ""}</a>}
-        {can(session, "users") && <a className="btn btn-ghost" href="/admin/users" style={{ padding: "9px 16px" }}>👥 Пользователи{usersCount ? ` · ${usersCount}` : ""}</a>}
-        {can(session, "managed") && <a className="btn btn-ghost" href="/admin/reports" style={{ padding: "9px 16px" }}>📊 Импорт сводки</a>}
-        {isSuperAdmin(session) && <a className="btn btn-gold" href="/admin/staff" style={{ padding: "9px 16px" }}>🛡️ Сотрудники</a>}
-      </div>
       {can(session, "moderate") ? (
-        <>
-          <h2 style={{ color: "var(--navy)", fontSize: 18, marginBottom: 12 }}>Все объявления</h2>
-          <AdminListings items={items} />
-        </>
+        // Кнопки панели передаём в AdminListings, чтобы фильтр по статусу встал в один ряд
+        // с ними (справа от «Импорт сводки») и при этом управлял тем же списком.
+        <AdminListings items={items} navBefore={navBefore} navAfter={navAfter} />
       ) : (
-        <p style={{ color: "var(--ink-soft)" }}>У вас нет права на модерацию объявлений. Доступные разделы — выше.</p>
+        <>
+          <div style={{ display: "flex", gap: 12, marginBottom: 22, flexWrap: "wrap" }}>{navBefore}{navAfter}</div>
+          <p style={{ color: "var(--ink-soft)" }}>У вас нет права на модерацию объявлений. Доступные разделы — выше.</p>
+        </>
       )}
     </div>
   );
