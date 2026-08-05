@@ -129,9 +129,13 @@ function dupeFallbackKey(u, b) {
   return [b.name || "", u.area || 0, u.rooms || 0, String(u.price || "")].join("|").toLowerCase();
 }
 
-// Объединяем дубли. Главный критерий — совпадение хотя бы одного photo_hash;
+// Объединяем дубли. Главный критерий — совпадение хотя бы одного photo_hash И той же площади;
 // фолбэк (если у юнита нет хэшей) — адрес+площадь+комнаты+цена.
-// Из группы остаётся один primary (больше фото, затем новее), у него dupeCount и dupes[].
+// Площадь в ключе фото-хэша обязательна: разные квартиры/дома в одном доме часто используют
+// одно и то же фото (фасад, баннер агентства, план этажа), но площади у них разные — их НЕЛЬЗЯ
+// схлопывать. Настоящий дубль (тот же объект у разных риелторов) имеет и те же фото, и ту же
+// площадь, поэтому по-прежнему схлопывается. Из группы остаётся один primary (больше фото,
+// затем новее), у него dupeCount и dupes[].
 function dedupeUnits(buildings) {
   const items = [];
   buildings.forEach((b) => b.units.forEach((u) => items.push({ u, b })));
@@ -141,12 +145,13 @@ function dedupeUnits(buildings) {
   const find = (x) => { while (parent[x] !== x) { parent[x] = parent[parent[x]]; x = parent[x]; } return x; };
   const union = (a, c) => { const ra = find(a), rc = find(c); if (ra !== rc) parent[ra] = rc; };
 
-  const hashFirst = new Map(); // photo_hash -> индекс первого юнита с ним
+  const hashFirst = new Map(); // (photo_hash + площадь) -> индекс первого такого юнита
   const fbFirst = new Map();   // фолбэк-ключ -> индекс
   items.forEach(({ u, b }, i) => {
     const hashes = Array.isArray(u.photo_hashes) ? u.photo_hashes.filter(Boolean) : [];
     if (hashes.length) {
-      hashes.forEach((h) => { if (hashFirst.has(h)) union(i, hashFirst.get(h)); else hashFirst.set(h, i); });
+      const areaKey = "|a" + (u.area || 0); // общее фото схлопывает только при той же площади
+      hashes.forEach((h) => { const hk = h + areaKey; if (hashFirst.has(hk)) union(i, hashFirst.get(hk)); else hashFirst.set(hk, i); });
     } else {
       const k = dupeFallbackKey(u, b);
       if (fbFirst.has(k)) union(i, fbFirst.get(k)); else fbFirst.set(k, i);
