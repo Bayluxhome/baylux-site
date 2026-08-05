@@ -175,7 +175,16 @@ export default function AddListingForm({ initial, editId }) {
     <div className="addform-done">
       <h2 style={{ color: "var(--navy)" }}>{editId ? t("af_done_edit_h") : t("af_done_add_h")}</h2>
       <p style={{ color: "var(--ink-soft)", margin: "10px 0 18px" }}>{editId ? t("af_done_edit_p") : t("af_done_add_p")} {t("af_done_tail")}</p>
-      <a className="btn btn-gold" href="/my" style={{ padding: "11px 20px" }}>{t("af_my")}</a>
+      <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
+        <a className="btn btn-gold" href="/my" style={{ padding: "11px 20px" }}>{t("af_my")}</a>
+        {/* «Разместить ещё» — перезагружаем /add начисто (у формы много состояний; полный
+            ре-маунт надёжнее ручного сброса). Кнопка в шапке ведёт на тот же /add, но не
+            сбрасывала экран успеха — поэтому явная кнопка здесь. Только для нового объявления. */}
+        {!editId && (
+          <button type="button" className="btn btn-ghost" style={{ padding: "11px 20px" }}
+            onClick={() => { window.location.href = "/add"; }}>{t("af_more")}</button>
+        )}
+      </div>
     </div>
   );
 
