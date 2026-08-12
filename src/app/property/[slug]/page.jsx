@@ -6,6 +6,7 @@ import AdminEdit from "@/components/AdminEdit";
 import { DEAL_LABEL, fmtMoney } from "@/data/data";
 import { findUnit } from "@/data/source";
 import LeadButton from "@/components/LeadButton";
+import TelegramContactButton from "@/components/TelegramContactButton";
 import { waLink, TG_CONTACT } from "@/config";
 import { getLang } from "@/lib/serverLang";
 import { t as tr, typeLabel, amenLabel, translitAddress } from "@/lib/dict";
@@ -174,7 +175,7 @@ export default async function PropertyPage({ params }) {
             {cleanPhone && <a className="seller-phone" href={`tel:+${cleanPhone}`}>📞 +{cleanPhone}</a>}
             <div className="contact-btns">
               <a className="btn btn-wa" href={waHref} target="_blank" rel="noopener">💬 WhatsApp</a>
-              <a className="btn btn-tg" href={`https://t.me/${tgUser || TG_CONTACT}`} target="_blank" rel="noopener">✈️ Telegram</a>
+              <TelegramContactButton className="btn btn-tg" username={tgUser || TG_CONTACT} propertyId={u.id || u.slug} propertyTitle={`${ty}, ${u.area} ${sqm} — ${bname}`} propertyPath={`/property/${u.slug}`}>✈️ Telegram</TelegramContactButton>
             </div>
             <LeadButton className="btn btn-ghost" type="Управление" object={b.name} title="Отдать квартиру в управление">{t("mgmt_btn")}</LeadButton>
             <Link href={`/building/${b.slug}`} className="btn btn-ghost" style={{ width: "100%", marginTop: 10 }}>{t("all_in")} «{bname}»</Link>
