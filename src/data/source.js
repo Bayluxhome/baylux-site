@@ -61,6 +61,10 @@ function groupRows(rows) {
       contact: r.contact || "",
       phone: r.phone || "",
       tg_username: r.tg_username || "",
+      // Автор объявления — нужен, чтобы связать объект с карточкой риелтора
+      // (в таблице realtors связь идёт по tg_user_id или email).
+      owner_email: r.owner_email || "",
+      tg_user_id: r.tg_user_id != null ? r.tg_user_id : null,
       year: r.year || "",
       bathrooms: r.bathrooms ? parseInt(r.bathrooms, 10) : 0,
       complex: r.complex || "",

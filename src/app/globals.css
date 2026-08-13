@@ -539,6 +539,19 @@ a.realtor-card:hover{box-shadow:0 8px 24px rgba(1,39,80,.08);transform:translate
 .realtor-role{font-size:13px;color:var(--ink-soft);margin-top:3px}
 .realtor-count{font-size:13px;color:var(--ink-soft);margin-top:6px;font-weight:600}
 .realtor-bio{font-size:13px;color:var(--ink);margin-top:8px;line-height:1.5}
+/* Карточка риелтора кликабельна целиком → страница риелтора с его объектами */
+.realtor-link{display:flex;flex-direction:column;align-items:flex-start;text-decoration:none;color:inherit;width:100%}
+.realtor-card:has(.realtor-link:hover){box-shadow:0 8px 24px rgba(1,39,80,.08);transform:translateY(-2px)}
+.realtor-count-link{color:var(--gold-dk)}
+.realtor-link:hover .realtor-name{color:var(--gold-dk)}
+/* Шапка страницы риелтора */
+.realtor-hero{display:flex;gap:22px;align-items:flex-start;flex-wrap:wrap;margin-top:18px;padding-bottom:20px;border-bottom:1px solid var(--line)}
+.realtor-ava-lg{width:110px;height:110px;font-size:42px;margin-bottom:0;flex:none}
+/* Блок автора на карточке объекта (кликабельный вариант) */
+.agent-link{text-decoration:none;color:inherit}
+.agent-link:hover .av{box-shadow:0 0 0 3px var(--gold-lt)}
+.agent .av{overflow:hidden;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:800;font-size:19px}
+.agent .av img{width:100%;height:100%;object-fit:cover}
 .ri-inp{border:1px solid var(--line);border-radius:10px;padding:11px 13px;font-size:15px;font-family:inherit;color:var(--ink);background:#fff;width:100%}
 .ri-inp:focus{outline:none;border-color:var(--gold)}
 @media(max-width:920px){.realtor-grid{grid-template-columns:repeat(2,1fr)}}

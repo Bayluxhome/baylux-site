@@ -5,6 +5,7 @@ import Gallery from "@/components/Gallery";
 import AdminEdit from "@/components/AdminEdit";
 import { DEAL_LABEL, fmtMoney } from "@/data/data";
 import { findUnit } from "@/data/source";
+import { getRealtorFor } from "@/data/realtors";
 import LeadButton from "@/components/LeadButton";
 import TelegramContactButton from "@/components/TelegramContactButton";
 import { waLink, TG_CONTACT } from "@/config";
@@ -36,6 +37,7 @@ export default async function PropertyPage({ params }) {
   const u = await findUnit(params.slug);
   if (!u) notFound();
   const b = u.building;
+  const realtor = await getRealtorFor(u); // автор объявления, если он — риелтор Baylux
   const lang = getLang();
   const t = (k) => tr(lang, k);
   const ty = typeLabel(lang, u.type);
@@ -179,10 +181,28 @@ export default async function PropertyPage({ params }) {
             </div>
             <LeadButton className="btn btn-ghost" type="Управление" object={b.name} title="Отдать квартиру в управление">{t("mgmt_btn")}</LeadButton>
             <Link href={`/building/${b.slug}`} className="btn btn-ghost" style={{ width: "100%", marginTop: 10 }}>{t("all_in")} «{bname}»</Link>
-            <div className="agent">
-              <div className="av" />
-              <div><div style={{ fontWeight: 700, color: "var(--navy)" }}>{t("team")}</div><div style={{ fontSize: 13, color: "var(--ink-soft)" }}>{t("team_sub")}</div></div>
-            </div>
+            {/* Автор объявления. Если его подал зарегистрированный риелтор — показываем его
+                и ведём на страницу риелтора с его объектами. Если собственник — помечаем как
+                собственника. Иначе (импорт/агентская загрузка) — прежний блок команды Baylux. */}
+            {realtor ? (
+              <Link href={`/realtor/${realtor.id}`} className="agent agent-link">
+                <div className="av">
+                  {realtor.photo ? <img src={realtor.photo} alt={realtor.name} /> : <span>{(realtor.name || "B").slice(0, 1).toUpperCase()}</span>}
+                </div>
+                <div>
+                  <div style={{ fontWeight: 700, color: "var(--navy)" }}>{realtor.name}</div>
+                  <div style={{ fontSize: 13, color: "var(--ink-soft)" }}>{t("rl_role")} · {t("rl_all_objects")} →</div>
+                </div>
+              </Link>
+            ) : (
+              <div className="agent">
+                <div className="av" />
+                <div>
+                  <div style={{ fontWeight: 700, color: "var(--navy)" }}>{u.tg_username ? t("owner_label") : t("team")}</div>
+                  <div style={{ fontSize: 13, color: "var(--ink-soft)" }}>{u.tg_username ? "@" + u.tg_username : t("team_sub")}</div>
+                </div>
+              </div>
+            )}
           </div>
         </aside>
       </div>
