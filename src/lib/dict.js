@@ -485,6 +485,18 @@ export const DICT = {
     rl_role: "Риелтор",
     rl_objects_h: "Объекты риелтора", rl_no_objects: "У этого риелтора пока нет активных объектов.",
     rl_all_objects: "Все объекты", owner_label: "Собственник",
+    // SEO-метаданные (title/description) — по языку посетителя
+    meta_home_t: "Недвижимость в Грузии и Батуми — купить и снять квартиру у моря | Baylux",
+    meta_home_d: "Проверенные квартиры и апартаменты в Грузии и Батуми у моря. Купить, продать, снять или сдать недвижимость — прозрачные цены и помощь местной команды Baylux.",
+    meta_og_t: "Baylux — недвижимость в Грузии и Батуми",
+    meta_og_d: "Купить, продать, снять или сдать квартиру в Грузии и Батуми у моря.",
+    meta_catalog_t: "Купить квартиру в Батуми и Грузии — каталог недвижимости",
+    meta_catalog_d: "Каталог проверенной недвижимости в Батуми и по всей Грузии: квартиры, дома, новостройки. Реальные фото, цены и помощь на всех этапах сделки.",
+    meta_realtors_t: "Риелторы Baylux в Батуми и Грузии",
+    meta_realtors_d: "Проверенные риелторы Baylux: продажа и аренда недвижимости в Батуми и по всей Грузии. Найдите своего агента.",
+    meta_map_t: "Карта объектов в Батуми",
+    meta_map_d: "Все объекты Baylux на карте: квартиры, дома, новостройки, продажа и аренда. Один пин — один дом.",
+    curr_gel: "GEL — Грузинский лари", curr_usd: "USD — Американский доллар",
     rl_strip_h: "Риелторы на Baylux",
     rl_strip_p: "Работайте с проверенными агентами — или станьте одним из них.",
     rl_strip_all: "Все риелторы →",
@@ -989,6 +1001,17 @@ export const DICT = {
     rl_role: "Realtor",
     rl_objects_h: "Realtor's listings", rl_no_objects: "This realtor has no active listings yet.",
     rl_all_objects: "All listings", owner_label: "Owner",
+    meta_home_t: "Real estate in Georgia and Batumi — buy or rent an apartment by the sea | Baylux",
+    meta_home_d: "Verified apartments and homes in Georgia and Batumi by the sea. Buy, sell or rent property — transparent prices and support from the local Baylux team.",
+    meta_og_t: "Baylux — real estate in Georgia and Batumi",
+    meta_og_d: "Buy, sell or rent an apartment in Georgia and Batumi by the sea.",
+    meta_catalog_t: "Buy an apartment in Batumi and Georgia — property catalogue",
+    meta_catalog_d: "Catalogue of verified property in Batumi and across Georgia: apartments, houses, new builds. Real photos, prices and support at every stage of the deal.",
+    meta_realtors_t: "Baylux realtors in Batumi and Georgia",
+    meta_realtors_d: "Verified Baylux realtors: sales and rentals in Batumi and across Georgia. Find your agent.",
+    meta_map_t: "Property map of Batumi",
+    meta_map_d: "All Baylux listings on the map: apartments, houses, new builds, for sale and rent. One pin — one building.",
+    curr_gel: "GEL — Georgian lari", curr_usd: "USD — US dollar",
     rl_strip_h: "Realtors on Baylux",
     rl_strip_p: "Work with verified agents — or become one yourself.",
     rl_strip_all: "All realtors →",
@@ -1493,6 +1516,17 @@ export const DICT = {
     rl_role: "რიელტორი",
     rl_objects_h: "რიელტორის ობიექტები", rl_no_objects: "ამ რიელტორს ჯერ არ აქვს აქტიური ობიექტები.",
     rl_all_objects: "ყველა ობიექტი", owner_label: "მესაკუთრე",
+    meta_home_t: "უძრავი ქონება საქართველოსა და ბათუმში — იყიდე ან იქირავე ბინა ზღვასთან | Baylux",
+    meta_home_d: "შემოწმებული ბინები და აპარტამენტები საქართველოსა და ბათუმში ზღვასთან. ყიდვა, გაყიდვა და გაქირავება — გამჭვირვალე ფასები და ადგილობრივი Baylux-ის გუნდის მხარდაჭერა.",
+    meta_og_t: "Baylux — უძრავი ქონება საქართველოსა და ბათუმში",
+    meta_og_d: "იყიდე, გაყიდე ან იქირავე ბინა საქართველოსა და ბათუმში ზღვასთან.",
+    meta_catalog_t: "იყიდე ბინა ბათუმსა და საქართველოში — უძრავი ქონების კატალოგი",
+    meta_catalog_d: "შემოწმებული უძრავი ქონების კატალოგი ბათუმსა და მთელ საქართველოში: ბინები, სახლები, ახალი კორპუსები. რეალური ფოტოები, ფასები და მხარდაჭერა გარიგების ყველა ეტაპზე.",
+    meta_realtors_t: "Baylux-ის რიელტორები ბათუმსა და საქართველოში",
+    meta_realtors_d: "შემოწმებული Baylux-ის რიელტორები: გაყიდვა და გაქირავება ბათუმსა და მთელ საქართველოში. იპოვე შენი აგენტი.",
+    meta_map_t: "ობიექტების რუკა ბათუმში",
+    meta_map_d: "Baylux-ის ყველა ობიექტი რუკაზე: ბინები, სახლები, ახალი კორპუსები, გაყიდვა და გაქირავება. ერთი პინი — ერთი კორპუსი.",
+    curr_gel: "GEL — ქართული ლარი", curr_usd: "USD — ამერიკული დოლარი",
     rl_strip_h: "რიელტორები Baylux-ზე",
     rl_strip_p: "იმუშავეთ შემოწმებულ აგენტებთან — ან თავად გახდით ერთ-ერთი.",
     rl_strip_all: "ყველა რიელტორი →",
@@ -1564,6 +1598,25 @@ const CITY_TR = {
 export function cityLabel(lang, name) {
   if (lang === "ru" || !CITY_TR[lang]) return name || "";
   return CITY_TR[lang][name] || name || "";
+}
+
+// Дата с названием месяца. Для грузинского НЕ используем Intl: во многих браузерах нет
+// данных локали ka — Intl молча отдаёт дату системной локалью (на практике выходило
+// «3 августа 2026 г.» на грузинской версии). Поэтому месяцы для ka заданы явно.
+const KA_MONTHS = ["იანვარი", "თებერვალი", "მარტი", "აპრილი", "მაისი", "ივნისი",
+  "ივლისი", "აგვისტო", "სექტემბერი", "ოქტომბერი", "ნოემბერი", "დეკემბერი"];
+const DATE_LOCALE = { ru: "ru-RU", en: "en-US" };
+
+export function formatDate(lang, iso) {
+  if (!iso) return "";
+  const d = new Date(iso);
+  if (isNaN(d.getTime())) return "";
+  if (lang === "ka") return `${d.getDate()} ${KA_MONTHS[d.getMonth()]}, ${d.getFullYear()}`;
+  try {
+    return new Intl.DateTimeFormat(DATE_LOCALE[lang] || "ru-RU", { day: "numeric", month: "long", year: "numeric" }).format(d);
+  } catch (e) {
+    return "";
+  }
 }
 
 // Офлайн-транслитерация адреса (улицы) с кириллицы. ЖК-бренды и английские названия не трогаем.

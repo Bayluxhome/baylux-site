@@ -2,7 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { supa } from "@/lib/supabase";
 import { getLang } from "@/lib/serverLang";
-import { t as tr, newsField } from "@/lib/dict";
+import { t as tr, newsField, formatDate } from "@/lib/dict";
 
 export const revalidate = 120;
 
@@ -30,8 +30,8 @@ export async function generateMetadata({ params }) {
 }
 
 function fmtDate(s, lang) {
-  try { return new Date(s).toLocaleDateString(lang === "ka" ? "ka-GE" : lang === "en" ? "en-US" : "ru-RU", { day: "numeric", month: "long", year: "numeric" }); }
-  catch { return ""; }
+  // formatDate: для ka Intl отдаёт русские месяцы (нет данных локали) — там свой список.
+  return formatDate(lang, s);
 }
 
 export default async function NewsItemPage({ params }) {

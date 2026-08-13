@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { ARTICLES, articleField } from "@/data/articles";
 import { getLang } from "@/lib/serverLang";
-import { t as tr } from "@/lib/dict";
+import { t as tr, formatDate } from "@/lib/dict";
 
 export const metadata = {
   title: "Статьи о недвижимости в Грузии и Батуми — Baylux",
@@ -10,8 +10,8 @@ export const metadata = {
 };
 
 function fmtDate(s, lang) {
-  try { return new Date(s).toLocaleDateString(lang === "ka" ? "ka-GE" : lang === "en" ? "en-US" : "ru-RU", { day: "numeric", month: "long", year: "numeric" }); }
-  catch { return ""; }
+  // formatDate: для ka Intl отдаёт русские месяцы (нет данных локали) — там свой список.
+  return formatDate(lang, s);
 }
 
 export default function BlogPage() {

@@ -15,9 +15,11 @@ const LANGS = [
 const ccOf = (code) => (LANGS.find((l) => l.code === code) || {}).cc || "ge";
 const flagSrc = (cc) => `https://flagcdn.com/32x24/${cc}.png`;
 const NAV_KEY = { "Продажа": "nav_sale", "Аренда": "nav_rent", "Новостройки": "nav_new", "Посуточно": "nav_daily", "Услуги": "nav_services" };
+// Названия валют берутся из словаря (t) — раньше были зашиты по-русски и оставались
+// русскими на грузинской/английской версии сайта.
 const CURR = [
-  { code: "GEL", sym: "₾", name: "GEL — Грузинский лари" },
-  { code: "USD", sym: "$", name: "USD — Американский доллар" },
+  { code: "GEL", sym: "₾", nameKey: "curr_gel" },
+  { code: "USD", sym: "$", nameKey: "curr_usd" },
 ];
 
 // Верхнее меню с выпадающими подменю (как korter, адаптировано под Baylux)
@@ -157,7 +159,7 @@ export default function Header({ cityCounts } = {}) {
                 <div className="lp-h">{t("lp_curr")}</div>
                 {CURR.map((c) => (
                   <button key={c.code} className={"lp-row" + (curr === c.code ? " active" : "")} onClick={() => { setCurr(c.code); if (typeof window !== "undefined" && window.bxApplyCurrency) window.bxApplyCurrency(c.code); }}>
-                    <b className="lp-cur">{c.sym}</b><span>{c.name}</span>
+                    <b className="lp-cur">{c.sym}</b><span>{t(c.nameKey)}</span>
                   </button>
                 ))}
               </div>

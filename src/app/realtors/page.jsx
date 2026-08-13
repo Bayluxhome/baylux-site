@@ -8,11 +8,14 @@ import { t as tr } from "@/lib/dict";
 // Язык страницы зависит от запроса (getLang читает cookies/headers), поэтому ISR здесь нельзя —
 // то же решение, что на страницах объекта и дома (иначе конфликт ISR + динамические данные).
 export const dynamic = "force-dynamic";
-export const metadata = {
-  title: "Риелторы Baylux в Батуми и Грузии",
-  description: "Проверенные риелторы Baylux: продажа и аренда недвижимости в Батуми и по всей Грузии. Найдите своего агента.",
-  alternates: { canonical: "/realtors" },
-};
+export async function generateMetadata() {
+  const lang = getLang();
+  return {
+    title: tr(lang, "meta_realtors_t"),
+    description: tr(lang, "meta_realtors_d"),
+    alternates: { canonical: "/realtors" },
+  };
+}
 
 export default async function RealtorsPage() {
   const lang = getLang();

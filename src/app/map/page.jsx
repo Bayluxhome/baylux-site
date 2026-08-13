@@ -2,13 +2,17 @@ import Link from "next/link";
 import MapView from "@/components/MapView";
 import { buildingPriceFrom } from "@/data/data";
 import { getBuildingsList } from "@/data/source";
+import { getLang } from "@/lib/serverLang";
+import { t as tr } from "@/lib/dict";
 
-export const revalidate = 300;
+// Заголовок страницы зависит от языка посетителя (getLang читает cookies/headers) —
+// ISR здесь несовместим, как и на страницах объекта/дома.
+export const dynamic = "force-dynamic";
 
-export const metadata = {
-  title: "Карта объектов в Батуми",
-  description: "Все объекты Baylux на карте Батуми — квартиры, дома, новостройки, продажа и аренда. Один пин — один дом.",
-};
+export async function generateMetadata() {
+  const lang = getLang();
+  return { title: tr(lang, "meta_map_t"), description: tr(lang, "meta_map_d") };
+}
 
 export default async function MapPage() {
   const BUILDINGS = await getBuildingsList();

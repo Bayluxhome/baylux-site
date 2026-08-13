@@ -14,6 +14,19 @@ export function generateMetadata({ searchParams }) {
   const page = Math.max(1, parseInt(searchParams?.page, 10) || 1);
   const deal = searchParams?.deal || "";
   const isNew = searchParams?.new === "1" || searchParams?.type === "new";
+  const lang = getLang();
+  // Для en/ka — переведённые заголовки из словаря (иначе грузин видел бы русский title).
+  // Для ru ниже остаются заголовки, заточенные под частотные русские запросы (Wordstat), —
+  // их специально не трогаем, это рабочая SEO-оптимизация.
+  if (lang !== "ru") {
+    const base = tr(lang, "meta_catalog_t");
+    const dealName = isNew ? tr(lang, "nav_new") : deal ? tr(lang, "deal_" + deal) : "";
+    return {
+      title: dealName ? `${dealName} — ${base}` : base,
+      description: tr(lang, "meta_catalog_d"),
+      alternates: { canonical: page > 1 ? `/catalog?page=${page}` : "/catalog" },
+    };
+  }
   // Заголовки под частотные запросы (Wordstat): «купить квартиру», «снять квартиру», «посуточно».
   let title = "Купить квартиру в Батуми и Грузии — каталог недвижимости";
   let description = "Квартиры, апартаменты, дома и новостройки в Батуми и Грузии. Продажа, аренда и посуточно — фильтры по городу, цене, комнатам и удобствам.";

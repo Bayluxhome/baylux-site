@@ -5,7 +5,7 @@ import Image from "next/image";
 import { DEAL_CLASS, fmtMoney } from "@/data/data";
 import FavButton from "@/components/FavButton";
 import { useLang } from "@/components/LangContext";
-import { typeLabel, cityLabel, translitAddress } from "@/lib/dict";
+import { typeLabel, cityLabel, translitAddress, formatDate } from "@/lib/dict";
 
 // Русское склонение для бейджа дублей: 1 дубль / 2-4 дубля / 5+ дублей (en/ka — формы совпадают).
 function dupePluralKey(n) {
@@ -21,17 +21,9 @@ const IcArea = () => (<svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
 const IcFloor = () => (<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round"><path d="M4 21V8l8-4 8 4v13" /><path d="M9 21v-5h6v5" /></svg>);
 const IcRefresh = () => (<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M21 12a9 9 0 1 1-2.64-6.36" /><path d="M21 4v4h-4" /></svg>);
 
-const LOCALE = { ru: "ru-RU", en: "en-US", ka: "ka-GE" };
-function fmtDate(iso, lang) {
-  if (!iso) return "";
-  const d = new Date(iso);
-  if (isNaN(d.getTime())) return "";
-  try {
-    return new Intl.DateTimeFormat(LOCALE[lang] || "ru-RU", { day: "numeric", month: "long", year: "numeric" }).format(d);
-  } catch (e) {
-    return "";
-  }
-}
+// Формат даты вынесен в dict.formatDate: для грузинского Intl отдавал русские месяцы
+// (в браузере нет данных локали ka), поэтому там свой список месяцев.
+const fmtDate = (iso, lang) => formatDate(lang, iso);
 
 export default function PropertyCard({ unit }) {
   const { t, lang } = useLang();

@@ -10,42 +10,44 @@ import { LangProvider } from "@/components/LangContext";
 import { getUsdGel } from "@/lib/rate";
 import { getCityCounts } from "@/data/source";
 import { getLang } from "@/lib/serverLang";
+import { t as tr } from "@/lib/dict";
 import { PHONE_DISPLAY, SOCIAL } from "@/config";
 
-export const metadata = {
-  metadataBase: new URL("https://bayluxhome.com"),
-  title: {
-    default: "Недвижимость в Грузии и Батуми — купить и снять квартиру у моря | Baylux",
-    template: "%s — Baylux",
-  },
-  description:
-    "Проверенные квартиры и апартаменты в Грузии и Батуми у моря. Купить, продать, снять или сдать недвижимость — прозрачные цены и помощь местной команды Baylux.",
-  alternates: {
-    canonical: "/",
-  },
-  openGraph: {
-    title: "Baylux — недвижимость в Грузии и Батуми",
-    description: "Купить, продать, снять или сдать квартиру в Грузии и Батуми у моря.",
-    type: "website",
-    locale: "ru_RU",
-    siteName: "Baylux Home",
-    url: "https://bayluxhome.com",
-    images: [
-      { url: "/hero-batumi.jpg", width: 1200, height: 630, alt: "Baylux — недвижимость в Батуми" },
-    ],
-  },
-  twitter: {
-    card: "summary_large_image",
-    title: "Baylux — недвижимость в Грузии и Батуми",
-    description: "Купить, продать, снять или сдать квартиру в Грузии и Батуми у моря.",
-    images: ["/hero-batumi.jpg"],
-  },
-  robots: {
-    index: true,
-    follow: true,
-    googleBot: { index: true, follow: true, "max-image-preview": "large", "max-snippet": -1 },
-  },
-};
+// Метаданные зависят от языка посетителя (getLang: cookie/домен/гео), поэтому это функция,
+// а не статический объект. Иначе грузинский посетитель видел бы грузинский сайт, но русский
+// заголовок во вкладке и в поиске — нарушение правила «без хардкода одного языка».
+const OG_LOCALE = { ru: "ru_RU", en: "en_US", ka: "ka_GE" };
+
+export async function generateMetadata() {
+  const lang = getLang();
+  const t = (k) => tr(lang, k);
+  return {
+    metadataBase: new URL("https://bayluxhome.com"),
+    title: { default: t("meta_home_t"), template: "%s — Baylux" },
+    description: t("meta_home_d"),
+    alternates: { canonical: "/" },
+    openGraph: {
+      title: t("meta_og_t"),
+      description: t("meta_og_d"),
+      type: "website",
+      locale: OG_LOCALE[lang] || "ka_GE",
+      siteName: "Baylux Home",
+      url: "https://bayluxhome.com",
+      images: [{ url: "/hero-batumi.jpg", width: 1200, height: 630, alt: t("meta_og_t") }],
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: t("meta_og_t"),
+      description: t("meta_og_d"),
+      images: ["/hero-batumi.jpg"],
+    },
+    robots: {
+      index: true,
+      follow: true,
+      googleBot: { index: true, follow: true, "max-image-preview": "large", "max-snippet": -1 },
+    },
+  };
+}
 
 export default async function RootLayout({ children }) {
   const rate = await getUsdGel();
