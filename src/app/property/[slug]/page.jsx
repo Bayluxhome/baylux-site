@@ -8,6 +8,7 @@ import { findUnit } from "@/data/source";
 import { getRealtorFor } from "@/data/realtors";
 import LeadButton from "@/components/LeadButton";
 import TelegramContactButton from "@/components/TelegramContactButton";
+import ViewCounter from "@/components/ViewCounter";
 import { waLink, TG_CONTACT } from "@/config";
 import { getLang } from "@/lib/serverLang";
 import { t as tr, typeLabel, amenLabel, translitAddress } from "@/lib/dict";
@@ -106,6 +107,7 @@ export default async function PropertyPage({ params }) {
 
   return (
     <div className="wrap">
+      <ViewCounter id={u.id} />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(ldJson) }} />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJson) }} />
       <div className="crumbs">
@@ -173,7 +175,7 @@ export default async function PropertyPage({ params }) {
           <div className="cta-card">
             <div className="price">{u.priceNum ? <><span className="bx-price" data-num={u.priceNum} data-cur={u.currency}>{fmtMoney(u.priceNum, u.currency)}</span>{priceSuffix}</> : u.price}</div>
             <div className="perm" style={{ marginBottom: 6 }}>{u.deal === "sale" && u.perM2 ? <><span className="bx-price" data-num={u.perM2} data-cur={u.currency}>{fmtMoney(u.perM2, u.currency)}</span> {t("per_m2")}</> : u.per}</div>
-            <LeadButton className="btn btn-gold" type={t("deal_" + u.deal)} object={`${u.type}, ${u.area} м² — ${b.name}`} title={ctaMain}>{ctaMain}</LeadButton>
+            <LeadButton className="btn btn-gold" type={t("deal_" + u.deal)} object={`${u.type}, ${u.area} м² — ${b.name}`} title={ctaMain} listingId={u.id} source="property">{ctaMain}</LeadButton>
             {cleanPhone && <a className="seller-phone" href={`tel:+${cleanPhone}`}>📞 +{cleanPhone}</a>}
             <div className="contact-btns">
               <a className="btn btn-wa" href={waHref} target="_blank" rel="noopener">💬 WhatsApp</a>

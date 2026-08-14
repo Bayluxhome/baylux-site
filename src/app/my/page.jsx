@@ -5,6 +5,8 @@ import { supa } from "@/lib/supabase";
 import { slugify, cleanAddress } from "@/data/sheet";
 import LoginBlock from "@/components/LoginBlock";
 import CabinetTabs from "@/components/CabinetTabs";
+import CabinetDashboard from "@/components/CabinetDashboard";
+import { getLeadsFor, getViewsFor, buildSeries } from "@/data/cabinet";
 import DataRights from "@/components/DataRights";
 import RealtorPanel from "@/components/RealtorPanel";
 import { getLang } from "@/lib/serverLang";
@@ -137,6 +139,25 @@ export default async function MyPage() {
   const ownItems = rows.map(mapItem).filter((x) => !x.managed);
   const managedItems = managedRows.map(mapItem);
 
+  // --- Данные дашборда: метрики, объекты с истекающей актуальностью, обращения, график ---
+  const allItems = [...ownItems, ...managedItems];
+  const leads = await getLeadsFor(session);
+  const views = await getViewsFor(allItems.map((x) => String(x.id)));
+  const series = buildSeries(views.byDay, leads);
+  // «Требуют обновления» — опубликованные объекты, которым до архива осталось меньше трети срока.
+  const stale = allItems
+    .filter((x) => x.status === "approved" && x.daysLeft != null && x.daysLeft <= 20)
+    .sort((a, b) => a.daysLeft - b.daysLeft)
+    .slice(0, 5)
+    .map((x) => ({ id: x.id, title: x.title, sub: x.sub, photo: x.photo, daysLeft: x.daysLeft }));
+  const dashStats = {
+    active: allItems.filter((x) => x.status === "approved" && !x.archived).length,
+    stale: allItems.filter((x) => x.status === "approved" && x.daysLeft != null && x.daysLeft <= 20).length,
+    views: views.total,
+    leadsNew: leads.filter((l) => l.status === "new").length,
+    leadsTotal: leads.length,
+  };
+
   return (
     <div className="wrap" style={{ paddingBlock: "30px 50px" }}>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 12, flexWrap: "wrap" }}>
@@ -152,6 +173,7 @@ export default async function MyPage() {
       <p style={{ color: "var(--ink-soft)", margin: "6px 0 20px" }}>
         {session.name ? session.name + " — " : ""}{t("cab_objs")} ({rows.length}). {t("cab_addnew")}
       </p>
+      <CabinetDashboard stats={dashStats} stale={stale} leads={leads} series={series} />
       <CabinetTabs listings={ownItems} managed={managedItems} adminView={canMng} />
       <RealtorPanel initial={realtor} />
       <DataRights />

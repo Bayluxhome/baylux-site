@@ -29,7 +29,8 @@ export default function LeadModal() {
       await fetch("/api/lead", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ...form, type: ctx.type, object: ctx.object }),
+        // listingId/source — чтобы заявка попала в кабинет владельца объявления
+        body: JSON.stringify({ ...form, type: ctx.type, object: ctx.object, listingId: ctx.listingId || "", source: ctx.source || "" }),
       });
     } catch (_) {}
     setLoading(false);
