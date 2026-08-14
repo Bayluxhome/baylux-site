@@ -4,6 +4,7 @@ import Footer from "@/components/Footer";
 import LeadModal from "@/components/LeadModal";
 import CookieConsent from "@/components/CookieConsent";
 import AnalyticsConsent from "@/components/AnalyticsConsent";
+import GoogleAnalytics from "@/components/GoogleAnalytics";
 import CurrencyManager from "@/components/CurrencyManager";
 import { FilterProvider } from "@/components/FilterContext";
 import { LangProvider } from "@/components/LangContext";
@@ -95,6 +96,7 @@ export default async function RootLayout({ children }) {
             <LeadModal />
             <CookieConsent />
             <AnalyticsConsent />
+            <GoogleAnalytics />
           </FilterProvider>
         </LangProvider>
       </body>

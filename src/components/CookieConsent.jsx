@@ -10,7 +10,11 @@ function save(obj) {
   const val = JSON.stringify({ ...obj, ts: Date.now() });
   try { localStorage.setItem(KEY, val); } catch (e) {}
   try { document.cookie = `cookie_consent=${encodeURIComponent(val)};path=/;max-age=${YEAR};SameSite=Lax`; } catch (e) {}
-  if (typeof window !== "undefined") window.bxConsent = obj;
+  if (typeof window !== "undefined") {
+    window.bxConsent = obj;
+    // Сообщаем аналитике о выборе, чтобы Consent Mode обновился без перезагрузки страницы.
+    try { window.dispatchEvent(new CustomEvent("bx:consent", { detail: obj })); } catch (e) {}
+  }
 }
 
 export default function CookieConsent() {

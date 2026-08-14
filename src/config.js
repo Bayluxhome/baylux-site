@@ -1,4 +1,11 @@
 // Публичные настройки сайта
+
+// Аналитика. Задаются в переменных окружения хостинга; пока пусто — счётчики не грузятся.
+// GA_ID — Measurement ID вида G-XXXXXXXXXX (Админ → Потоки данных → веб-поток).
+// ВНИМАНИЕ: числовой Property ID (например 92593641) сюда НЕ подходит — он для API, не для тега.
+export const GA_ID = process.env.NEXT_PUBLIC_GA_ID || "";
+export const CLARITY_ID = process.env.NEXT_PUBLIC_CLARITY_ID || "";
+
 export const TG_BOT = "baylux_leads_bot"; // имя бота для входа через Telegram
 export const TG_CONTACT = "bayluxhome"; // основной Telegram-контакт (владелец/агентство), без @ — фолбэк для объявлений без личного ника автора
 
