@@ -8,6 +8,7 @@ import { findUnit } from "@/data/source";
 import { getRealtorFor } from "@/data/realtors";
 import LeadButton from "@/components/LeadButton";
 import TelegramContactButton from "@/components/TelegramContactButton";
+import WhatsAppContactButton from "@/components/WhatsAppContactButton";
 import ViewCounter from "@/components/ViewCounter";
 import { waLink, TG_CONTACT } from "@/config";
 import { getLang } from "@/lib/serverLang";
@@ -178,7 +179,7 @@ export default async function PropertyPage({ params }) {
             <LeadButton className="btn btn-gold" type={t("deal_" + u.deal)} object={`${u.type}, ${u.area} м² — ${b.name}`} title={ctaMain} listingId={u.id} source="property">{ctaMain}</LeadButton>
             {cleanPhone && <a className="seller-phone" href={`tel:+${cleanPhone}`}>📞 +{cleanPhone}</a>}
             <div className="contact-btns">
-              <a className="btn btn-wa" href={waHref} target="_blank" rel="noopener">💬 WhatsApp</a>
+              <WhatsAppContactButton className="btn btn-wa" href={waHref} propertyId={u.id || u.slug} propertyTitle={`${ty}, ${u.area} ${sqm} — ${bname}`} propertyUrl={`https://bayluxhome.com/property/${u.slug}`}>💬 WhatsApp</WhatsAppContactButton>
               <TelegramContactButton className="btn btn-tg" username={tgUser || TG_CONTACT} propertyId={u.id || u.slug} propertyTitle={`${ty}, ${u.area} ${sqm} — ${bname}`} propertyPath={`/property/${u.slug}`}>✈️ Telegram</TelegramContactButton>
             </div>
             <LeadButton className="btn btn-ghost" type="Управление" object={b.name} title="Отдать квартиру в управление">{t("mgmt_btn")}</LeadButton>
