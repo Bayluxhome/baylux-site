@@ -547,6 +547,11 @@ a.realtor-card:hover{box-shadow:0 8px 24px rgba(1,39,80,.08);transform:translate
 .my-owner a,.adm-owner a{color:var(--navy);font-weight:600}
 .my-owner a:hover,.adm-owner a:hover{color:var(--gold-dk)}
 .my-owner-ref,.adm-owner-ref{margin-left:auto;color:var(--ink-soft);font-size:11.5px}
+.oc-item{display:inline-flex;align-items:center;gap:3px}
+.oc-copy{border:1px solid var(--line);background:#fff;border-radius:6px;padding:1px 6px;font-size:12px;line-height:1.4;cursor:pointer;color:var(--ink-soft)}
+.oc-copy:hover{color:var(--navy);border-color:var(--navy)}
+.oc-src{font-size:12px;color:var(--gold-dk)!important;font-weight:600}
+.oc-none{color:#9a2b2b;font-size:12.5px}
 
 /* ---- Кабинет: дашборд (метрики, актуальность, обращения, график) ---- */
 .cab{margin:6px 0 26px}

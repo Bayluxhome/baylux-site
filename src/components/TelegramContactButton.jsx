@@ -1,7 +1,6 @@
 "use client";
 import { useLang } from "@/components/LangContext";
-
-const SITE = "https://bayluxhome.com";
+import { SITE_URL as SITE } from "@/config";
 
 // Анонимный ID сессии браузера (без персональных данных). Живёт в рамках вкладки/сессии.
 function getSessionId() {

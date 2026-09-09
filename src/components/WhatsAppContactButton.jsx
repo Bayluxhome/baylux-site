@@ -1,4 +1,5 @@
 "use client";
+import { useLang } from "@/components/LangContext";
 
 // Кнопка «Связаться в WhatsApp» с трекингом клика в CRM.
 // ВАЖНО: ссылку не формируем и не меняем — href приходит готовым (waLink/waHref),
@@ -36,14 +37,34 @@ function getFirstTouchUtm() {
   } catch { return empty; }
 }
 
+// Единый текст сообщения об объекте для мессенджеров (задача №05): название, цена с валютой
+// и периодом, устойчивый ID и абсолютная ссылка на карточку. Тот же формат — в Telegram-кнопке
+// и в подборках (№07). encodeURIComponent корректно кодирует переносы, кириллицу, грузинский и ₾/$.
+export function buildPropertyMessage(t, { propertyTitle, price, propertyId, propertyUrl }) {
+  const lines = [`${t("tg_msg_h")} «${propertyTitle}»${price ? ` · ${price}` : ""}`];
+  if (propertyId) lines.push(`ID: ${propertyId}`);
+  if (propertyUrl) lines.push(propertyUrl);
+  return lines.join("\n");
+}
+
+// Кнопка «Связаться в WhatsApp». Открывает wa.me с подготовленным текстом — отправляет
+// сообщение сам пользователь в мессенджере; «Отправлено» здесь не показываем и не считаем.
+//   phone — получатель (цифры, без +): контакт из объявления либо номер Baylux (правило не меняем);
+//   href  — готовая ссылка для случаев без объекта (страница контактов); если задан — текст не собираем.
 export default function WhatsAppContactButton({
   href,
+  phone = "",
+  price = "",
   propertyId = "",
   propertyTitle = "",
   propertyUrl = "",
   className = "btn btn-wa",
   children,
 }) {
+  const { t } = useLang();
+  const finalHref = href || (phone
+    ? `https://wa.me/${String(phone).replace(/\D/g, "")}?text=${encodeURIComponent(buildPropertyMessage(t, { propertyTitle, price, propertyId, propertyUrl }))}`
+    : "#");
   function track() {
     // keepalive — чтобы запрос дошёл, даже когда вкладка уходит в WhatsApp.
     // Никакого await и preventDefault: переход по href происходит в том же клике.
@@ -74,7 +95,7 @@ export default function WhatsAppContactButton({
   }
 
   return (
-    <a className={className} href={href} target="_blank" rel="noopener" onClick={track}>
+    <a className={className} href={finalHref} target="_blank" rel="noopener" onClick={track}>
       {children}
     </a>
   );

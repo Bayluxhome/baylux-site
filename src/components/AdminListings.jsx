@@ -1,5 +1,6 @@
 "use client";
 import { useState, useRef, useEffect } from "react";
+import OwnerContactBlock from "@/components/OwnerContactBlock";
 
 // Варианты фильтра по статусу модерации. Значения статусов совпадают с колонкой listings.status.
 const FILTERS = [
@@ -120,15 +121,7 @@ export default function AdminListings({ items, navBefore = null, navAfter = null
                 )}
                 {/* Контакт собственника/риелтора — служебная информация, только для админов.
                     На сайте публикуется номер агентства, эти данные наружу не выводятся. */}
-                {(r.ownerName || r.ownerPhone || r.ownerTg) && (
-                  <div className="adm-owner">
-                    <span className="adm-owner-lb">Собственник:</span>
-                    {r.ownerName && <span>{r.ownerName}</span>}
-                    {r.ownerPhone && <a href={`tel:${r.ownerPhone}`}>📞 {r.ownerPhone}</a>}
-                    {r.ownerTg && <a href={`https://t.me/${r.ownerTg}`} target="_blank" rel="noopener">@{r.ownerTg}</a>}
-                    {r.sourceRef && <span className="adm-owner-ref">файл #{r.sourceRef}</span>}
-                  </div>
-                )}
+                <OwnerContactBlock className="adm-owner" name={r.ownerName} phone={r.ownerPhone} tg={r.ownerTg} sourceRef={r.sourceRef} sourceUrl={r.sourceUrl} />
               </div>
               <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
                 {r.slug && <a className="btn btn-ghost" href={`/property/${r.slug}`} target="_blank" style={{ padding: "7px 12px", fontSize: 13 }}>Открыть</a>}

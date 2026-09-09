@@ -10,7 +10,7 @@ import LeadButton from "@/components/LeadButton";
 import TelegramContactButton from "@/components/TelegramContactButton";
 import WhatsAppContactButton from "@/components/WhatsAppContactButton";
 import ViewCounter from "@/components/ViewCounter";
-import { waLink, TG_CONTACT } from "@/config";
+import { WA_PHONE, TG_CONTACT, SITE_URL } from "@/config";
 import { getLang } from "@/lib/serverLang";
 import { t as tr, typeLabel, amenLabel, translitAddress } from "@/lib/dict";
 
@@ -61,8 +61,11 @@ export default async function PropertyPage({ params }) {
   // Контакт продавца (из объявления): телефон и/или Telegram-ник
   const cleanPhone = (u.phone || (/^\+?\d[\d\s()\-]{6,}$/.test(u.contact || "") ? u.contact : "")).replace(/[^\d]/g, "");
   const tgUser = (u.tg_username || (String(u.contact || "").trim().startsWith("@") ? u.contact.trim().slice(1) : "")).replace(/[^A-Za-z0-9_]/g, "");
-  const inquiry = `Здравствуйте! Интересует объект: ${u.type}, ${u.area} м² — ${b.name} (${u.price})`;
-  const waHref = cleanPhone ? `https://wa.me/${cleanPhone}?text=${encodeURIComponent(inquiry)}` : waLink(inquiry);
+  // Получатель WhatsApp — правило прежнее: контакт из объявления, иначе номер Baylux.
+  // Текст сообщения собирает сама кнопка (название · цена с валютой и периодом, ID, ссылка).
+  const waTo = cleanPhone || WA_PHONE;
+  const waPrice = u.price && u.price !== "—" ? `${u.price}${priceSuffix ? " " + priceSuffix : ""}` : "";
+  const propertyUrl = `${SITE_URL}/property/${u.slug}`;
 
   const resType = /house|cottage|вилл|дом/i.test(`${u.type} ${u.category || ""}`) ? "House" : "Apartment";
   const ldJson = {
@@ -181,7 +184,7 @@ export default async function PropertyPage({ params }) {
             <LeadButton className="btn btn-gold" type={t("deal_" + u.deal)} typeKey={u.deal === "sale" ? "viewing" : u.deal} object={`${u.type}, ${u.area} м² — ${b.name}`} title={ctaMain} listingId={u.id} source="property">{ctaMain}</LeadButton>
             {cleanPhone && <a className="seller-phone" href={`tel:+${cleanPhone}`}>📞 +{cleanPhone}</a>}
             <div className="contact-btns">
-              <WhatsAppContactButton className="btn btn-wa" href={waHref} propertyId={u.id || u.slug} propertyTitle={`${ty}, ${u.area} ${sqm} — ${bname}`} propertyUrl={`https://bayluxhome.com/property/${u.slug}`}>💬 WhatsApp</WhatsAppContactButton>
+              <WhatsAppContactButton className="btn btn-wa" phone={waTo} price={waPrice} propertyId={u.id || u.slug} propertyTitle={`${ty}, ${u.area} ${sqm} — ${bname}`} propertyUrl={propertyUrl}>💬 WhatsApp</WhatsAppContactButton>
               <TelegramContactButton className="btn btn-tg" username={tgUser || TG_CONTACT} propertyId={u.id || u.slug} propertyTitle={`${ty}, ${u.area} ${sqm} — ${bname}`} propertyPath={`/property/${u.slug}`}>✈️ Telegram</TelegramContactButton>
             </div>
             <LeadButton className="btn btn-ghost" type="Управление" typeKey="management" object={b.name} title={t("mgmt_btn")} listingId={u.id} source="property">{t("mgmt_btn")}</LeadButton>

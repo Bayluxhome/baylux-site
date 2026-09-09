@@ -8,7 +8,7 @@ import { findBuilding } from "@/data/source";
 import LeadButton from "@/components/LeadButton";
 import TelegramContactButton from "@/components/TelegramContactButton";
 import WhatsAppContactButton from "@/components/WhatsAppContactButton";
-import { waLink, TG_CONTACT } from "@/config";
+import { WA_PHONE, TG_CONTACT, SITE_URL } from "@/config";
 import { getLang } from "@/lib/serverLang";
 import { t as tr, typeLabel, translitAddress } from "@/lib/dict";
 
@@ -110,7 +110,7 @@ export default async function BuildingPage({ params }) {
             <p style={{ color: "var(--ink-soft)", fontSize: 14, margin: "8px 0 4px" }}>{t("bld_cta_sub")}</p>
             <LeadButton className="btn btn-gold" type="Заявка по ЖК" typeKey="complex" object={b.name} title={t("bld_lead")} source="building">{t("bld_lead")}</LeadButton>
             <div className="contact-btns">
-              <WhatsAppContactButton className="btn btn-wa" href={waLink(`Здравствуйте! Интересует ${b.name} в Батуми.`)} propertyId={b.slug} propertyTitle={bname} propertyUrl={`https://bayluxhome.com/building/${b.slug}`}>💬 WhatsApp</WhatsAppContactButton>
+              <WhatsAppContactButton className="btn btn-wa" phone={WA_PHONE} propertyId={b.slug} propertyTitle={bname} propertyUrl={`${SITE_URL}/building/${b.slug}`}>💬 WhatsApp</WhatsAppContactButton>
               <TelegramContactButton className="btn btn-tg" username={bTg} propertyId={b.slug} propertyTitle={bname} propertyPath={`/building/${b.slug}`}>✈️ Telegram</TelegramContactButton>
             </div>
             <LeadButton className="btn btn-ghost" type="Управление" typeKey="management" object={b.name} title={t("bld_mgmt")} source="building">{t("bld_mgmt")}</LeadButton>

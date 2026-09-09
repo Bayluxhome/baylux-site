@@ -23,6 +23,7 @@ function parseCsv(text) {
       tg: (c[2] || "").trim(),
       name: (c[3] || "").trim(),
       hashes: (c[4] || "").split(",").map((s) => s.trim()).filter(Boolean),
+      link: (c[5] || "").trim(),
     });
   }
   return rows;

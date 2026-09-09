@@ -25,7 +25,7 @@ async function fetchListings() {
   for (let p = 0; p < 12; p++) {
     const { data, error } = await supa
       .from("listings")
-      .select("id, photo_hashes, owner_phone, owner_tg_username, owner_name, source_ref")
+      .select("id, photo_hashes, owner_phone, owner_tg_username, owner_name, source_ref, source_url")
       .order("id", { ascending: true })
       .range(p * PAGE, p * PAGE + PAGE - 1);
     if (error || !data || !data.length) break;
@@ -73,7 +73,8 @@ export async function POST(req) {
     const tg = String(r.tg || "").trim().replace(/^@/, "").slice(0, 60);
     const name = String(r.name || "").trim().slice(0, 120);
     const ref = String(r.ref || "").trim().slice(0, 60);
-    if (!hashes.length || (!phone && !tg)) { stats.noMatch++; continue; }
+    const link = /^https?:\/\//i.test(String(r.link || "")) ? String(r.link).trim().slice(0, 500) : "";
+    if (!hashes.length || (!phone && !tg && !link)) { stats.noMatch++; continue; }
 
     // Сколько фото совпало с каждым объявлением — побеждает объявление с максимумом.
     const score = new Map();
@@ -92,6 +93,7 @@ export async function POST(req) {
     if (tg && (overwrite || !l.owner_tg_username)) patch.owner_tg_username = tg;
     if (name && (overwrite || !l.owner_name)) patch.owner_name = name;
     if (ref && (overwrite || !l.source_ref)) patch.source_ref = ref;
+    if (link && (overwrite || !l.source_url)) patch.source_url = link;
     if (!Object.keys(patch).length) { stats.alreadyFilled++; continue; }
 
     targets.push({ id: l.id, patch });

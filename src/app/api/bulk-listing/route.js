@@ -190,6 +190,8 @@ export async function POST(req) {
       owner_name: (r.owner_name || "").toString().trim().slice(0, 120) || null,
       owner_phone: (r.owner_phone || "").toString().trim().slice(0, 60) || null,
       owner_tg_username: (r.owner_tg_username || "").toString().trim().replace(/^@/, "").slice(0, 60) || null,
+      // Ссылка на исходный пост — только http(s), чтобы в служебный блок не попал мусор.
+      source_url: /^https?:\/\//i.test(String(r.source_url || "")) ? String(r.source_url).trim().slice(0, 500) : null,
     };
     const { data: ins, error } = await supa.from("listings").insert(row).select("id").single();
     if (error) { errors.push({ id: refId, reason: "БД" }); continue; }

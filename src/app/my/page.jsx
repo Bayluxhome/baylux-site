@@ -125,6 +125,7 @@ export default async function MyPage() {
       ownerEmail: canSeeOwner ? (r.owner_contact_email || r.owner_email || "") : "",
       ownerTg: canSeeOwner ? (r.owner_tg_username || "") : "",
       sourceRef: canSeeOwner ? (r.source_ref || "") : "",
+      sourceUrl: canSeeOwner ? (r.source_url || "") : "",
       internalNo: canSeeOwner ? (r.internal_no || "") : "",
       ...(() => {
         const mgr = (r.responsible_email && mgrByEmail[String(r.responsible_email).toLowerCase()]) || (r.responsible_tg != null && mgrByTg[Number(r.responsible_tg)]) || null;

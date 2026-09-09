@@ -4,6 +4,7 @@ import { useLang } from "@/components/LangContext";
 import OwnerMessages from "@/components/OwnerMessages";
 import PhotoReports from "@/components/PhotoReports";
 import ReportSummary from "@/components/ReportSummary";
+import OwnerContactBlock from "@/components/OwnerContactBlock";
 
 // Объекты владельца, переданные в управление Baylux. Редактировать нельзя — только сводка.
 // Сводка пока заглушка («в разработке»): метрики дохода, загрузки, коммуналки, календарь.
@@ -63,18 +64,8 @@ export default function ManagedPanel({ items, adminView }) {
               {r.internalNo && (
                 <div style={{ color: "var(--ink-soft)", fontSize: 13, marginBottom: 10 }}>🔢 {t("mg_internal_no")}: <b style={{ color: "var(--navy)" }}>{r.internalNo}</b></div>
               )}
-              {(r.ownerName || r.ownerPhone || r.ownerTg || r.ownerEmail) && (
-                <div style={{ background: "#fff", border: "1px solid var(--line)", borderRadius: 12, padding: "12px 14px", marginBottom: 12 }}>
-                  <span style={{ color: "var(--navy)", fontWeight: 700, fontSize: 14 }}>👤 {t("mg_owner_contact")}</span>
-                  {/* Телефон и Telegram — кликабельные: у большинства собственников из парсинга есть только ник */}
-                  <div style={{ color: "var(--ink-soft)", fontSize: 14, marginTop: 4, display: "flex", gap: 10, flexWrap: "wrap" }}>
-                    {r.ownerName && <span>{r.ownerName}</span>}
-                    {r.ownerPhone && <a href={`tel:${r.ownerPhone}`} style={{ color: "var(--navy)", fontWeight: 600 }}>📞 {r.ownerPhone}</a>}
-                    {r.ownerTg && <a href={`https://t.me/${r.ownerTg}`} target="_blank" rel="noopener" style={{ color: "var(--navy)", fontWeight: 600 }}>✈️ @{r.ownerTg}</a>}
-                    {r.ownerEmail && <span>{r.ownerEmail}</span>}
-                  </div>
-                </div>
-              )}
+              {/* Единый блок контакта собственника (тот же, что в админке и «Мои объявления») */}
+              <OwnerContactBlock className="my-owner" name={r.ownerName} phone={r.ownerPhone} tg={r.ownerTg} email={r.ownerEmail} sourceRef={r.sourceRef} sourceUrl={r.sourceUrl} />
               <ReportSummary item={r} />
               <OwnerMessages item={r} />
               <PhotoReports item={r} />

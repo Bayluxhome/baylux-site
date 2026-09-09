@@ -1,6 +1,7 @@
 "use client";
 import { useState } from "react";
 import { useLang } from "@/components/LangContext";
+import OwnerContactBlock from "@/components/OwnerContactBlock";
 
 export default function MyListings({ items }) {
   const { t } = useLang();
@@ -86,15 +87,7 @@ export default function MyListings({ items }) {
                 </div>
                 {/* Контакт собственника/риелтора — служебные данные, на сайте не публикуются.
                     Приходят из файла парсинга или вносятся вручную в форме редактирования. */}
-                {(r.ownerName || r.ownerPhone || r.ownerTg) && (
-                  <div className="my-owner">
-                    <span className="my-owner-lb">{t("mg_owner_contact")}:</span>
-                    {r.ownerName && <span>{r.ownerName}</span>}
-                    {r.ownerPhone && <a href={`tel:${r.ownerPhone}`}>📞 {r.ownerPhone}</a>}
-                    {r.ownerTg && <a href={`https://t.me/${r.ownerTg}`} target="_blank" rel="noopener">@{r.ownerTg}</a>}
-                    {r.sourceRef && <span className="my-owner-ref">#{r.sourceRef}</span>}
-                  </div>
-                )}
+                <OwnerContactBlock className="my-owner" name={r.ownerName} phone={r.ownerPhone} tg={r.ownerTg} sourceRef={r.sourceRef} sourceUrl={r.sourceUrl} />
               </div>
             </div>
             <div className="my-statuswrap">

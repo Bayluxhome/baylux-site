@@ -20,3 +20,7 @@ alter table leads add column if not exists handled_at timestamptz;
 create index if not exists leads_undelivered_idx on leads (created_at) where notified_at is null;
 -- Для защиты от дубля: тот же телефон + объект за последние минуты.
 create index if not exists leads_phone_listing_idx on leads (phone, listing_id, created_at desc);
+
+-- Задача №02: ссылка на исходное объявление (пост в Telegram-группе), из колонки _link парсинга.
+-- Служебное поле: наружу не отдаётся (см. lib/privacy.js), видно сотрудникам с правами.
+alter table listings add column if not exists source_url text;

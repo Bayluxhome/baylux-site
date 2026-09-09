@@ -10,7 +10,8 @@
 //
 // Модуль намеренно без импортов серверного кода — его подключают и клиентские компоненты.
 
-const PRIVATE = ["owner_email", "tg_user_id", "owner_phone", "owner_name", "owner_tg_username", "source_ref"];
+const PRIVATE = ["owner_email", "tg_user_id", "owner_phone", "owner_name", "owner_tg_username", "source_ref", "source_url",
+  "owner_contact_email", "contract_url", "internal_no", "responsible_email", "responsible_tg"];
 
 function omit(obj) {
   const out = {};

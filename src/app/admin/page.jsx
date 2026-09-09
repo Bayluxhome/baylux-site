@@ -72,6 +72,7 @@ export default async function AdminPage() {
     ownerPhone: canSeeOwner ? (r.owner_phone || "") : "",
     ownerTg: canSeeOwner ? (r.owner_tg_username || "") : "",
     sourceRef: canSeeOwner ? (r.source_ref || "") : "",
+    sourceUrl: canSeeOwner ? (r.source_url || "") : "",
   }));
 
   const counts = rows.reduce((a, r) => { a[r.status] = (a[r.status] || 0) + 1; return a; }, {});
