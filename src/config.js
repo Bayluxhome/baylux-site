@@ -60,7 +60,7 @@ export const TG_CHANNELS = {
   tbilisi: "baylux_tbilisi", // Тбилиси/восток
 };
 // Города восточной Грузии → тбилисский канал; остальные → батумский (та же логика, что у бота).
-const TG_EAST = ["тбилиси", "рустави", "мцхета", "гори", "телави", "гудаури", "бакуриани"];
+const TG_EAST = ["тбилиси", "рустави", "мцхета", "гори", "телави", "гудаури", "бакуриани", "боржоми", "сигнахи", "хашури", "марнеули", "ахалцихе"];
 export function channelForCity(city) {
   const c = String(city || "").trim().toLowerCase();
   const key = TG_EAST.some((e) => c.includes(e)) ? "tbilisi" : "batumi";

@@ -3,33 +3,44 @@ import { notFound } from "next/navigation";
 import MapView from "@/components/MapView";
 import Gallery from "@/components/Gallery";
 import AdminEdit from "@/components/AdminEdit";
-import { DEAL_LABEL, fmtMoney } from "@/data/data";
+import { DEAL_LABEL, fmtMoney, isCoast } from "@/data/data";
 import { findUnit } from "@/data/source";
 import { getRealtorForSlug } from "@/data/realtors";
 import LeadButton from "@/components/LeadButton";
 import TelegramContactButton from "@/components/TelegramContactButton";
 import WhatsAppContactButton from "@/components/WhatsAppContactButton";
 import ViewCounter from "@/components/ViewCounter";
-import { WA_PHONE, TG_CONTACT, SITE_URL } from "@/config";
+import { PHONE, WA_PHONE, TG_CONTACT, SITE_URL } from "@/config";
 import { getLang } from "@/lib/serverLang";
-import { t as tr, typeLabel, amenLabel, translitAddress } from "@/lib/dict";
+import { t as tr, typeLabel, amenLabel, translitAddress, cityLabel } from "@/lib/dict";
 
 // Язык страницы зависит от посетителя (cookies/headers через getLang) → рендерим по запросу (SSR).
 // Пре-рендера нет → сборка быстрая. ISR-кэш здесь нельзя: он несовместим с динамическими данными запроса.
 export const dynamic = "force-dynamic";
 
+// Title/description — на языке посетителя и с реальным городом объекта
+// (раньше «Батуми» было зашито, и карточки Тбилиси назывались «Тбилиси, Батуми»).
 export async function generateMetadata({ params }) {
   const u = await findUnit(params.slug);
-  if (!u) return { title: "Объект не найден" };
+  const lang = getLang();
+  const t = (k) => tr(lang, k);
+  if (!u) return { title: t("prop_nf") };
+  const b = u.building;
   const photo = (u.photos && u.photos[0]) || u.img || "/hero-batumi.jpg";
+  const ty = typeLabel(lang, u.type);
+  const city = cityLabel(lang, b.district || "Батуми");
+  const bname = translitAddress(b["name_" + lang] || b.name, lang, b.kind);
+  const deal = t("deal_" + u.deal);
+  const title = `${ty}, ${u.area} ${t("sqm")} — ${bname}, ${city}`;
+  const desc = `${deal}: ${ty}${u.rooms ? `, ${u.rooms} ${t("rooms_short")}` : ""}, ${u.area} ${t("sqm")}, ${bname}, ${city}. ${t("prop_price_w")}: ${u.price}.`;
   return {
-    title: `${u.type}, ${u.area} м² — ${u.building.district}, Батуми · ${u.price}`,
-    description: `${DEAL_LABEL[u.deal]}: ${u.type}${u.rooms ? `, ${u.rooms} комн.` : ""}, ${u.area} м² в ${u.building.name}, район ${u.building.district}, Батуми. Цена ${u.price}.`,
+    title: `${title} · ${u.price}`,
+    description: desc,
     alternates: { canonical: `/property/${u.slug}` },
     openGraph: {
-      title: `${u.type}, ${u.area} м² — ${u.building.district}, Батуми`,
-      description: `${DEAL_LABEL[u.deal]}: ${u.type}, ${u.area} м² в ${u.building.name}, Батуми. Цена ${u.price}.`,
-      images: [photo.startsWith("http") ? photo : `https://bayluxhome.com${photo}`],
+      title,
+      description: desc,
+      images: [photo.startsWith("http") ? photo : `${SITE_URL}${photo}`],
       type: "website",
     },
   };
@@ -63,8 +74,11 @@ export default async function PropertyPage({ params }) {
   const tgUser = (u.tg_username || (String(u.contact || "").trim().startsWith("@") ? u.contact.trim().slice(1) : "")).replace(/[^A-Za-z0-9_]/g, "");
   // Получатель WhatsApp — правило прежнее: контакт из объявления, иначе номер Baylux.
   // Текст сообщения собирает сама кнопка (название · цена с валютой и периодом, ID, ссылка).
-  const waTo = cleanPhone || WA_PHONE;
-  const waPrice = u.price && u.price !== "—" ? `${u.price}${priceSuffix ? " " + priceSuffix : ""}` : "";
+  // У спарсенных объявлений в контакте стоит основной номер Baylux для звонков — WhatsApp
+  // на нём не ведётся, поэтому такие клики направляем на выделенный WhatsApp-номер.
+  // Личный номер риелтора остаётся его собственным.
+  const waTo = cleanPhone && cleanPhone !== PHONE ? cleanPhone : WA_PHONE;
+  const waPrice = u.price && u.price !== "—" ? `${u.price}${priceSuffix.trim() ? " " + priceSuffix.trim() : ""}` : "";
   const propertyUrl = `${SITE_URL}/property/${u.slug}`;
 
   const resType = /house|cottage|вилл|дом/i.test(`${u.type} ${u.category || ""}`) ? "House" : "Apartment";
@@ -170,7 +184,8 @@ export default async function PropertyPage({ params }) {
               ? <p style={{ whiteSpace: "pre-line" }}>{u["desc_" + lang] || u.about}</p>
               : <p>{ty}, {u.area} {sqm}{u.rooms ? `, ${u.rooms} ${t("rooms_short")}` : ""}, {u.floor}. {t("about_p")}</p>}
             <h3>{t("near_h")}</h3>
-            <p>{t("near_p")}</p>
+            {/* Море — только для побережья; для Тбилиси и других городов — общий текст без моря */}
+            <p>{isCoast(b.district) ? t("near_p") : t("near_p_city")}</p>
             <h3>{t("why_h")}</h3>
             <p>{t("why_p")}</p>
           </div>

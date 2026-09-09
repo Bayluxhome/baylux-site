@@ -3,18 +3,47 @@
 
 export const CITY = { slug: "batumi", name: "Батуми", country: "Грузия" };
 
+// Единый справочник локаций (задача №01). Имя (по-русски) — это и ключ в базе (listings.district),
+// и ключ переводов в dict.js (CITY_KEY). Добавляешь город — добавь перевод en/ka там же;
+// для восточных городов — строку в TG_EAST (config.js), чтобы кнопка канала вела на тбилисский.
+// count — стартовые числа для витрины; реальные берутся из getCityCounts(). Порядок = порядок в меню.
 export const GE_CITIES = [
   { name: "Батуми", count: 268, active: true },
   { name: "Тбилиси", count: 550 },
   { name: "Кобулети", count: 26 },
   { name: "Гонио", count: 21 },
   { name: "Чакви", count: 20 },
+  { name: "Махинджаури", count: 0 },
   { name: "Кутаиси", count: 37 },
   { name: "Рустави", count: 46 },
   { name: "Бакуриани", count: 11 },
   { name: "Гудаури", count: 12 },
   { name: "Местиа", count: 5 },
+  // Добавлены 10.09.2026: побережье и курорты Аджарии, крупные города, курорты востока.
+  { name: "Сарпи", count: 0 },
+  { name: "Квариати", count: 0 },
+  { name: "Уреки", count: 0 },
+  { name: "Поти", count: 0 },
+  { name: "Зугдиди", count: 0 },
+  { name: "Мцхета", count: 0 },
+  { name: "Гори", count: 0 },
+  { name: "Телави", count: 0 },
+  { name: "Боржоми", count: 0 },
+  { name: "Сигнахи", count: 0 },
+  // Остальные города от ~20 тыс. жителей (по данным Геостата) + курорт Цхалтубо.
+  { name: "Озургети", count: 0 },
+  { name: "Самтредиа", count: 0 },
+  { name: "Сенаки", count: 0 },
+  { name: "Зестафони", count: 0 },
+  { name: "Цхалтубо", count: 0 },
+  { name: "Хашури", count: 0 },
+  { name: "Марнеули", count: 0 },
+  { name: "Ахалцихе", count: 0 },
 ];
+
+// Приморские локации — для текстов вроде «море в пешей доступности» (в Тбилиси моря нет).
+const COAST = new Set(["Батуми", "Кобулети", "Гонио", "Чакви", "Махинджаури", "Сарпи", "Квариати", "Уреки", "Поти"]);
+export const isCoast = (city) => COAST.has(String(city || "").trim());
 
 export const DEAL_LABEL = { sale: "Продажа", rent: "Аренда", daily: "Посуточно" };
 export const DEAL_CLASS = { sale: "b-sale", rent: "b-rent", daily: "b-daily" };

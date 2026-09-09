@@ -2,13 +2,16 @@
 import { useState, useRef, useEffect, useMemo } from "react";
 import MapPicker from "./MapPicker";
 import { useLang } from "@/components/LangContext";
-import { typeLabel, amenLabel } from "@/lib/dict";
+import { typeLabel, amenLabel, cityLabel } from "@/lib/dict";
 import { compressImage } from "@/lib/imageCompress";
+import { GE_CITIES } from "@/data/data";
 
 const DEALS = ["sale", "rent", "daily"];
 const TYPES = ["Квартира", "Студия", "Дом", "Коммерция", "Офис", "Участок", "Гараж"];
 const AMENITIES = ["Мебель", "Балкон", "Терраса", "Парковка", "Ремонт «евро»", "Без ремонта", "Кондиционер", "Лифт"];
-const CITIES = ["Батуми", "Тбилиси", "Кутаиси", "Гонио", "Махинджаури", "Чакви"];
+// Города — из единого справочника (раньше здесь был свой список из 6 городов, и объявление
+// нельзя было разместить, например, в Кобулети, хотя в каталоге такой фильтр был).
+const CITIES = GE_CITIES.map((c) => c.name);
 
 function gePhone(raw) {
   const s = String(raw || "").replace(/[^\d]/g, "");
@@ -194,7 +197,7 @@ export default function AddListingForm({ initial, editId }) {
         <select value={f.country} onChange={(e) => upd("country", e.target.value)}><option>Грузия</option></select>
       </label>
       <label>{t("af_city")}
-        <select value={f.city} onChange={(e) => { upd("city", e.target.value); geocodeAddress(f.address, e.target.value); }}>{CITIES.map((c) => <option key={c} value={c}>{c}</option>)}</select>
+        <select value={f.city} onChange={(e) => { upd("city", e.target.value); geocodeAddress(f.address, e.target.value); }}>{CITIES.map((c) => <option key={c} value={c}>{cityLabel(lang, c)}</option>)}</select>
       </label>
       <label>{t("af_deal")}
         <select value={f.deal} onChange={(e) => upd("deal", e.target.value)}>{DEALS.map((v) => <option key={v} value={v}>{t("deal_" + v)}</option>)}</select>

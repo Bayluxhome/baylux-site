@@ -2,6 +2,8 @@ import { supa } from "@/lib/supabase";
 import { slugify, cleanAddress } from "@/data/sheet";
 import { translateDescriptions, translateNames } from "@/lib/translate";
 import { watermarkBuffer } from "@/lib/watermarkServer";
+import { GE_CITIES } from "@/data/data";
+import { cityLabel } from "@/lib/dict";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -35,11 +37,13 @@ const COMPLEX_TYPES = /новострой/i;
 const BOT_LANGS = ["ru", "en", "ka"];
 
 // Каталоги выбора: индексы выровнены между языками, канон = русский (как на сайте)
-const CITIES_C = ["Батуми", "Тбилиси", "Кутаиси", "Гонио", "Кобулети", "Чакви"];
+// Города — из единого справочника сайта (data.js + переводы dict.js), а не свой список:
+// иначе в боте нельзя выбрать город, который есть в каталоге.
+const CITIES_C = GE_CITIES.map((c) => c.name);
 const CITIES_L = {
   ru: CITIES_C,
-  en: ["Batumi", "Tbilisi", "Kutaisi", "Gonio", "Kobuleti", "Chakvi"],
-  ka: ["ბათუმი", "თბილისი", "ქუთაისი", "გონიო", "ქობულეთი", "ჩაქვი"],
+  en: CITIES_C.map((c) => cityLabel("en", c)),
+  ka: CITIES_C.map((c) => cityLabel("ka", c)),
 };
 const TYPES_C = ["Квартира", "Студия", "Дом", "Коммерция", "Офис", "Участок", "Гараж"];
 const TYPES_L = {

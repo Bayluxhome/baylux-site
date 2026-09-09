@@ -1,19 +1,16 @@
 import { cookies } from "next/headers";
 import { verifySession, isSuperAdmin } from "@/lib/session";
 import { supa } from "@/lib/supabase";
-import { translitAddress } from "@/lib/dict";
+import { translitAddress, cityLabel } from "@/lib/dict";
 import { cleanAddress } from "@/data/sheet";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 export const maxDuration = 60;
 
-// Латинские имена городов для геокодера (MapTiler плохо понимает кириллицу).
-const CITY_LAT = {
-  "Батуми": "Batumi", "Тбилиси": "Tbilisi", "Кобулети": "Kobuleti", "Гонио": "Gonio",
-  "Чакви": "Chakvi", "Кутаиси": "Kutaisi", "Рустави": "Rustavi", "Бакуриани": "Bakuriani",
-  "Гудаури": "Gudauri", "Местиа": "Mestia", "Махинджаури": "Makhinjauri",
-};
+// Латинские имена городов для геокодера (MapTiler плохо понимает кириллицу) —
+// из общего словаря переводов, чтобы новый город добавлялся в одном месте.
+const cityLat = (name) => cityLabel("en", name);
 
 const KEY = process.env.NEXT_PUBLIC_MAPTILER_KEY;
 
@@ -80,7 +77,7 @@ async function run(req, write) {
       const addrRu = cleanAddress(r.building_name || r.name_ru || "");
       if (!addrRu) return null;
       const addrLat = translitAddress(addrRu, "en", r.kind);
-      const city = CITY_LAT[r.district] || r.district || "Batumi";
+      const city = cityLat(r.district) || "Batumi";
       const query = `${addrLat}, ${city}, Georgia`;
       const g = await geocode(query);
       return { r, addrRu, query, g, cur: ptKey(r) };

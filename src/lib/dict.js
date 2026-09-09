@@ -31,6 +31,8 @@ export const DICT = {
     boost_badge: "⭐ Продвигается",
     about_h: "Об объекте", about_p: "Готов к заселению, актуальные документы. Подходит как для проживания, так и под сдачу гостям.",
     near_h: "Что рядом", near_p: "Море и набережная в пешей доступности, рядом кафе, магазины и транспорт. Развитая инфраструктура района.",
+    near_p_city: "Рядом кафе, магазины, транспорт и парки. Развитая инфраструктура района.",
+    prop_nf: "Объект не найден", prop_price_w: "Цена",
     why_h: "Почему через Baylux", why_p: "Объект проверен нашей командой: документы, реальные фото, честная цена. Поможем с просмотром и сделкой, при желании возьмём в управление.",
     mgmt_btn: "Отдать похожую в управление", all_in: "Все объекты в", team: "Команда Baylux", team_sub: "Ответим за 5 минут · RU / EN / GE",
     bld_objects_here: "объект(ов) в продаже и аренде", bld_about_complex: "О комплексе", bld_about_house: "О доме", bld_units_here: "Объекты в этом доме",
@@ -575,6 +577,8 @@ export const DICT = {
     boost_badge: "⭐ Promoted",
     about_h: "About", about_p: "Ready to move in, valid documents. Suitable for living or short-term rental.",
     near_h: "Nearby", near_p: "Sea and promenade within walking distance, cafes, shops and transport nearby. Well-developed area.",
+    near_p_city: "Cafes, shops, transport and parks nearby. Well-developed area.",
+    prop_nf: "Property not found", prop_price_w: "Price",
     why_h: "Why Baylux", why_p: "Verified by our team: documents, real photos, fair price. We help with viewing and the deal, and can take it under management.",
     mgmt_btn: "List a similar one for management", all_in: "All objects in", team: "Baylux team", team_sub: "We reply within 5 min · RU / EN / GE",
     bld_objects_here: "object(s) for sale and rent", bld_about_complex: "About the complex", bld_about_house: "About the house", bld_units_here: "Objects in this building",
@@ -1111,6 +1115,8 @@ export const DICT = {
     boost_badge: "⭐ წახალისებული",
     about_h: "ობიექტის შესახებ", about_p: "მზადაა შესასახლებლად, აქვს დოკუმენტები. გამოდგება საცხოვრებლად და გასაქირავებლად.",
     near_h: "ახლომახლო", near_p: "ზღვა და ბულვარი ფეხით ახლოს, კაფეები, მაღაზიები და ტრანსპორტი. განვითარებული ინფრასტრუქტურა.",
+    near_p_city: "ახლოს კაფეები, მაღაზიები, ტრანსპორტი და პარკები. განვითარებული ინფრასტრუქტურა.",
+    prop_nf: "ობიექტი ვერ მოიძებნა", prop_price_w: "ფასი",
     why_h: "რატომ Baylux", why_p: "შემოწმებულია ჩვენი გუნდის მიერ: დოკუმენტები, რეალური ფოტოები, სამართლიანი ფასი. დაგეხმარებით დათვალიერებასა და გარიგებაში.",
     mgmt_btn: "მსგავსის მართვაში გადაცემა", all_in: "ყველა ობიექტი —", team: "Baylux გუნდი", team_sub: "ვუპასუხებთ 5 წუთში · RU / EN / GE",
     bld_objects_here: "ობიექტი იყიდება და ქირავდება", bld_about_complex: "კომპლექსის შესახებ", bld_about_house: "სახლის შესახებ", bld_units_here: "ობიექტები ამ სახლში",
@@ -1657,8 +1663,12 @@ export function amenLabel(lang, a) {
 
 // Названия городов/районов хранятся по-русски; переводим известные.
 const CITY_TR = {
-  en: { "Батуми": "Batumi", "Тбилиси": "Tbilisi", "Кобулети": "Kobuleti", "Гонио": "Gonio", "Чакви": "Chakvi", "Кутаиси": "Kutaisi", "Рустави": "Rustavi", "Бакуриани": "Bakuriani", "Гудаури": "Gudauri", "Местиа": "Mestia", "Махинджаури": "Makhinjauri" },
-  ka: { "Батуми": "ბათუმი", "Тбилиси": "თბილისი", "Кобулети": "ქობულეთი", "Гонио": "გონიო", "Чакви": "ჩაქვი", "Кутаиси": "ქუთაისი", "Рустави": "რუსთავი", "Бакуриани": "ბაკურიანი", "Гудаури": "გუდაური", "Местиа": "მესტია", "Махинджаури": "მახინჯაური" },
+  en: { "Батуми": "Batumi", "Тбилиси": "Tbilisi", "Кобулети": "Kobuleti", "Гонио": "Gonio", "Чакви": "Chakvi", "Кутаиси": "Kutaisi", "Рустави": "Rustavi", "Бакуриани": "Bakuriani", "Гудаури": "Gudauri", "Местиа": "Mestia", "Махинджаури": "Makhinjauri",
+    "Сарпи": "Sarpi", "Квариати": "Kvariati", "Уреки": "Ureki", "Поти": "Poti", "Зугдиди": "Zugdidi", "Мцхета": "Mtskheta", "Гори": "Gori", "Телави": "Telavi", "Боржоми": "Borjomi", "Сигнахи": "Sighnaghi",
+    "Озургети": "Ozurgeti", "Самтредиа": "Samtredia", "Сенаки": "Senaki", "Зестафони": "Zestaponi", "Цхалтубо": "Tskaltubo", "Хашури": "Khashuri", "Марнеули": "Marneuli", "Ахалцихе": "Akhaltsikhe" },
+  ka: { "Батуми": "ბათუმი", "Тбилиси": "თბილისი", "Кобулети": "ქობულეთი", "Гонио": "გონიო", "Чакви": "ჩაქვი", "Кутаиси": "ქუთაისი", "Рустави": "რუსთავი", "Бакуриани": "ბაკურიანი", "Гудаури": "გუდაური", "Местиа": "მესტია", "Махинджаури": "მახინჯაური",
+    "Сарпи": "სარფი", "Квариати": "კვარიათი", "Уреки": "ურეკი", "Поти": "ფოთი", "Зугдиди": "ზუგდიდი", "Мцхета": "მცხეთა", "Гори": "გორი", "Телави": "თელავი", "Боржоми": "ბორჯომი", "Сигнахи": "სიღნაღი",
+    "Озургети": "ოზურგეთი", "Самтредиа": "სამტრედია", "Сенаки": "სენაკი", "Зестафони": "ზესტაფონი", "Цхалтубо": "წყალტუბო", "Хашури": "ხაშური", "Марнеули": "მარნეული", "Ахалцихе": "ახალციხე" },
 };
 export function cityLabel(lang, name) {
   if (lang === "ru" || !CITY_TR[lang]) return name || "";
