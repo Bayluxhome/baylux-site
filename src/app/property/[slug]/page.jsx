@@ -46,7 +46,9 @@ export async function generateMetadata({ params }) {
   };
 }
 
-export default async function PropertyPage({ params }) {
+export default async function PropertyPage({ params, searchParams }) {
+  // ?c=<token> — переход со страницы подборки: заявка с этой карточки уйдёт её риелтору (№07).
+  const collectionToken = /^[A-Za-z0-9_-]{8,32}$/.test(String(searchParams?.c || "")) ? String(searchParams.c) : "";
   const u = await findUnit(params.slug);
   if (!u) notFound();
   const b = u.building;
@@ -196,7 +198,7 @@ export default async function PropertyPage({ params }) {
           <div className="cta-card">
             <div className="price">{u.priceNum ? <><span className="bx-price" data-num={u.priceNum} data-cur={u.currency}>{fmtMoney(u.priceNum, u.currency)}</span>{priceSuffix}</> : u.price}</div>
             <div className="perm" style={{ marginBottom: 6 }}>{u.deal === "sale" && u.perM2 ? <><span className="bx-price" data-num={u.perM2} data-cur={u.currency}>{fmtMoney(u.perM2, u.currency)}</span> {t("per_m2")}</> : u.per}</div>
-            <LeadButton className="btn btn-gold" type={t("deal_" + u.deal)} typeKey={u.deal === "sale" ? "viewing" : u.deal} object={`${u.type}, ${u.area} м² — ${b.name}`} title={ctaMain} listingId={u.id} source="property">{ctaMain}</LeadButton>
+            <LeadButton className="btn btn-gold" type={t("deal_" + u.deal)} typeKey={u.deal === "sale" ? "viewing" : u.deal} object={`${u.type}, ${u.area} м² — ${b.name}`} title={ctaMain} listingId={u.id} source={collectionToken ? "collection" : "property"} collectionToken={collectionToken}>{ctaMain}</LeadButton>
             {cleanPhone && <a className="seller-phone" href={`tel:+${cleanPhone}`}>📞 +{cleanPhone}</a>}
             <div className="contact-btns">
               <WhatsAppContactButton className="btn btn-wa" phone={waTo} price={waPrice} propertyId={u.id || u.slug} propertyTitle={`${ty}, ${u.area} ${sqm} — ${bname}`} propertyUrl={propertyUrl}>💬 WhatsApp</WhatsAppContactButton>

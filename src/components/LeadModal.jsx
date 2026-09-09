@@ -32,7 +32,7 @@ export default function LeadModal() {
       const r = await fetch("/api/lead", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ...form, type: ctx.type, typeKey: ctx.typeKey || "other", object: ctx.object, listingId: ctx.listingId || "", source: ctx.source || "" }),
+        body: JSON.stringify({ ...form, type: ctx.type, typeKey: ctx.typeKey || "other", object: ctx.object, listingId: ctx.listingId || "", source: ctx.source || "", collectionToken: ctx.collectionToken || "" }),
       });
       const j = await r.json().catch(() => ({}));
       setState(j.ok ? "sent" : "error");

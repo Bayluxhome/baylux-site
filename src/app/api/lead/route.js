@@ -7,6 +7,7 @@
 // Повторное нажатие (тот же телефон + объект за 10 минут) — дубль не создаём.
 import { supa } from "@/lib/supabase";
 import { deliverLead, listingForLead, retryUndelivered, LEAD_TYPES } from "@/lib/leads";
+import { getByToken } from "@/lib/collections";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -37,6 +38,12 @@ export async function POST(req) {
 
     const listing = await listingForLead(listingId);
 
+    // Заявка со страницы подборки: ответственный — риелтор-владелец подборки (задача №07).
+    // В публичной ссылке только токен; id клиента и его контакты наружу не уходят.
+    let coll = null;
+    const collToken = (data.collectionToken || "").toString().slice(0, 40);
+    if (collToken) coll = await getByToken(collToken);
+
     const row = {
       name: name || null,
       phone,
@@ -48,8 +55,9 @@ export async function POST(req) {
       owner_email: listing?.owner_email || null,
       owner_tg: listing?.tg_user_id ?? null,
       // Ответственный: для объектов в управлении — назначенный сотрудник.
-      assigned_email: listing?.managed_by_baylux ? (listing.responsible_email || null) : null,
-      assigned_tg: listing?.managed_by_baylux ? (listing.responsible_tg ?? null) : null,
+      assigned_email: coll?.owner_email || (listing?.managed_by_baylux ? (listing.responsible_email || null) : null),
+      assigned_tg: coll?.owner_tg ?? (listing?.managed_by_baylux ? (listing.responsible_tg ?? null) : null),
+      collection_id: coll?.id || null,
       source: source || null,
       utm_source: (data.utmSource || "").toString().slice(0, 100) || null,
       utm_medium: (data.utmMedium || "").toString().slice(0, 100) || null,

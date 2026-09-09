@@ -4,6 +4,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { DEAL_CLASS, fmtMoney } from "@/data/data";
 import FavButton from "@/components/FavButton";
+import CollectAddButton from "@/components/CollectAddButton";
 import { useLang } from "@/components/LangContext";
 import { typeLabel, cityLabel, translitAddress, formatDate } from "@/lib/dict";
 
@@ -25,7 +26,9 @@ const IcRefresh = () => (<svg viewBox="0 0 24 24" fill="none" stroke="currentCol
 // (в браузере нет данных локали ka), поэтому там свой список месяцев.
 const fmtDate = (iso, lang) => formatDate(lang, iso);
 
-export default function PropertyCard({ unit }) {
+// qs — хвост ссылки на карточку (например «?c=<token>»): со страницы подборки объект
+// открывается с её контекстом, и заявка из карточки уходит риелтору-владельцу подборки.
+export default function PropertyCard({ unit, qs = "" }) {
   const { t, lang } = useLang();
   const stripRef = useRef(null);
   const [pidx, setPidx] = useState(0);
@@ -76,7 +79,7 @@ export default function PropertyCard({ unit }) {
   ];
   const fav = { slug: unit.slug, href: `/property/${unit.slug}`, title: `${ty}${unit.rooms ? `, ${unit.rooms} ${rs}` : ""}, ${unit.area} м²`, sub: `📍 ${district} · ${bname}`, price: unit.price, img: unit.img };
   return (
-    <Link className="card" href={`/property/${unit.slug}`}>
+    <Link className="card" href={`/property/${unit.slug}${qs}`}>
       <div className="ph">
         {photos ? (
           <div className="ph-strip" ref={stripRef} onScroll={onStripScroll}>
@@ -102,6 +105,8 @@ export default function PropertyCard({ unit }) {
           </>
         )}
         <FavButton item={fav} />
+        {/* «в подборку» — появляется только у риелтора с активной подборкой (задача №06/07) */}
+        <CollectAddButton listingId={unit.id} />
       </div>
       <div className="body">
         <div className="price">
