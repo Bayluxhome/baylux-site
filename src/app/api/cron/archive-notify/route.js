@@ -26,9 +26,10 @@ function text(lang, title) {
 }
 
 async function run(req) {
-  // Защита: если задан CRON_SECRET — требуем Authorization: Bearer <CRON_SECRET> (Vercel Cron шлёт его сам).
+  // Защита: Authorization: Bearer <CRON_SECRET> (Vercel Cron шлёт его сам). Fail-closed:
+  // без секрета эндпоинт закрыт — иначе любой мог бы запустить рассылку 300 владельцам.
   const secret = process.env.CRON_SECRET;
-  if (secret && (req.headers.get("authorization") || "") !== `Bearer ${secret}`) {
+  if (!secret || (req.headers.get("authorization") || "") !== `Bearer ${secret}`) {
     return Response.json({ ok: false, error: "unauthorized" }, { status: 401 });
   }
   if (!supa || !TOKEN) return Response.json({ ok: false, error: "not_configured" });

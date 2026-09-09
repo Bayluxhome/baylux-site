@@ -1,6 +1,6 @@
 import { cookies } from "next/headers";
 import { randomUUID } from "crypto";
-import { verifySession, isAdmin } from "@/lib/session";
+import { verifySession, isAdmin, can } from "@/lib/session";
 import { supa } from "@/lib/supabase";
 import { OPERATOR } from "@/config";
 import { cleanAddress, cleanDesc } from "@/data/sheet";
@@ -104,6 +104,17 @@ export async function POST(req) {
 
   const rows = Array.isArray(b.rows) ? b.rows.slice(0, 500) : [];
   if (!rows.length) return Response.json({ ok: false, error: "empty" }, { status: 400 });
+
+  // Лимит для обычного пользователя: не больше 300 объявлений на модерацию за сутки.
+  // Иначе любой залогинившийся мог одним запросом создать 500 объявлений и 100 сообщений
+  // в Telegram модератору. Сотрудникам с правом модерации лимит не нужен (парсер идёт от админа).
+  if (!can(session, "moderate")) {
+    const dayAgo = new Date(Date.now() - 864e5).toISOString();
+    let cq = supa.from("listings").select("id", { count: "exact", head: true }).gte("created_at", dayAgo);
+    cq = session.id != null ? cq.eq("tg_user_id", session.id) : cq.eq("owner_email", session.email);
+    const { count } = await cq;
+    if ((count || 0) + rows.length > 300) return Response.json({ ok: false, error: "rate" }, { status: 429 });
+  }
 
   // Телефон, который покажется на ВСЕХ объектах пачки — это номер ЗАГРУЖАЮЩЕГО (а не из строк таблицы).
   // Источник: профиль риелтора → users (Telegram) → для админа фолбэк на номер агентства.

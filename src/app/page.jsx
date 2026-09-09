@@ -11,10 +11,25 @@ import { t as tr } from "@/lib/dict";
 
 export const revalidate = 300;
 
+// Главная отдаёт клиентским блокам (карта + карточки) ТОЛЬКО поля, которые они рисуют.
+// Раньше в HTML уезжала вся база целиком — описания на трёх языках, хэши фото, все 10 фото
+// каждого объекта — и главная весила 3,3 МБ. Карточке нужно ~15 полей и 3 фото.
+const slimUnit = (u) => ({
+  id: u.id, slug: u.slug, deal: u.deal, type: u.type, rooms: u.rooms, area: u.area, floor: u.floor,
+  price: u.price, priceNum: u.priceNum, currency: u.currency, perM2: u.perM2, per: u.per,
+  unit_image: u.unit_image, photos: Array.isArray(u.photos) ? u.photos.slice(0, 3) : [],
+  created_at: u.created_at, year: u.year, managed: u.managed, boost: u.boost, complex: u.complex,
+});
+const slimBuilding = (b) => ({
+  slug: b.slug, name: b.name, name_en: b.name_en, name_ka: b.name_ka, district: b.district, kind: b.kind,
+  lat: b.lat, lng: b.lng, image: b.image, developer: b.developer, units: b.units.map(slimUnit),
+});
+
 export default async function HomePage() {
-  const BUILDINGS = await getBuildingsList();
+  const BUILDINGS = (await getBuildingsList()).map(slimBuilding);
   const allUnits = await getAllUnits();
-  const freshUnits = allUnits.slice(0, 60);
+  // Свежие объекты: дом без списка units — иначе к каждой карточке прицепляется весь дом.
+  const freshUnits = allUnits.slice(0, 60).map((u) => ({ ...slimUnit(u), img: u.img, building: { ...slimBuilding(u.building), units: [] } }));
   const lang = getLang();
   const t = (k) => tr(lang, k);
 

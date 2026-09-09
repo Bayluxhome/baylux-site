@@ -16,5 +16,19 @@ const nextConfig = {
       { protocol: "https", hostname: "**.supabase.co" },
     ],
   },
+  // Базовые защитные заголовки. CSP намеренно не задаём: карты, аналитика и Telegram-виджет
+  // тянут скрипты с разных доменов, и строгая политика сломала бы их — это отдельная задача.
+  async headers() {
+    return [{
+      source: "/(.*)",
+      headers: [
+        { key: "X-Content-Type-Options", value: "nosniff" },           // не угадывать тип файла
+        { key: "X-Frame-Options", value: "SAMEORIGIN" },               // не встраивать сайт в чужой iframe
+        { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
+        { key: "Strict-Transport-Security", value: "max-age=31536000; includeSubDomains" },
+        { key: "Permissions-Policy", value: "camera=(), microphone=(), payment=()" },
+      ],
+    }];
+  },
 };
 export default nextConfig;

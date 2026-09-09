@@ -2,7 +2,18 @@ import crypto from "crypto";
 import { ADMIN_EMAILS, ADMIN_TG_IDS } from "@/config";
 
 // Секрет для подписи cookie сессии — производный от токена бота (только сервер).
-const SECRET = crypto.createHash("sha256").update(process.env.TELEGRAM_BOT_TOKEN || "baylux-dev").digest();
+// Fail-closed: если токен не задан, раньше подставлялась строка "baylux-dev" — публично
+// известный секрет, с которым можно подделать админскую сессию. Теперь на проде это ошибка
+// запуска, а в разработке — случайный секрет на процесс (сессии просто не проверятся).
+const RAW_SECRET = process.env.TELEGRAM_BOT_TOKEN;
+if (!RAW_SECRET && process.env.NODE_ENV === "production") throw new Error("TELEGRAM_BOT_TOKEN is not set — refusing to start without a session secret");
+const SECRET = crypto.createHash("sha256").update(RAW_SECRET || crypto.randomBytes(32).toString("hex")).digest();
+
+// Сравнение подписей за постоянное время — чтобы по времени ответа нельзя было подбирать подпись.
+function safeEqual(a, b) {
+  const ba = Buffer.from(String(a)), bb = Buffer.from(String(b));
+  return ba.length === bb.length && crypto.timingSafeEqual(ba, bb);
+}
 
 export function signSession(obj) {
   const data = Buffer.from(JSON.stringify(obj)).toString("base64url");
@@ -15,7 +26,7 @@ export function verifySession(token) {
   const [data, sig] = token.split(".");
   if (!data || !sig) return null;
   const expect = crypto.createHmac("sha256", SECRET).update(data).digest("base64url");
-  if (sig !== expect) return null;
+  if (!safeEqual(sig, expect)) return null;
   try {
     const obj = JSON.parse(Buffer.from(data, "base64url").toString());
     if (obj.exp && Date.now() > obj.exp) return null;
@@ -74,7 +85,7 @@ export function verifyTelegramAuth(params) {
   const checkString = Object.keys(data).sort().map((k) => `${k}=${data[k]}`).join("\n");
   const secret = crypto.createHash("sha256").update(token).digest();
   const hmac = crypto.createHmac("sha256", secret).update(checkString).digest("hex");
-  if (hmac !== hash) return null;
+  if (!token || !safeEqual(hmac, hash)) return null;
   if (Date.now() / 1000 - Number(data.auth_date || 0) > 86400) return null;
   return data;
 }

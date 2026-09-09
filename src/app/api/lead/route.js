@@ -29,8 +29,12 @@ export async function POST(req) {
     if (!phone) return Response.json({ ok: false, error: "empty" }, { status: 400 });
     if (!supa) return Response.json({ ok: false, error: "not_configured" }, { status: 503 });
 
-    // Дубль: тот же телефон и объект за последние минуты → возвращаем существующую.
+    // Лимит: не больше 5 заявок с одного телефона за 10 минут — защита от спама в чат менеджеров.
     const since = new Date(Date.now() - DEDUP_MIN * 60e3).toISOString();
+    const { count: recent } = await supa.from("leads").select("id", { count: "exact", head: true }).eq("phone", phone).gte("created_at", since);
+    if ((recent || 0) >= 5) return Response.json({ ok: false, error: "rate" }, { status: 429 });
+
+    // Дубль: тот же телефон и объект за последние минуты → возвращаем существующую.
     let dq = supa.from("leads").select("id, notified_at").eq("phone", phone).gte("created_at", since);
     dq = listingId ? dq.eq("listing_id", listingId) : dq.is("listing_id", null);
     const { data: dup } = await dq.order("created_at", { ascending: false }).limit(1).maybeSingle();

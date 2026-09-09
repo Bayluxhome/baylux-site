@@ -1,14 +1,18 @@
 import { cookies } from "next/headers";
-import { verifySession, isAdmin } from "@/lib/session";
+import { verifySession, can } from "@/lib/session";
 import { supa } from "@/lib/supabase";
+import { revalidateListings } from "@/lib/cache";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-// Удаление любого объявления администратором (модерация площадки).
+// Удаление/одобрение любого объявления (модерация площадки).
+// Право — конкретное «Модерация объявлений», а не «любой сотрудник»: раньше isAdmin()
+// пропускал всех, у кого есть хоть одна галочка, и сотрудник с правом «Новости»
+// мог удалить любое объявление напрямую через API (интерфейс кнопку прятал, сервер — нет).
 export async function POST(req) {
   const session = verifySession(cookies().get("bx_session")?.value);
-  if (!isAdmin(session)) return Response.json({ ok: false, error: "forbidden" }, { status: 403 });
+  if (!can(session, "moderate")) return Response.json({ ok: false, error: "forbidden" }, { status: 403 });
   if (!supa) return Response.json({ ok: false }, { status: 500 });
 
   let body;
@@ -33,5 +37,6 @@ export async function POST(req) {
     } catch (e) { /* ignore */ }
     await supa.from("listings").delete().eq("id", id);
   }
+  revalidateListings();
   return Response.json({ ok: true });
 }

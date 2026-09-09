@@ -15,19 +15,23 @@ export async function generateMetadata() {
 }
 
 export default async function MapPage() {
+  const lang = getLang();
+  const t = (k) => tr(lang, k);
   const BUILDINGS = await getBuildingsList();
+  // Карте нужны только поля попапа — не вся база (раньше страница весила 2,6 МБ).
   const mapBuildings = BUILDINGS.map((b) => ({
     slug: b.slug, name: b.name, district: b.district, kind: b.kind,
-    lat: b.lat, lng: b.lng, priceFrom: buildingPriceFrom(b), units: b.units,
+    lat: b.lat, lng: b.lng, priceFrom: buildingPriceFrom(b),
+    units: b.units.map((u) => ({ slug: u.slug, deal: u.deal, type: u.type, rooms: u.rooms, area: u.area, price: u.price, per: u.per, img: u.unit_image || (u.photos && u.photos[0]) || b.image || "" })),
   }));
   const total = BUILDINGS.reduce((n, b) => n + b.units.length, 0);
 
   return (
     <div className="mapscreen">
       <div className="mapscreen-bar">
-        <Link href="/catalog" className="btn btn-ghost" style={{ padding: "9px 16px" }}>← К списку</Link>
-        <span className="ms-count">{total} объект(ов) на карте · Батуми</span>
-        <Link href="/catalog" className="btn btn-gold" style={{ padding: "9px 18px", marginLeft: "auto" }}>Открыть каталог</Link>
+        <Link href="/catalog" className="btn btn-ghost" style={{ padding: "9px 16px" }}>← {t("map_back")}</Link>
+        <span className="ms-count">{total} {t("cat_objects")} · {t("map_on_map")}</span>
+        <Link href="/catalog" className="btn btn-gold" style={{ padding: "9px 18px", marginLeft: "auto" }}>{t("home_map_btn")}</Link>
       </div>
       <MapView buildings={mapBuildings} className="map-screen" zoom={12} />
     </div>

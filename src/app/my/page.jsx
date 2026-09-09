@@ -115,8 +115,9 @@ export default async function MyPage() {
       slug: r.status === "approved" ? slugify(`${bn}-${r.type || ""}-${r.price || ""}`) : null,
       managed: !!r.managed_by_baylux,
       contract: r.contract_url || "",
-      owner: r.owner_email || (r.tg_username ? "@" + r.tg_username : (r.tg_user_id != null ? "tg:" + r.tg_user_id : "")),
-      responsible: r.responsible_email || (r.responsible_tg != null ? "tg:" + r.responsible_tg : ""),
+      // Email владельца и ответственного — тоже персональные данные: только тем, кто видит контакты.
+      owner: canSeeOwner ? (r.owner_email || (r.tg_username ? "@" + r.tg_username : (r.tg_user_id != null ? "tg:" + r.tg_user_id : ""))) : "",
+      responsible: canSeeOwner ? (r.responsible_email || (r.responsible_tg != null ? "tg:" + r.responsible_tg : "")) : "",
       // Контакты собственника — только для админов и сотрудников с правом «управление».
       // Фильтруем НА СЕРВЕРЕ: если просто спрятать блок в вёрстке, данные всё равно
       // окажутся в HTML страницы и будут видны обычному пользователю через исходный код.

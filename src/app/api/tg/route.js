@@ -4,6 +4,8 @@ import { translateDescriptions, translateNames } from "@/lib/translate";
 import { watermarkBuffer } from "@/lib/watermarkServer";
 import { GE_CITIES } from "@/data/data";
 import { cityLabel } from "@/lib/dict";
+import { SITE_URL } from "@/config";
+import { revalidateListings } from "@/lib/cache";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -26,8 +28,10 @@ function pickChannel(row) {
   return /тбилиси|рустави|мцхета|гори|телави|гудаури|бакуриани|tbilisi|rustavi/i.test(String(row.district || "")) ? CH_TBILISI : CH_BATUMI;
 }
 const API = `https://api.telegram.org/bot${TOKEN}`;
-const SECRET = (TOKEN || "").slice(-24).replace(/[^A-Za-z0-9_-]/g, "") || "baylux";
-const SITE = "https://bayluxhome.com";
+// Секрет вебхука — производный от токена бота. Без токена секрета нет вовсе (fail-closed):
+// раньше подставлялось "baylux", и вебхук можно было дёргать снаружи от имени Telegram.
+const SECRET = (TOKEN || "").slice(-24).replace(/[^A-Za-z0-9_-]/g, "") || null;
+const SITE = SITE_URL;
 
 const esc = (s) => String(s == null ? "" : s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
 const DEAL_RU = { sale: "Продажа", rent: "Аренда", daily: "Посуточно" };
@@ -713,6 +717,11 @@ async function onCallback(cb) {
 
 export async function GET(req) {
   if (new URL(req.url).searchParams.get("setup") === "1") {
+    // Перерегистрация вебхука — только супер-админу: раньше это мог сделать кто угодно.
+    const { cookies } = await import("next/headers");
+    const { verifySession, isSuperAdmin } = await import("@/lib/session");
+    if (!isSuperAdmin(verifySession(cookies().get("bx_session")?.value))) return new Response("forbidden", { status: 403 });
+    if (!SECRET) return Response.json({ ok: false, error: "TELEGRAM_BOT_TOKEN not set" });
     const r = await tg("setWebhook", { url: `${SITE}/api/tg`, secret_token: SECRET, allowed_updates: ["message", "callback_query"] });
     await tg("setMyCommands", { commands: [
       { command: "start", description: "🏠 Меню / Menu / მენიუ" },
@@ -727,7 +736,7 @@ export async function GET(req) {
 }
 
 export async function POST(req) {
-  if (req.headers.get("x-telegram-bot-api-secret-token") !== SECRET) return new Response("forbidden", { status: 403 });
+  if (!SECRET || req.headers.get("x-telegram-bot-api-secret-token") !== SECRET) return new Response("forbidden", { status: 403 });
   if (!supa) return Response.json({ ok: true });
   let update;
   try { update = await req.json(); } catch { return Response.json({ ok: true }); }
@@ -735,5 +744,7 @@ export async function POST(req) {
     if (update.message) await onMessage(update.message);
     else if (update.callback_query) await onCallback(update.callback_query);
   } catch (e) { console.error("tg error:", e?.message); }
+  // Модерация и правки через бота меняют выдачу — сбрасываем кэш (трафик бота мал, дёшево).
+  revalidateListings();
   return Response.json({ ok: true });
 }

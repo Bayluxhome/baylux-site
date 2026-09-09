@@ -212,7 +212,9 @@ function interleaveByCity(list) {
   return out;
 }
 
-const getBuildings = cache(async () => {
+// Сборка всей выдачи: Supabase → таблица → обогащение → дедуп → чередование городов.
+// Дорогая операция (2000+ строк), поэтому ниже она обёрнута в кэш между запросами.
+async function buildAll() {
   const fromSupa = await fetchSupabase();
   let fromSheet = [];
   const url = process.env.SHEET_CSV_URL;
@@ -236,7 +238,26 @@ const getBuildings = cache(async () => {
   // Продвигаемые — выше, остальные чередуются по городам (round-robin), чтобы Батуми
   // не тонул под свежей пачкой Тбилиси. Внутри города — «новые вперёд».
   return interleaveByCity(deduped);
-});
+}
+
+// Кэш МЕЖДУ запросами — в памяти серверного процесса. Раньше каждая страница, даже
+// «Политика конфиденциальности», заново выкачивала и пересобирала всю базу ради счётчиков
+// в шапке: 1,7 с на ответ, под нагрузкой — десятки секунд. Теперь сборка живёт TTL секунд;
+// изменение объявлений (модерация, правка, удаление) сбрасывает её через invalidateBuildings().
+// Почему память, а не кэш Vercel (unstable_cache): у него лимит 2 МБ на запись, а база
+// с описаниями на трёх языках больше. У «тёплого» инстанса кэш есть, у холодного — одна сборка.
+// cache() из React сверху — чтобы внутри одного запроса результат не доставался дважды.
+const TTL_MS = 90_000;
+let memo = { at: 0, promise: null };
+function getBuildingsShared() {
+  const now = Date.now();
+  if (memo.promise && now - memo.at < TTL_MS) return memo.promise;
+  const p = buildAll().catch((e) => { memo = { at: 0, promise: null }; throw e; });
+  memo = { at: now, promise: p };
+  return p;
+}
+export function invalidateBuildings() { memo = { at: 0, promise: null }; }
+const getBuildings = cache(() => getBuildingsShared());
 
 // Публичная выдача = те же дома, но БЕЗ служебных полей у объявлений.
 // Чистим один раз на весь список (и результат кэшируется), а не на каждой карточке:

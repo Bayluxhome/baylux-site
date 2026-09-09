@@ -3,6 +3,7 @@ import { verifySession, isSuperAdmin } from "@/lib/session";
 import { supa } from "@/lib/supabase";
 import { translitAddress, cityLabel } from "@/lib/dict";
 import { cleanAddress } from "@/data/sheet";
+import { revalidateListings } from "@/lib/cache";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -89,6 +90,7 @@ async function run(req, write) {
       if (live) { await supa.from("listings").update({ lat: x.g.lat, lng: x.g.lng, geo_ok: true }).eq("id", x.r.id); updated++; }
     }
   }
+  if (live && updated > 0) revalidateListings();
   return Response.json({
     ok: true,
     mode: live ? "LIVE (записано)" : "dry-run (ничего не записано)",

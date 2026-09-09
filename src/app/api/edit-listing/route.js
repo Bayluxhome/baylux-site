@@ -1,6 +1,7 @@
 import { cookies } from "next/headers";
 import { verifySession, owns, can, isResponsible } from "@/lib/session";
 import { supa } from "@/lib/supabase";
+import { revalidateListings } from "@/lib/cache";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -107,5 +108,6 @@ export async function POST(req) {
     const summary = `✏️ <b>Объявление отредактировано (с сайта) — повторная модерация</b>\n${DEAL_RU[deal]} · ${row.type}\n🏙 ${esc(city)}\n🏠 ${esc(row.building_name)}\n💰 ${row.price}\n📐 ${row.area} м² · 🛏 ${row.rooms} комн. · 🏢 ${esc(row.floor)}\n📷 ${row.photos.length} фото${geoLine}\n📞 ${phone}\n\n${esc(row.about)}`;
     await tg("sendMessage", { chat_id: ADMIN, text: summary, parse_mode: "HTML", disable_web_page_preview: true, reply_markup: modButtons(b.id) });
   }
+  revalidateListings();
   return Response.json({ ok: true });
 }

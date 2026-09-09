@@ -1,6 +1,7 @@
 import { cookies } from "next/headers";
 import { verifySession, owns } from "@/lib/session";
 import { supa } from "@/lib/supabase";
+import { revalidateListings } from "@/lib/cache";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -26,6 +27,7 @@ export async function POST(req) {
       if (names.length) await supa.storage.from("listing-photos").remove(names);
     } catch (e) { /* ignore */ }
     await supa.from("listings").delete().in("id", ownedIds);
+    revalidateListings();
     return Response.json({ ok: true, deleted: ownedIds });
   }
 
@@ -49,5 +51,6 @@ export async function POST(req) {
   } else {
     return Response.json({ ok: false, error: "bad_action" });
   }
+  revalidateListings();
   return Response.json({ ok: true });
 }
