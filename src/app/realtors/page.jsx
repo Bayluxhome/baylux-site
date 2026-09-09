@@ -1,7 +1,6 @@
 import Link from "next/link";
 import { supa } from "@/lib/supabase";
-import { getAllUnits } from "@/data/source";
-import { matchRealtor } from "@/data/realtors";
+import { countByRealtor } from "@/data/realtors";
 import { getLang } from "@/lib/serverLang";
 import { t as tr } from "@/lib/dict";
 
@@ -26,8 +25,7 @@ export default async function RealtorsPage() {
     rows = data || [];
     // Считаем по ФАКТИЧЕСКОЙ выдаче сайта (та же дедупликация и архив, что в каталоге),
     // иначе число здесь расходилось бы с числом объектов на странице риелтора.
-    const units = await getAllUnits();
-    rows = rows.map((r) => ({ ...r, count: units.filter((u) => matchRealtor([r], u)).length }));
+    rows = await countByRealtor(rows);
   }
 
   return (

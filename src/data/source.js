@@ -2,6 +2,7 @@
 import { BUILDINGS as LOCAL } from "./data";
 import { fetchSheet, slugify, cleanAddress, cleanDesc } from "./sheet";
 import { supa } from "@/lib/supabase";
+import { stripPrivateBuilding } from "@/lib/privacy";
 import { cache } from "react";
 
 const KIND_COMPLEX = /жк|новострой|комплекс|complex/i;
@@ -237,8 +238,14 @@ const getBuildings = cache(async () => {
   return interleaveByCity(deduped);
 });
 
+// Публичная выдача = те же дома, но БЕЗ служебных полей у объявлений.
+// Чистим один раз на весь список (и результат кэшируется), а не на каждой карточке:
+// раньше очистка стояла у мест вывода, одно из них забыли — и owner_email уехал
+// в HTML через вложенный building.units. Теперь ни одна страница не может её пропустить.
+const getBuildingsPublic = cache(async () => (await getBuildings()).map(stripPrivateBuilding));
+
 export async function getBuildingsList() {
-  return getBuildings();
+  return getBuildingsPublic();
 }
 
 // Реальное число объектов по городам (для меню выбора города в шапке) — считается из того,
@@ -266,27 +273,37 @@ function enrichUnit(u) {
   return { ...u, priceNum: pNum, currency, perM2 };
 }
 
-// Очистка от персональных полей перед отправкой в браузер — см. @/lib/privacy (stripPrivate).
-// Здесь она намеренно не объявляется: модуль подключают и клиентские компоненты,
-// а source.js тянет серверный Supabase.
-
-export async function getAllUnits() {
-  const bs = await getBuildings();
+// Разворачивает список домов в плоский список объявлений (у каждого — ссылка на свой дом).
+function flatten(bs) {
   return bs
     .flatMap((b) => b.units.map((u) => ({ ...enrichUnit(u), building: b, img: u.unit_image || b.image })))
     .sort((a, b) => (b.boost || 0) - (a.boost || 0));
 }
 
+// --- Публичные выборки: очищены, их можно отдавать в вёрстку и клиентские компоненты ---
+
+export async function getAllUnits() {
+  return flatten(await getBuildingsPublic());
+}
+
 export async function findBuilding(slug) {
-  const bs = await getBuildings();
+  const bs = await getBuildingsPublic();
   return bs.find((b) => b.slug === slug) || null;
 }
 
 export async function findUnit(slug) {
-  const bs = await getBuildings();
+  const bs = await getBuildingsPublic();
   for (const b of bs) {
     const u = b.units.find((x) => x.slug === slug);
     if (u) return { ...enrichUnit(u), building: b, img: u.unit_image || b.image };
   }
   return null;
+}
+
+// --- Служебная выборка: СО служебными полями (owner_email, tg_user_id, контакты собственника) ---
+// Нужна только для серверного сопоставления объявления с карточкой риелтора.
+// НЕЛЬЗЯ передавать результат в вёрстку или в пропсы клиентских компонентов —
+// поля попадут в HTML страницы. Для вывода берите getAllUnits/findUnit.
+export async function getAllUnitsRaw() {
+  return flatten(await getBuildings());
 }

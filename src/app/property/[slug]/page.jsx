@@ -5,7 +5,7 @@ import Gallery from "@/components/Gallery";
 import AdminEdit from "@/components/AdminEdit";
 import { DEAL_LABEL, fmtMoney } from "@/data/data";
 import { findUnit } from "@/data/source";
-import { getRealtorFor } from "@/data/realtors";
+import { getRealtorForSlug } from "@/data/realtors";
 import LeadButton from "@/components/LeadButton";
 import TelegramContactButton from "@/components/TelegramContactButton";
 import WhatsAppContactButton from "@/components/WhatsAppContactButton";
@@ -39,7 +39,9 @@ export default async function PropertyPage({ params }) {
   const u = await findUnit(params.slug);
   if (!u) notFound();
   const b = u.building;
-  const realtor = await getRealtorFor(u); // автор объявления, если он — риелтор Baylux
+  // Автор объявления, если он — риелтор Baylux. Ищем по slug: сам объект `u` уже очищен
+  // от служебных полей (owner_email), поэтому сопоставить по нему нельзя.
+  const realtor = await getRealtorForSlug(params.slug);
   const lang = getLang();
   const t = (k) => tr(lang, k);
   const ty = typeLabel(lang, u.type);
