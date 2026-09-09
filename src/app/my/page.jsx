@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { cookies } from "next/headers";
 import { verifySession, isAdmin, can, isResponsible } from "@/lib/session";
-import { supa } from "@/lib/supabase";
+import { supa, fetchAll } from "@/lib/supabase";
 import { slugify, cleanAddress } from "@/data/sheet";
 import LoginBlock from "@/components/LoginBlock";
 import CabinetTabs from "@/components/CabinetTabs";
@@ -47,10 +47,9 @@ export default async function MyPage() {
   let mgrByEmail = {};
   let mgrByTg = {};
   if (supa) {
-    let q = supa.from("listings").select("*");
-    q = session.id != null ? q.eq("tg_user_id", session.id) : q.eq("owner_email", session.email);
-    const { data } = await q.order("created_at", { ascending: false });
-    rows = data || [];
+    // fetchAll: у аккаунта bayluxhome 2000+ объявлений от парсера — обычная выборка отдала бы 1000.
+    rows = await fetchAll("listings", "*", (q) =>
+      (session.id != null ? q.eq("tg_user_id", session.id) : q.eq("owner_email", session.email)).order("created_at", { ascending: false }));
 
     let rq = supa.from("realtors").select("*");
     rq = session.id != null ? rq.eq("tg_user_id", session.id) : rq.eq("email", session.email);
@@ -59,8 +58,7 @@ export default async function MyPage() {
 
     // Объекты в управлении: право managed видит ВСЕ; ответственный — назначенные ему; владелец — свои.
     if (canMng) {
-      const { data: md } = await supa.from("listings").select("*").eq("managed_by_baylux", true).order("created_at", { ascending: false });
-      managedRows = md || [];
+      managedRows = await fetchAll("listings", "*", (q) => q.eq("managed_by_baylux", true).order("created_at", { ascending: false }));
     } else {
       const ownManaged = rows.filter((r) => r.managed_by_baylux);
       let mq = supa.from("listings").select("*").eq("managed_by_baylux", true);

@@ -2,7 +2,7 @@ import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import { verifySession, can } from "@/lib/session";
-import { supa } from "@/lib/supabase";
+import { supa, fetchAll } from "@/lib/supabase";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Пользователи — Админ", robots: { index: false, follow: false } };
@@ -25,9 +25,9 @@ export default async function AdminUsersPage() {
     const { data: tgUsers } = await supa.from("users").select("tg_user_id, phone");
     const phoneByTg = {};
     (tgUsers || []).forEach((u) => { if (u.tg_user_id != null && u.phone) phoneByTg[String(u.tg_user_id)] = u.phone; });
-    const { data: lst } = await supa.from("listings").select("owner_email, tg_user_id");
+    const lst = await fetchAll("listings", "owner_email, tg_user_id"); // все строки, не первые 1000
     const byEmail = {}, byTg = {};
-    (lst || []).forEach((l) => {
+    lst.forEach((l) => {
       if (l.owner_email) { const k = String(l.owner_email).toLowerCase(); byEmail[k] = (byEmail[k] || 0) + 1; }
       if (l.tg_user_id != null) { const k = String(l.tg_user_id); byTg[k] = (byTg[k] || 0) + 1; }
     });

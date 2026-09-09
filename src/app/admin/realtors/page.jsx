@@ -2,7 +2,7 @@ import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import { verifySession, can } from "@/lib/session";
-import { supa } from "@/lib/supabase";
+import { supa, fetchAll } from "@/lib/supabase";
 import AdminRealtors from "@/components/AdminRealtors";
 
 export const dynamic = "force-dynamic";
@@ -17,9 +17,9 @@ export default async function AdminRealtorsPage() {
     const { data } = await supa.from("realtors").select("*").order("created_at", { ascending: false });
     realtors = data || [];
     // Число объявлений на риелтора (по email или Telegram-id владельца)
-    const { data: lst } = await supa.from("listings").select("owner_email, tg_user_id");
+    const lst = await fetchAll("listings", "owner_email, tg_user_id"); // все строки, не первые 1000
     const byEmail = {}, byTg = {};
-    (lst || []).forEach((l) => {
+    lst.forEach((l) => {
       if (l.owner_email) { const k = String(l.owner_email).toLowerCase(); byEmail[k] = (byEmail[k] || 0) + 1; }
       if (l.tg_user_id != null) { const k = String(l.tg_user_id); byTg[k] = (byTg[k] || 0) + 1; }
     });

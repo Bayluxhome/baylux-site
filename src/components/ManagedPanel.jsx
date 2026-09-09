@@ -63,10 +63,16 @@ export default function ManagedPanel({ items, adminView }) {
               {r.internalNo && (
                 <div style={{ color: "var(--ink-soft)", fontSize: 13, marginBottom: 10 }}>🔢 {t("mg_internal_no")}: <b style={{ color: "var(--navy)" }}>{r.internalNo}</b></div>
               )}
-              {(r.ownerName || r.ownerPhone || r.ownerEmail) && (
+              {(r.ownerName || r.ownerPhone || r.ownerTg || r.ownerEmail) && (
                 <div style={{ background: "#fff", border: "1px solid var(--line)", borderRadius: 12, padding: "12px 14px", marginBottom: 12 }}>
                   <span style={{ color: "var(--navy)", fontWeight: 700, fontSize: 14 }}>👤 {t("mg_owner_contact")}</span>
-                  <div style={{ color: "var(--ink-soft)", fontSize: 14, marginTop: 4 }}>{[r.ownerName, r.ownerPhone, r.ownerEmail].filter(Boolean).join(" · ")}</div>
+                  {/* Телефон и Telegram — кликабельные: у большинства собственников из парсинга есть только ник */}
+                  <div style={{ color: "var(--ink-soft)", fontSize: 14, marginTop: 4, display: "flex", gap: 10, flexWrap: "wrap" }}>
+                    {r.ownerName && <span>{r.ownerName}</span>}
+                    {r.ownerPhone && <a href={`tel:${r.ownerPhone}`} style={{ color: "var(--navy)", fontWeight: 600 }}>📞 {r.ownerPhone}</a>}
+                    {r.ownerTg && <a href={`https://t.me/${r.ownerTg}`} target="_blank" rel="noopener" style={{ color: "var(--navy)", fontWeight: 600 }}>✈️ @{r.ownerTg}</a>}
+                    {r.ownerEmail && <span>{r.ownerEmail}</span>}
+                  </div>
                 </div>
               )}
               <ReportSummary item={r} />

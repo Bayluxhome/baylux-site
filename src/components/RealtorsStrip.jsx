@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { supa } from "@/lib/supabase";
+import { supa, fetchAll } from "@/lib/supabase";
 import { getLang } from "@/lib/serverLang";
 import { t as tr } from "@/lib/dict";
 
@@ -12,9 +12,9 @@ export default async function RealtorsStrip() {
     const { data } = await supa.from("realtors").select("*").eq("status", "approved").order("created_at", { ascending: false }).limit(8);
     rows = data || [];
     // Число опубликованных объявлений на риелтора (по email или Telegram-id)
-    const { data: lst } = await supa.from("listings").select("owner_email, tg_user_id").eq("status", "approved");
+    const lst = await fetchAll("listings", "owner_email, tg_user_id", (q) => q.eq("status", "approved")); // все, не первые 1000
     const byEmail = {}, byTg = {};
-    (lst || []).forEach((l) => {
+    lst.forEach((l) => {
       if (l.owner_email) { const k = String(l.owner_email).toLowerCase(); byEmail[k] = (byEmail[k] || 0) + 1; }
       if (l.tg_user_id != null) { const k = String(l.tg_user_id); byTg[k] = (byTg[k] || 0) + 1; }
     });

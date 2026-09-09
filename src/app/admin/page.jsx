@@ -1,6 +1,6 @@
 import { cookies } from "next/headers";
 import { verifySession, isAdmin, isSuperAdmin, can } from "@/lib/session";
-import { supa } from "@/lib/supabase";
+import { supa, fetchAll } from "@/lib/supabase";
 import { slugify } from "@/data/sheet";
 import AdminListings from "@/components/AdminListings";
 
@@ -25,8 +25,8 @@ export default async function AdminPage() {
   let realtorPending = 0;
   let usersCount = 0;
   if (supa) {
-    const { data } = await supa.from("listings").select("*").order("created_at", { ascending: false });
-    rows = data || [];
+    // fetchAll — иначе Supabase отдаёт только первые 1000 строк, и половина базы невидима.
+    rows = await fetchAll("listings", "*", (q) => q.order("created_at", { ascending: false }));
     const { count } = await supa.from("realtors").select("id", { count: "exact", head: true }).eq("status", "pending");
     realtorPending = count || 0;
     const { count: uc } = await supa.from("site_users").select("id", { count: "exact", head: true });
