@@ -88,6 +88,7 @@ export default async function AdminPage() {
   );
   const navAfter = (
     <>
+      {isSuperAdmin(session) && <a className="btn btn-ghost" href="/admin/owner-contacts" style={{ padding: "9px 16px" }}>📇 Контакты собственников</a>}
       {isSuperAdmin(session) && <a className="btn btn-gold" href="/admin/staff" style={{ padding: "9px 16px" }}>🛡️ Сотрудники</a>}
     </>
   );
