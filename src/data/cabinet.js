@@ -1,13 +1,20 @@
 import { supa } from "@/lib/supabase";
+import { can } from "@/lib/session";
 
 const DAYS = 30;
 
-// Заявки, пришедшие с объявлений пользователя (см. sql/017_leads_views.sql).
+// Заявки для кабинета (см. sql/017_leads_views.sql, sql/020_leads_delivery.sql).
+// Обычный пользователь — только с его объявлений. Сотрудник с правом «Заявки» — ВСЕ:
+// именно так менеджер видит обращения по спарсенным объектам, владелец которых —
+// служебный аккаунт Baylux. Плюс заявки, назначенные лично сотруднику (объекты в управлении).
 export async function getLeadsFor(session, limit = 50) {
   if (!supa || !session) return [];
   try {
     let q = supa.from("leads").select("*").order("created_at", { ascending: false }).limit(limit);
-    q = session.id != null ? q.eq("owner_tg", session.id) : q.eq("owner_email", session.email);
+    if (!can(session, "leads")) {
+      const ownKey = session.id != null ? `owner_tg.eq.${session.id},assigned_tg.eq.${session.id}` : `owner_email.eq.${session.email},assigned_email.eq.${session.email}`;
+      q = q.or(ownKey);
+    }
     const { data } = await q;
     return data || [];
   } catch (e) {

@@ -1,5 +1,6 @@
 {
   "crons": [
-    { "path": "/api/cron/archive-notify", "schedule": "0 9 * * *" }
+    { "path": "/api/cron/archive-notify", "schedule": "0 9 * * *" },
+    { "path": "/api/cron/lead-retry", "schedule": "15 * * * *" }
   ]
 }

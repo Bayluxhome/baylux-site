@@ -108,12 +108,12 @@ export default async function BuildingPage({ params }) {
           <div className="cta-card">
             <div style={{ fontWeight: 700, color: "var(--navy)", fontSize: 18 }}>{t("bld_cta_title")} «{bname}»?</div>
             <p style={{ color: "var(--ink-soft)", fontSize: 14, margin: "8px 0 4px" }}>{t("bld_cta_sub")}</p>
-            <LeadButton className="btn btn-gold" type="Заявка по ЖК" object={b.name} title={`Заявка — ${b.name}`}>{t("bld_lead")}</LeadButton>
+            <LeadButton className="btn btn-gold" type="Заявка по ЖК" typeKey="complex" object={b.name} title={t("bld_lead")} source="building">{t("bld_lead")}</LeadButton>
             <div className="contact-btns">
               <WhatsAppContactButton className="btn btn-wa" href={waLink(`Здравствуйте! Интересует ${b.name} в Батуми.`)} propertyId={b.slug} propertyTitle={bname} propertyUrl={`https://bayluxhome.com/building/${b.slug}`}>💬 WhatsApp</WhatsAppContactButton>
               <TelegramContactButton className="btn btn-tg" username={bTg} propertyId={b.slug} propertyTitle={bname} propertyPath={`/building/${b.slug}`}>✈️ Telegram</TelegramContactButton>
             </div>
-            <LeadButton className="btn btn-ghost" type="Управление" object={b.name} title="Отдать квартиру в управление">{t("bld_mgmt")}</LeadButton>
+            <LeadButton className="btn btn-ghost" type="Управление" typeKey="management" object={b.name} title={t("bld_mgmt")} source="building">{t("bld_mgmt")}</LeadButton>
             <div className="agent">
               <div className="av" />
               <div><div style={{ fontWeight: 700, color: "var(--navy)" }}>{t("team")}</div><div style={{ fontSize: 13, color: "var(--ink-soft)" }}>{t("team_sub")}</div></div>

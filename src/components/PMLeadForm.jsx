@@ -16,21 +16,26 @@ export default function PMLeadForm() {
     if (!form.name.trim() || !form.phone.trim() || !form.consent) return;
     setLoading(true);
     const typeLabel = (TYPES.find(([k]) => k === form.type) || [])[1] || "—";
+    // «Отправлено» — только по подтверждению сервера, иначе показываем ошибку и даём повторить.
+    let ok = false;
     try {
-      await fetch("/api/lead", {
+      const r = await fetch("/api/lead", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           name: form.name,
           phone: form.phone,
           type: "PROPERTY MANAGEMENT LEAD",
+          typeKey: "management",
+          source: "property-management",
           object: form.addr || "—",
           comment: `Тип квартиры: ${typeLabel}` + (form.comment ? `\n${form.comment}` : ""),
         }),
       });
+      ok = !!(await r.json().catch(() => ({}))).ok;
     } catch (_) {}
     setLoading(false);
-    setSent(true);
+    if (ok) setSent(true); else alert(t("lead_err"));
   }
 
   const inp = { width: "100%", padding: "11px 13px", borderRadius: 10, border: "1.5px solid var(--line)", fontSize: 15, fontFamily: "inherit", color: "var(--navy)", background: "#fff" };

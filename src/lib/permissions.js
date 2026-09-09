@@ -3,6 +3,7 @@
 export const PERMISSIONS = [
   { key: "moderate", label: "Модерация объявлений" },
   { key: "managed", label: "Объекты в управлении" },
+  { key: "leads", label: "Заявки клиентов (все обращения с сайта)" },
   { key: "news", label: "Новости" },
   { key: "realtors", label: "Риелторы" },
   { key: "users", label: "Пользователи" },

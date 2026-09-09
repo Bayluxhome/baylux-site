@@ -585,6 +585,7 @@ a.realtor-card:hover{box-shadow:0 8px 24px rgba(1,39,80,.08);transform:translate
 .cab-rt{margin-left:auto;text-align:right;flex:none}
 .cab-tm{font-size:11.5px;color:var(--ink-soft);white-space:nowrap}
 .cab-tag{display:inline-block;font-size:11px;font-weight:600;padding:3px 9px;border-radius:20px;margin-top:5px;background:#FDF4DE;color:#96690c}
+.cab-tag-soft{background:#eef2f7;color:#4a5b70}
 .cab-empty{font-size:13px;color:var(--ink-soft);line-height:1.5;margin:0}
 .cab-tabs{display:flex;gap:18px;border-bottom:1px solid var(--line);margin-bottom:12px}
 .cab-tabs button{background:none;border:0;padding:0 0 9px;font-size:13.5px;color:var(--ink-soft);font-weight:600;border-bottom:2px solid transparent;margin-bottom:-1px;cursor:pointer;font-family:inherit}

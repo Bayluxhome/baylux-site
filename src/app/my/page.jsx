@@ -147,7 +147,15 @@ export default async function MyPage() {
 
   // --- Данные дашборда: метрики, объекты с истекающей актуальностью, обращения, график ---
   const allItems = [...ownItems, ...managedItems];
-  const leads = await getLeadsFor(session);
+  const leadsRaw = await getLeadsFor(session);
+  // Ссылка на объект для каждой заявки: подтягиваем slug по listing_id одним запросом.
+  const leadIds = [...new Set(leadsRaw.map((l) => l.listing_id).filter(Boolean))];
+  const slugById = {};
+  if (supa && leadIds.length) {
+    const { data: ls } = await supa.from("listings").select("id, building_name, type, price, status").in("id", leadIds.slice(0, 200));
+    (ls || []).forEach((l) => { if (l.status === "approved") slugById[l.id] = slugify(`${cleanAddress(l.building_name)}-${l.type || ""}-${l.price || ""}`); });
+  }
+  const leads = leadsRaw.map((l) => ({ ...l, listing_slug: slugById[l.listing_id] || "" }));
   const views = await getViewsFor(allItems.map((x) => String(x.id)));
   const series = buildSeries(views.byDay, leads);
   // «Требуют обновления» — опубликованные объекты, которым до архива осталось меньше трети срока.

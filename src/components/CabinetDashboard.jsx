@@ -10,6 +10,21 @@ export default function CabinetDashboard({ stats, stale: staleInit, leads, serie
   const [stale, setStale] = useState(staleInit || []);
   const [busy, setBusy] = useState(null);
   const [tab, setTab] = useState("views");
+  const [leadList, setLeadList] = useState(leads || []);
+  const [leadBusy, setLeadBusy] = useState(null);
+
+  // Статус заявки: new → in_work → done. Право проверяет сервер (/api/lead-status).
+  async function setLeadStatus(id, status) {
+    setLeadBusy(id);
+    try {
+      const r = await fetch("/api/lead-status", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ id, status }) });
+      const j = await r.json();
+      if (j.ok) setLeadList((l) => l.map((x) => (x.id === id ? { ...x, status } : x)));
+      else alert(t("cab_err"));
+    } catch { alert(t("cab_err")); }
+    setLeadBusy(null);
+  }
+  const NEXT = { new: "in_work", in_work: "done" };
 
   // «Всё актуально» = продлить публикацию (bump): объявление снова висит 60 дней.
   async function confirmFresh(id) {
@@ -93,17 +108,27 @@ export default function CabinetDashboard({ stats, stale: staleInit, leads, serie
         <div>
           <div className="cab-card">
             <div className="cab-h"><h2>{t("cab_leads_h")}</h2></div>
-            {leads && leads.length ? leads.slice(0, 6).map((l) => (
-              <div className="cab-lead" key={l.id}>
+            {leadList.length ? leadList.slice(0, 8).map((l) => (
+              <div className="cab-lead" key={l.id} style={l.status === "done" ? { opacity: 0.55 } : undefined}>
                 <div className="cab-av">{(l.name || "?").slice(0, 1).toUpperCase()}</div>
                 <div style={{ minWidth: 0 }}>
                   <div className="cab-nm">{l.name || t("cab_noname")}</div>
-                  <div className="cab-ds">{l.object_title || l.type || "—"}</div>
+                  <div className="cab-ds">
+                    {t("lead_t_" + (l.type_key || "other"))}
+                    {l.object_title ? <> · {l.listing_slug ? <Link href={`/property/${l.listing_slug}`} style={{ color: "var(--navy)", fontWeight: 600 }}>{l.object_title}</Link> : l.object_title}</> : null}
+                  </div>
                   {l.phone && <a className="cab-tel" href={`tel:${l.phone}`}>📞 {l.phone}</a>}
+                  {l.comment && <div className="cab-ds" style={{ marginTop: 2, fontStyle: "italic" }}>«{l.comment}»</div>}
+                  {l.notify_error && !l.notified_at && <div className="cab-ds" style={{ color: "#9a2b2b" }}>⚠️ {t("lead_not_notified")}</div>}
                 </div>
                 <div className="cab-rt">
                   <div className="cab-tm">{timeAgo(l.created_at, t)}</div>
-                  {l.status === "new" && <span className="cab-tag">{t("cab_lead_new")}</span>}
+                  <span className={"cab-tag" + (l.status === "new" ? "" : " cab-tag-soft")}>{t("lead_s_" + (l.status || "new"))}</span>
+                  {NEXT[l.status || "new"] && (
+                    <button type="button" className="cab-ed" disabled={leadBusy === l.id} onClick={() => setLeadStatus(l.id, NEXT[l.status || "new"])} style={{ marginTop: 4 }}>
+                      {t("lead_next_" + NEXT[l.status || "new"])}
+                    </button>
+                  )}
                 </div>
               </div>
             )) : <p className="cab-empty">{t("cab_leads_empty")}</p>}

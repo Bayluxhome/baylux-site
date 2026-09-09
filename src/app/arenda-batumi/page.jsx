@@ -103,7 +103,7 @@ export default async function ArendaBatumiPage() {
 
       <section style={{ marginTop: 40, background: "var(--cream)", borderRadius: 16, padding: "26px 24px", textAlign: "center" }}>
         <h2 style={{ color: "var(--navy)", margin: "0 0 14px" }}>{t("ar_cta_h")}</h2>
-        <LeadButton className="btn btn-gold" type={t("nav_rent")} object={t("ar_list_h")} title={t("ar_cta_btn")}>{t("ar_cta_btn")}</LeadButton>
+        <LeadButton className="btn btn-gold" type={t("nav_rent")} typeKey="landing" object={t("ar_list_h")} title={t("ar_cta_btn")} source="landing">{t("ar_cta_btn")}</LeadButton>
       </section>
     </div>
   );

@@ -178,13 +178,13 @@ export default async function PropertyPage({ params }) {
           <div className="cta-card">
             <div className="price">{u.priceNum ? <><span className="bx-price" data-num={u.priceNum} data-cur={u.currency}>{fmtMoney(u.priceNum, u.currency)}</span>{priceSuffix}</> : u.price}</div>
             <div className="perm" style={{ marginBottom: 6 }}>{u.deal === "sale" && u.perM2 ? <><span className="bx-price" data-num={u.perM2} data-cur={u.currency}>{fmtMoney(u.perM2, u.currency)}</span> {t("per_m2")}</> : u.per}</div>
-            <LeadButton className="btn btn-gold" type={t("deal_" + u.deal)} object={`${u.type}, ${u.area} м² — ${b.name}`} title={ctaMain} listingId={u.id} source="property">{ctaMain}</LeadButton>
+            <LeadButton className="btn btn-gold" type={t("deal_" + u.deal)} typeKey={u.deal === "sale" ? "viewing" : u.deal} object={`${u.type}, ${u.area} м² — ${b.name}`} title={ctaMain} listingId={u.id} source="property">{ctaMain}</LeadButton>
             {cleanPhone && <a className="seller-phone" href={`tel:+${cleanPhone}`}>📞 +{cleanPhone}</a>}
             <div className="contact-btns">
               <WhatsAppContactButton className="btn btn-wa" href={waHref} propertyId={u.id || u.slug} propertyTitle={`${ty}, ${u.area} ${sqm} — ${bname}`} propertyUrl={`https://bayluxhome.com/property/${u.slug}`}>💬 WhatsApp</WhatsAppContactButton>
               <TelegramContactButton className="btn btn-tg" username={tgUser || TG_CONTACT} propertyId={u.id || u.slug} propertyTitle={`${ty}, ${u.area} ${sqm} — ${bname}`} propertyPath={`/property/${u.slug}`}>✈️ Telegram</TelegramContactButton>
             </div>
-            <LeadButton className="btn btn-ghost" type="Управление" object={b.name} title="Отдать квартиру в управление">{t("mgmt_btn")}</LeadButton>
+            <LeadButton className="btn btn-ghost" type="Управление" typeKey="management" object={b.name} title={t("mgmt_btn")} listingId={u.id} source="property">{t("mgmt_btn")}</LeadButton>
             <Link href={`/building/${b.slug}`} className="btn btn-ghost" style={{ width: "100%", marginTop: 10 }}>{t("all_in")} «{bname}»</Link>
             {/* Автор объявления. Если его подал зарегистрированный риелтор — показываем его
                 и ведём на страницу риелтора с его объектами. Если собственник — помечаем как

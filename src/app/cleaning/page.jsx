@@ -17,7 +17,7 @@ export default function CleaningPage() {
       <div style={{ fontSize: 44 }}>🧹</div>
       <h1 style={{ color: "var(--navy)", margin: "10px 0 12px" }}>{t("cl_h1")}</h1>
       <p style={{ color: "var(--ink-soft)", maxWidth: 640, margin: "0 auto 26px", lineHeight: 1.6 }}>{t("cl_p")}</p>
-      <LeadButton className="btn btn-gold" type="Клининг" object="Cleaning Batumi" title={t("cl_btn")}>{t("cl_btn")}</LeadButton>
+      <LeadButton className="btn btn-gold" type="Клининг" typeKey="cleaning" object="Cleaning Batumi" source="cleaning" title={t("cl_btn")}>{t("cl_btn")}</LeadButton>
     </div>
   );
 }
