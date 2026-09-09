@@ -98,6 +98,24 @@ export async function deliverLead(lead, listing) {
   return { delivered, errors };
 }
 
+// Досылка недоставленных заявок (до 10 попыток, не старше 3 дней).
+// Вызывается при каждой новой заявке и раз в сутки кроном — на Hobby-тарифе Vercel
+// чаще крон нельзя, а так повтор случается при первом же следующем обращении.
+export async function retryUndelivered(limit = 20) {
+  if (!supa) return { pending: 0, delivered: 0, failed: 0 };
+  const since = new Date(Date.now() - 3 * 864e5).toISOString();
+  const { data: rows } = await supa
+    .from("leads").select("*")
+    .is("notified_at", null).lt("notify_attempts", 10).gte("created_at", since)
+    .order("created_at", { ascending: true }).limit(limit);
+  let delivered = 0, failed = 0;
+  for (const lead of rows || []) {
+    const res = await deliverLead(lead, await listingForLead(lead.listing_id));
+    if (res.delivered > 0) delivered++; else failed++;
+  }
+  return { pending: (rows || []).length, delivered, failed };
+}
+
 // Объявление для заявки — только поля, нужные для ссылки и получателей.
 export async function listingForLead(listingId) {
   if (!supa || !listingId) return null;

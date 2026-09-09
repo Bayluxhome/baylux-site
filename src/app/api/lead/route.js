@@ -6,7 +6,7 @@
 // Сбой Telegram заявку не теряет: она в базе с notify_error, крон дошлёт.
 // Повторное нажатие (тот же телефон + объект за 10 минут) — дубль не создаём.
 import { supa } from "@/lib/supabase";
-import { deliverLead, listingForLead, LEAD_TYPES } from "@/lib/leads";
+import { deliverLead, listingForLead, retryUndelivered, LEAD_TYPES } from "@/lib/leads";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -64,6 +64,10 @@ export async function POST(req) {
     // Уведомление. Его сбой не делает заявку «неотправленной» — она уже в базе.
     const res = await deliverLead(ins, listing);
     if (res.errors.length) console.error("lead notify:", res.errors.join("; "));
+
+    // Заодно досылаем предыдущие недоставленные (кроме только что созданной — она уже обработана).
+    // Ошибки здесь не должны влиять на ответ клиенту.
+    try { await retryUndelivered(10); } catch (e) { console.error("lead retry:", e.message); }
 
     return Response.json({ ok: true, id: ins.id, notified: res.delivered > 0 });
   } catch (e) {
