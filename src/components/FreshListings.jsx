@@ -1,6 +1,7 @@
 "use client";
 import { useState } from "react";
 import PropertyCard from "@/components/PropertyCard";
+import { stripPrivate } from "@/lib/privacy";
 
 // Свежие объекты на главной с постраничным листанием (без перезагрузки страницы).
 export default function FreshListings({ units = [], perPage = 6 }) {
@@ -11,7 +12,7 @@ export default function FreshListings({ units = [], perPage = 6 }) {
   return (
     <>
       <div className="cards three">
-        {slice.map((u) => <PropertyCard key={u.id} unit={u} />)}
+        {slice.map((u) => <PropertyCard key={u.id} unit={stripPrivate(u)} />)}
       </div>
       {pages > 1 && (
         <nav className="pager" aria-label="Свежие объекты — страницы">

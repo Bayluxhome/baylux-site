@@ -266,6 +266,10 @@ function enrichUnit(u) {
   return { ...u, priceNum: pNum, currency, perM2 };
 }
 
+// Очистка от персональных полей перед отправкой в браузер — см. @/lib/privacy (stripPrivate).
+// Здесь она намеренно не объявляется: модуль подключают и клиентские компоненты,
+// а source.js тянет серверный Supabase.
+
 export async function getAllUnits() {
   const bs = await getBuildings();
   return bs

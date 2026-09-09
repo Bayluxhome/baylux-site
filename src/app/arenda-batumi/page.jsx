@@ -2,6 +2,7 @@ import Link from "next/link";
 import PropertyCard from "@/components/PropertyCard";
 import LeadButton from "@/components/LeadButton";
 import { getAllUnits } from "@/data/source";
+import { stripPrivate } from "@/lib/privacy";
 import { getLang } from "@/lib/serverLang";
 import { t as tr } from "@/lib/dict";
 
@@ -80,7 +81,7 @@ export default async function ArendaBatumiPage() {
       ) : (
         <>
           <div className="cards">
-            {shown.map((u) => <PropertyCard key={u.id} unit={u} />)}
+            {shown.map((u) => <PropertyCard key={u.id} unit={stripPrivate(u)} />)}
           </div>
           {units.length > shown.length && (
             <div style={{ marginTop: 22, textAlign: "center" }}>

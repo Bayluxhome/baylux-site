@@ -1,5 +1,6 @@
 import Link from "next/link";
 import PropertyCard from "@/components/PropertyCard";
+import { stripPrivate } from "@/lib/privacy";
 import LeadButton from "@/components/LeadButton";
 import { getLang } from "@/lib/serverLang";
 import { t as tr } from "@/lib/dict";
@@ -56,7 +57,7 @@ export default function SeoLanding({ prefix, slug, units, catalogHref, crumbLk, 
       ) : (
         <>
           <div className="cards">
-            {shown.map((u) => <PropertyCard key={u.id} unit={u} />)}
+            {shown.map((u) => <PropertyCard key={u.id} unit={stripPrivate(u)} />)}
           </div>
           {units.length > shown.length && (
             <div style={{ marginTop: 22, textAlign: "center" }}>

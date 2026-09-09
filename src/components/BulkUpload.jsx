@@ -80,8 +80,22 @@ export default function BulkUpload() {
       if (!String(o.address || "").trim()) problems.push(t("bulk_e_addr"));
       if (!(parseInt(String(o.price || "").replace(/[^\d]/g, ""), 10) || 0)) problems.push(t("bulk_e_price"));
       if (problems.length) errs.push({ id: refId, problems });
-      // Телефон владельца и его Telegram НЕ отправляем — на сайте публикуется номер агентства.
+      // На сайте по-прежнему публикуется номер агентства — публичный контакт не меняется.
+      // Но контакт собственника/риелтора из файла теперь передаём в СЛУЖЕБНЫЕ поля:
+      // он виден только сотрудникам с правами и нужен, чтобы не искать его в отдельной таблице.
+      // Ищем колонку по смыслу имени, а не по точному совпадению: в разных выгрузках
+      // она называется по-разному (phone / tel / контакт / телефон собственника и т.п.).
+      const pick = (re) => {
+        const k = Object.keys(o).find((key) => re.test(key) && String(o[key] || "").trim());
+        return k ? String(o[k]).trim() : "";
+      };
+      const ownerPhone = pick(/^(owner_)?(phone|tel)|тел/i);
+      const ownerName = pick(/owner_name|^owner$|author|^имя|собствен|владел/i);
+      const ownerTg = pick(/tg|telegram|телеграм/i).replace(/^@/, "");
       return {
+        owner_phone: ownerPhone.slice(0, 60),
+        owner_name: ownerName.slice(0, 120),
+        owner_tg_username: ownerTg.slice(0, 60),
         id: refId, deal, type: String(o.type || "Квартира").trim() || "Квартира",
         city: String(o.city || "Батуми").trim() || "Батуми",
         address: String(o.address || "").trim(), complex: String(o.complex || "").trim(),

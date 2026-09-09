@@ -3,6 +3,7 @@ import MapView from "@/components/MapView";
 import PropertyCard from "@/components/PropertyCard";
 import { DEAL_LABEL, CAT_LABEL, GE_CITIES, unitCat, unitIsNew } from "@/data/data";
 import { getAllUnits } from "@/data/source";
+import { stripPrivate } from "@/lib/privacy";
 import { getLang } from "@/lib/serverLang";
 import { t as tr, cityLabel, amenLabel } from "@/lib/dict";
 
@@ -266,7 +267,8 @@ export default async function CatalogPage({ searchParams }) {
         <div className="split">
           <div>
             <div className="cards">
-              {pageUnits.map((u) => <PropertyCard key={u.id} unit={u} />)}
+              {/* stripPrivate — чтобы email и Telegram-id владельца не попадали в HTML страницы */}
+              {pageUnits.map((u) => <PropertyCard key={u.id} unit={stripPrivate(u)} />)}
             </div>
             {totalPages > 1 && (
               <nav className="pager" aria-label="Pagination">

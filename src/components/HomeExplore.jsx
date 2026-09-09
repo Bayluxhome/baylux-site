@@ -4,6 +4,7 @@ import MapView from "./MapView";
 import BuildingCard from "./BuildingCard";
 import PropertyCard from "./PropertyCard";
 import { unitCat, unitIsNew, buildingPriceFrom } from "@/data/data";
+import { stripPrivate } from "@/lib/privacy";
 import { useFilter } from "./FilterContext";
 
 export default function HomeExplore({ buildings }) {
@@ -41,7 +42,7 @@ export default function HomeExplore({ buildings }) {
         {selected ? (
           <>
             <button type="button" className="btn btn-ghost" style={{ marginBottom: 2 }} onClick={() => setSel(null)}>← Все объекты ({filtered.length})</button>
-            {selected.units.map((u) => <PropertyCard key={u.id || u.slug} unit={{ ...u, building: selected, img: u.unit_image || selected.image }} />)}
+            {selected.units.map((u) => <PropertyCard key={u.id || u.slug} unit={{ ...stripPrivate(u), building: selected, img: u.unit_image || selected.image }} />)}
           </>
         ) : filtered.length ? (
           filtered.map((b) => <BuildingCard key={b.slug} building={b} />)

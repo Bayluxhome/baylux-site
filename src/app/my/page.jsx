@@ -97,6 +97,9 @@ export default async function MyPage() {
   }
 
   const ARCHIVE_DAYS = 60;
+  // Кто имеет право видеть контакты собственника: админ либо сотрудник с правом «управление».
+  // Обычный риелтор своих объектов таких данных не получает — они не уходят даже в HTML.
+  const canSeeOwner = admin || canMng;
   const mapItem = (r) => {
     const bn = cleanAddress(r.building_name);
     const freshTs = new Date(r.bumped_at || r.created_at || Date.now()).getTime();
@@ -116,10 +119,15 @@ export default async function MyPage() {
       contract: r.contract_url || "",
       owner: r.owner_email || (r.tg_username ? "@" + r.tg_username : (r.tg_user_id != null ? "tg:" + r.tg_user_id : "")),
       responsible: r.responsible_email || (r.responsible_tg != null ? "tg:" + r.responsible_tg : ""),
-      ownerName: r.owner_name || "",
-      ownerPhone: r.owner_phone || "",
-      ownerEmail: r.owner_contact_email || r.owner_email || "",
-      internalNo: r.internal_no || "",
+      // Контакты собственника — только для админов и сотрудников с правом «управление».
+      // Фильтруем НА СЕРВЕРЕ: если просто спрятать блок в вёрстке, данные всё равно
+      // окажутся в HTML страницы и будут видны обычному пользователю через исходный код.
+      ownerName: canSeeOwner ? (r.owner_name || "") : "",
+      ownerPhone: canSeeOwner ? (r.owner_phone || "") : "",
+      ownerEmail: canSeeOwner ? (r.owner_contact_email || r.owner_email || "") : "",
+      ownerTg: canSeeOwner ? (r.owner_tg_username || "") : "",
+      sourceRef: canSeeOwner ? (r.source_ref || "") : "",
+      internalNo: canSeeOwner ? (r.internal_no || "") : "",
       ...(() => {
         const mgr = (r.responsible_email && mgrByEmail[String(r.responsible_email).toLowerCase()]) || (r.responsible_tg != null && mgrByTg[Number(r.responsible_tg)]) || null;
         return {

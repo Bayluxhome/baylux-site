@@ -2,6 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import PropertyCard from "@/components/PropertyCard";
 import { getRealtorById, getRealtorUnits } from "@/data/realtors";
+import { stripPrivate } from "@/lib/privacy";
 import { getLang } from "@/lib/serverLang";
 import { t as tr } from "@/lib/dict";
 
@@ -51,7 +52,8 @@ export default async function RealtorPage({ params }) {
       <h2 style={{ color: "var(--navy)", fontSize: 20, margin: "28px 0 14px" }}>{t("rl_objects_h")}</h2>
       {units.length ? (
         <div className="cards">
-          {units.map((u) => <PropertyCard key={u.id || u.slug} unit={u} />)}
+          {/* stripPrivate — email и Telegram-id владельца не должны уходить в HTML */}
+          {units.map((u) => <PropertyCard key={u.id || u.slug} unit={stripPrivate(u)} />)}
         </div>
       ) : (
         <p style={{ color: "var(--ink-soft)" }}>{t("rl_no_objects")}</p>

@@ -54,6 +54,8 @@ export default async function AdminPage() {
     return [...set];
   };
 
+  // Контакты собственника видит только сотрудник с правом модерации объявлений.
+  const canSeeOwner = can(session, "moderate");
   const items = rows.map((r) => ({
     id: r.id,
     title: `${r.deal} · ${r.type}`,
@@ -63,6 +65,13 @@ export default async function AdminPage() {
     photo: (Array.isArray(r.photos) && r.photos[0]) || "/placeholder-baylux.jpg",
     slug: r.status === "approved" ? slugify(`${r.building_name}-${r.type || ""}-${r.price || ""}`) : null,
     dupes: dupesOf(r),
+    // Служебные контакты собственника/риелтора (из файла парсинга или внесённые вручную).
+    // Публично не выводятся. Отдаём только тем, у кого есть право модерации, — иначе
+    // данные попали бы в HTML страницы и были бы доступны через исходный код.
+    ownerName: canSeeOwner ? (r.owner_name || "") : "",
+    ownerPhone: canSeeOwner ? (r.owner_phone || "") : "",
+    ownerTg: canSeeOwner ? (r.owner_tg_username || "") : "",
+    sourceRef: canSeeOwner ? (r.source_ref || "") : "",
   }));
 
   const counts = rows.reduce((a, r) => { a[r.status] = (a[r.status] || 0) + 1; return a; }, {});

@@ -183,6 +183,13 @@ export async function POST(req) {
       tg_user_id: session.id ?? null, owner_email: session.email || null,
       // Публикуем номер загрузившего на всех объектах; чужой телефон/Telegram из таблицы не показываем.
       tg_username: "", contact: uploaderPhone, phone: uploaderPhone,
+      // СЛУЖЕБНЫЕ поля: реальный контакт собственника/риелтора из файла парсинга.
+      // На сайте не публикуются — видны только админам и ответственным в кабинете.
+      // source_ref хранит ID строки файла, чтобы позже сверять выгрузку с объявлениями.
+      source_ref: refId !== "?" ? refId : null,
+      owner_name: (r.owner_name || "").toString().trim().slice(0, 120) || null,
+      owner_phone: (r.owner_phone || "").toString().trim().slice(0, 60) || null,
+      owner_tg_username: (r.owner_tg_username || "").toString().trim().replace(/^@/, "").slice(0, 60) || null,
     };
     const { data: ins, error } = await supa.from("listings").insert(row).select("id").single();
     if (error) { errors.push({ id: refId, reason: "БД" }); continue; }

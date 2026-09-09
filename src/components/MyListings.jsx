@@ -84,6 +84,17 @@ export default function MyListings({ items }) {
                   {r.archived && <button className="my-bump" onClick={() => bump(r.id)} disabled={busy === r.id}>{busy === r.id ? t("my_bumping") : t("my_bump")}</button>}
                   <button className="my-del" onClick={() => del(r.id)} disabled={busy === r.id}>{busy === r.id ? t("my_deleting") : t("my_del")}</button>
                 </div>
+                {/* Контакт собственника/риелтора — служебные данные, на сайте не публикуются.
+                    Приходят из файла парсинга или вносятся вручную в форме редактирования. */}
+                {(r.ownerName || r.ownerPhone || r.ownerTg) && (
+                  <div className="my-owner">
+                    <span className="my-owner-lb">{t("mg_owner_contact")}:</span>
+                    {r.ownerName && <span>{r.ownerName}</span>}
+                    {r.ownerPhone && <a href={`tel:${r.ownerPhone}`}>📞 {r.ownerPhone}</a>}
+                    {r.ownerTg && <a href={`https://t.me/${r.ownerTg}`} target="_blank" rel="noopener">@{r.ownerTg}</a>}
+                    {r.sourceRef && <span className="my-owner-ref">#{r.sourceRef}</span>}
+                  </div>
+                )}
               </div>
             </div>
             <div className="my-statuswrap">
