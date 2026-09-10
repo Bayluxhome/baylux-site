@@ -1,21 +1,18 @@
 "use client";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useLang } from "@/components/LangContext";
 import MyListings from "@/components/MyListings";
 import ManagedPanel from "@/components/ManagedPanel";
-import CollectionsList from "@/components/CollectionsList";
 
+// Вкладки раздела «Мои объекты»: свои объявления и объекты в управлении.
+// Подборки и заявки — отдельные разделы кабинета (боковое меню).
 export default function CabinetTabs({ listings, managed, adminView }) {
   const { t } = useLang();
   const [tab, setTab] = useState("mine");
-  // #collections в адресе — сразу открыть вкладку подборок (сюда ведёт панель выбора).
-  // В useEffect, а не в начальном состоянии: иначе серверный и клиентский HTML разошлись бы.
-  useEffect(() => { if (window.location.hash === "#collections") setTab("collections"); }, []);
 
   const TABS = [
     ["mine", t("cab_tab_mine"), listings.length],
     ["managed", t("cab_tab_managed"), managed.length],
-    ["collections", t("cab_tab_collections"), 0],
   ];
 
   return (
@@ -34,11 +31,11 @@ export default function CabinetTabs({ listings, managed, adminView }) {
               borderBottom: `3px solid ${tab === k ? "var(--gold)" : "transparent"}`,
             }}
           >
-            {k === "managed" ? "🏠 " : k === "collections" ? "🗂 " : ""}{label}{n ? ` · ${n}` : ""}
+            {k === "managed" ? "🏠 " : ""}{label}{n ? ` · ${n}` : ""}
           </button>
         ))}
       </div>
-      {tab === "mine" ? <MyListings items={listings} /> : tab === "collections" ? <CollectionsList /> : <ManagedPanel items={managed} adminView={adminView} />}
+      {tab === "mine" ? <MyListings items={listings} /> : <ManagedPanel items={managed} adminView={adminView} />}
     </div>
   );
 }

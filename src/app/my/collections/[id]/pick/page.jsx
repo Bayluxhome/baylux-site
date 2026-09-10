@@ -19,7 +19,7 @@ export default async function PickPage({ params }) {
     return (
       <div className="wrap" style={{ padding: "48px 24px", maxWidth: 560 }}>
         <h1 style={{ color: "var(--navy)" }}>{t("col_unavailable_h")}</h1>
-        <a className="btn btn-gold" href="/my#collections" style={{ display: "inline-flex", marginTop: 18 }}>{t("col_done")}</a>
+        <a className="btn btn-gold" href="/my/collections" style={{ display: "inline-flex", marginTop: 18 }}>{t("col_done")}</a>
       </div>
     );
   }

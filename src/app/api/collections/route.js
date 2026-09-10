@@ -10,6 +10,7 @@ import { cookies } from "next/headers";
 import { verifySession } from "@/lib/session";
 import { supa } from "@/lib/supabase";
 import { listMine, getById, isOwner, newToken, normClient, itemSnapshot, pickableUnits, MAX_ITEMS } from "@/lib/collections";
+import { getClient, ownsClient } from "@/lib/clients";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -65,6 +66,11 @@ export async function POST(req) {
       owner_tg: session.id != null ? session.id : null,
       items: [],
     };
+    // Привязка к карточке клиента — только если клиент принадлежит текущему пользователю.
+    if (b.client_id) {
+      const cl = await getClient(String(b.client_id));
+      if (cl && ownsClient(session, cl)) row.client_id = cl.id;
+    }
     const { data, error } = await supa.from("collections").insert(row).select("*").single();
     if (error || !data) return Response.json({ ok: false, error: "db" }, { status: 500 });
     return Response.json({ ok: true, item: pub(data) });

@@ -1,198 +1,70 @@
 import Link from "next/link";
 import { cookies } from "next/headers";
-import { verifySession, isAdmin, can, isResponsible } from "@/lib/session";
-import { supa, fetchAll } from "@/lib/supabase";
-import { slugify, cleanAddress } from "@/data/sheet";
+import { verifySession } from "@/lib/session";
 import LoginBlock from "@/components/LoginBlock";
-import CabinetTabs from "@/components/CabinetTabs";
 import CabinetDashboard from "@/components/CabinetDashboard";
-import { getLeadsFor, getViewsFor, buildSeries } from "@/data/cabinet";
-import DataRights from "@/components/DataRights";
-import RealtorPanel from "@/components/RealtorPanel";
+import { loadCabinet } from "@/data/cabinetLoad";
+import { listClients } from "@/lib/clients";
 import { getLang } from "@/lib/serverLang";
-import { t as tr, typeLabel } from "@/lib/dict";
+import { t as tr } from "@/lib/dict";
 
 export const dynamic = "force-dynamic";
-export const metadata = { title: "Личный кабинет" };
+export const metadata = { title: "Личный кабинет", robots: { index: false, follow: false } };
 
+// Рабочий стол кабинета (задача №06, этап 1): показатели, «Требуют обновления», обращения,
+// аналитика — и сводка по клиентам с ближайшими действиями. Разделы — в боковом меню.
 export default async function MyPage() {
   const lang = getLang();
   const t = (k) => tr(lang, k);
-  const token = cookies().get("bx_session")?.value;
-  const session = verifySession(token);
+  const session = verifySession(cookies().get("bx_session")?.value);
 
   if (!session) {
     return (
       <div className="wrap" style={{ padding: "48px 24px", maxWidth: 560 }}>
         <h1 style={{ color: "var(--navy)" }}>{t("cab_title")}</h1>
-        <p style={{ color: "var(--ink-soft)", margin: "12px 0 22px", lineHeight: 1.6 }}>
-          {t("cab_login_p")}
-        </p>
+        <p style={{ color: "var(--ink-soft)", margin: "12px 0 22px", lineHeight: 1.6 }}>{t("cab_login_p")}</p>
         <LoginBlock />
-        <p style={{ color: "var(--ink-soft)", fontSize: 13, marginTop: 22 }}>
-          {t("cab_bot_a")} <b>@baylux_leads_bot</b> {t("cab_bot_b")}
-        </p>
+        <p style={{ color: "var(--ink-soft)", fontSize: 13, marginTop: 22 }}>{t("cab_bot_a")} <b>@baylux_leads_bot</b> {t("cab_bot_b")}</p>
       </div>
     );
   }
 
-  const admin = isAdmin(session);
-  const canMng = can(session, "managed"); // право «Объекты в управлении» — видеть все
-  let rows = [];
-  let realtor = null;
-  let managedRows = [];
-  let msgsByListing = {};
-  let reportsByListing = {};
-  let summaryByListing = {};
-  let mgrByEmail = {};
-  let mgrByTg = {};
-  if (supa) {
-    // fetchAll: у аккаунта bayluxhome 2000+ объявлений от парсера — обычная выборка отдала бы 1000.
-    rows = await fetchAll("listings", "*", (q) =>
-      (session.id != null ? q.eq("tg_user_id", session.id) : q.eq("owner_email", session.email)).order("created_at", { ascending: false }));
-
-    let rq = supa.from("realtors").select("*");
-    rq = session.id != null ? rq.eq("tg_user_id", session.id) : rq.eq("email", session.email);
-    const { data: rd } = await rq.maybeSingle();
-    realtor = rd || null;
-
-    // Объекты в управлении: право managed видит ВСЕ; ответственный — назначенные ему; владелец — свои.
-    if (canMng) {
-      managedRows = await fetchAll("listings", "*", (q) => q.eq("managed_by_baylux", true).order("created_at", { ascending: false }));
-    } else {
-      const ownManaged = rows.filter((r) => r.managed_by_baylux);
-      let mq = supa.from("listings").select("*").eq("managed_by_baylux", true);
-      mq = session.id != null ? mq.eq("responsible_tg", session.id) : mq.eq("responsible_email", session.email);
-      const { data: rdm } = await mq;
-      const seen = new Set(ownManaged.map((r) => r.id));
-      managedRows = [...ownManaged, ...(rdm || []).filter((r) => !seen.has(r.id))];
-    }
-    // Контакты ответственных менеджеров (для блока «Ваш менеджер» у владельца).
-    if (managedRows.length) {
-      const emails = [...new Set(managedRows.map((r) => r.responsible_email).filter(Boolean).map((e) => e.toLowerCase()))];
-      const tgs = [...new Set(managedRows.map((r) => r.responsible_tg).filter((v) => v != null).map(Number))];
-      const collect = (arr) => (arr || []).forEach((u) => {
-        if (u.email) mgrByEmail[u.email.toLowerCase()] = u;
-        if (u.tg_user_id != null) mgrByTg[Number(u.tg_user_id)] = u;
-      });
-      if (emails.length) { const { data } = await supa.from("site_users").select("name, phone, email, username, tg_user_id").in("email", emails); collect(data); }
-      if (tgs.length) { const { data } = await supa.from("site_users").select("name, phone, email, username, tg_user_id").in("tg_user_id", tgs); collect(data); }
-    }
-    // Сообщения собственнику по управляемым объектам.
-    if (managedRows.length) {
-      const ids = managedRows.map((r) => String(r.id));
-      const { data: msgs } = await supa.from("owner_messages").select("*").in("listing_id", ids).order("created_at", { ascending: false });
-      (msgs || []).forEach((m) => { (msgsByListing[m.listing_id] = msgsByListing[m.listing_id] || []).push({ id: m.id, body: m.body, at: m.created_at }); });
-      const { data: reps } = await supa.from("photo_reports").select("*").in("listing_id", ids).order("created_at", { ascending: false });
-      (reps || []).forEach((p) => { (reportsByListing[p.listing_id] = reportsByListing[p.listing_id] || []).push({ id: p.id, photos: Array.isArray(p.photos) ? p.photos : [], note: p.note || "", at: p.created_at }); });
-      const { data: sum } = await supa.from("management_reports").select("*").in("listing_id", ids).order("period", { ascending: false });
-      (sum || []).forEach((m) => {
-        const d = (summaryByListing[m.listing_id] = summaryByListing[m.listing_id] || { data: {}, periods: [] });
-        d.data[m.period] = { income: m.income, payout: m.payout, commission: m.commission, utilities: m.utilities, expenses: m.expenses, note: m.note };
-        if (!d.periods.includes(m.period)) d.periods.push(m.period);
-      });
-    }
-  }
-
-  const ARCHIVE_DAYS = 60;
-  // Кто имеет право видеть контакты собственника: админ либо сотрудник с правом «управление».
-  // Обычный риелтор своих объектов таких данных не получает — они не уходят даже в HTML.
-  const canSeeOwner = admin || canMng;
-  const mapItem = (r) => {
-    const bn = cleanAddress(r.building_name);
-    const freshTs = new Date(r.bumped_at || r.created_at || Date.now()).getTime();
-    const ageDays = (Date.now() - freshTs) / 864e5;
-    const archived = !r.managed_by_baylux && r.status === "approved" && ageDays >= ARCHIVE_DAYS;
-    const daysLeft = (r.managed_by_baylux || r.status !== "approved") ? null : Math.max(0, Math.ceil(ARCHIVE_DAYS - ageDays));
-    return {
-      id: r.id,
-      archived,
-      daysLeft,
-      title: `${t("deal_" + r.deal)} · ${typeLabel(lang, r.type)}`,
-      sub: `${bn} · ${r.price}${r.area ? ` · ${r.area} м²` : ""}`,
-      status: r.status,
-      photo: (Array.isArray(r.photos) && r.photos[0]) || "/placeholder-baylux.jpg",
-      slug: r.status === "approved" ? slugify(`${bn}-${r.type || ""}-${r.price || ""}`) : null,
-      managed: !!r.managed_by_baylux,
-      contract: r.contract_url || "",
-      // Email владельца и ответственного — тоже персональные данные: только тем, кто видит контакты.
-      owner: canSeeOwner ? (r.owner_email || (r.tg_username ? "@" + r.tg_username : (r.tg_user_id != null ? "tg:" + r.tg_user_id : ""))) : "",
-      responsible: canSeeOwner ? (r.responsible_email || (r.responsible_tg != null ? "tg:" + r.responsible_tg : "")) : "",
-      // Контакты собственника — только для админов и сотрудников с правом «управление».
-      // Фильтруем НА СЕРВЕРЕ: если просто спрятать блок в вёрстке, данные всё равно
-      // окажутся в HTML страницы и будут видны обычному пользователю через исходный код.
-      ownerName: canSeeOwner ? (r.owner_name || "") : "",
-      ownerPhone: canSeeOwner ? (r.owner_phone || "") : "",
-      ownerEmail: canSeeOwner ? (r.owner_contact_email || r.owner_email || "") : "",
-      ownerTg: canSeeOwner ? (r.owner_tg_username || "") : "",
-      sourceRef: canSeeOwner ? (r.source_ref || "") : "",
-      sourceUrl: canSeeOwner ? (r.source_url || "") : "",
-      internalNo: canSeeOwner ? (r.internal_no || "") : "",
-      ...(() => {
-        const mgr = (r.responsible_email && mgrByEmail[String(r.responsible_email).toLowerCase()]) || (r.responsible_tg != null && mgrByTg[Number(r.responsible_tg)]) || null;
-        return {
-          managerName: mgr?.name || "",
-          managerPhone: mgr?.phone || "",
-          managerEmail: mgr?.email || r.responsible_email || "",
-          managerTg: mgr?.username ? "@" + mgr.username : "",
-        };
-      })(),
-      canManage: canMng || isResponsible(session, r),
-      messages: msgsByListing[String(r.id)] || [],
-      reports: reportsByListing[String(r.id)] || [],
-      reportData: (summaryByListing[String(r.id)] || {}).data || {},
-      periods: (summaryByListing[String(r.id)] || {}).periods || [],
-    };
-  };
-  const ownItems = rows.map(mapItem).filter((x) => !x.managed);
-  const managedItems = managedRows.map(mapItem);
-
-  // --- Данные дашборда: метрики, объекты с истекающей актуальностью, обращения, график ---
-  const allItems = [...ownItems, ...managedItems];
-  const leadsRaw = await getLeadsFor(session);
-  // Ссылка на объект для каждой заявки: подтягиваем slug по listing_id одним запросом.
-  const leadIds = [...new Set(leadsRaw.map((l) => l.listing_id).filter(Boolean))];
-  const slugById = {};
-  if (supa && leadIds.length) {
-    const { data: ls } = await supa.from("listings").select("id, building_name, type, price, status").in("id", leadIds.slice(0, 200));
-    (ls || []).forEach((l) => { if (l.status === "approved") slugById[l.id] = slugify(`${cleanAddress(l.building_name)}-${l.type || ""}-${l.price || ""}`); });
-  }
-  const leads = leadsRaw.map((l) => ({ ...l, listing_slug: slugById[l.listing_id] || "" }));
-  const views = await getViewsFor(allItems.map((x) => String(x.id)));
-  const series = buildSeries(views.byDay, leads);
-  // «Требуют обновления» — опубликованные объекты, которым до архива осталось меньше трети срока.
-  const stale = allItems
-    .filter((x) => x.status === "approved" && x.daysLeft != null && x.daysLeft <= 20)
-    .sort((a, b) => a.daysLeft - b.daysLeft)
-    .slice(0, 5)
-    .map((x) => ({ id: x.id, title: x.title, sub: x.sub, photo: x.photo, daysLeft: x.daysLeft }));
-  const dashStats = {
-    active: allItems.filter((x) => x.status === "approved" && !x.archived).length,
-    stale: allItems.filter((x) => x.status === "approved" && x.daysLeft != null && x.daysLeft <= 20).length,
-    views: views.total,
-    leadsNew: leads.filter((l) => l.status === "new").length,
-    leadsTotal: leads.length,
-  };
+  const d = await loadCabinet(session, lang);
+  const clients = await listClients(session);
+  const today = new Date(); today.setHours(23, 59, 59, 999);
+  const due = clients.filter((c) => c.next_action_at && new Date(c.next_action_at) <= today && !["won", "lost"].includes(c.stage))
+    .sort((a, b) => new Date(a.next_action_at) - new Date(b.next_action_at)).slice(0, 6);
+  const fmt = (iso) => { try { return new Date(iso).toLocaleString(lang === "ka" ? "ka-GE" : lang === "en" ? "en-GB" : "ru-RU", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" }); } catch { return ""; } };
 
   return (
-    <div className="wrap" style={{ paddingBlock: "30px 50px" }}>
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 12, flexWrap: "wrap" }}>
-        <h1 style={{ color: "var(--navy)" }}>{t("my_title")}</h1>
+    <div>
+      <div className="cabsh-head">
+        <div>
+          <h1>{t("cab_nav_dash")}</h1>
+          <p>{session.name ? session.name + " — " : ""}{t("cab_objs")} ({d.rows.length}). {t("cab_addnew")}</p>
+        </div>
         <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-          <a className="btn btn-gold" href="/add-holiday" style={{ padding: "9px 16px" }}>🏠 {t("cab_hh_btn")}</a>
-          <a className="btn btn-ghost" href="/my/bulk" style={{ padding: "9px 16px" }}>{t("cab_bulk")}</a>
-          {(canMng || managedItems.length > 0) && <a className="btn btn-ghost" href="/admin/reports" style={{ padding: "9px 16px" }}>📊 {t("adm_reports_btn")}</a>}
-          {isAdmin(session) && <a className="btn btn-gold" href="/admin" style={{ padding: "9px 16px" }}>⚙️ Админка</a>}
-          <a className="btn btn-ghost" href="/api/tg-logout" style={{ padding: "9px 16px" }}>{t("my_logout")}</a>
+          <Link className="btn btn-gold" href="/add-holiday">🏠 {t("cab_hh_btn")}</Link>
+          <Link className="btn btn-ghost" href="/my/bulk">{t("cab_bulk")}</Link>
+          {(d.canMng || d.managedItems.length > 0) && <Link className="btn btn-ghost" href="/admin/reports">📊 {t("adm_reports_btn")}</Link>}
         </div>
       </div>
-      <p style={{ color: "var(--ink-soft)", margin: "6px 0 20px" }}>
-        {session.name ? session.name + " — " : ""}{t("cab_objs")} ({rows.length}). {t("cab_addnew")}
-      </p>
-      <CabinetDashboard stats={dashStats} stale={stale} leads={leads} series={series} />
-      <CabinetTabs listings={ownItems} managed={managedItems} adminView={canMng} />
-      <RealtorPanel initial={realtor} />
-      <DataRights />
+
+      <CabinetDashboard stats={d.dashStats} stale={d.stale} leads={d.leads} series={d.series} />
+
+      <div className="cab-card" style={{ marginTop: 16 }}>
+        <div className="cab-h"><h2>{t("cl_today_h")}</h2><Link className="cab-ed" href="/my/clients">{t("cl_all")} →</Link></div>
+        {due.length === 0 ? <p className="cab-empty">{clients.length ? t("cl_today_empty") : t("cl_empty")}</p> : due.map((c) => (
+          <div className="cab-lead" key={c.id}>
+            <div className="cab-av">{(c.name || "?").slice(0, 1).toUpperCase()}</div>
+            <div style={{ minWidth: 0 }}>
+              <div className="cab-nm"><Link href={`/my/clients/${c.id}`} style={{ color: "var(--navy)" }}>{c.name}</Link></div>
+              <div className="cab-ds">{c.next_action || "—"}</div>
+            </div>
+            <div className="cab-rt"><div className="cab-tm">{fmt(c.next_action_at)}</div><span className="cab-tag cab-tag-soft">{t("cl_stage_" + c.stage)}</span></div>
+          </div>
+        ))}
+      </div>
     </div>
   );
 }

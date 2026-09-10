@@ -4,7 +4,6 @@
 import { randomBytes } from "crypto";
 import { supa } from "@/lib/supabase";
 import { isSuperAdmin } from "@/lib/session";
-import { ADMIN_EMAILS } from "@/config";
 import { getAllUnitsRaw } from "@/data/source";
 import { stripPrivate } from "@/lib/privacy";
 
@@ -61,19 +60,17 @@ export function itemSnapshot(u) {
   return { id: String(u.id), slug: u.slug, title: `${u.type || ""}${u.area ? `, ${u.area} м²` : ""} — ${u.building?.name || ""}`.trim() };
 }
 
-// --- Какие объекты риелтор может класть в подборку (правило согласовано 10.09.2026) ---
-// Свои объявления (автор = текущая сессия: owner_email или tg_user_id) + инвентарь Baylux
-// (объявления служебного аккаунта парсера). Чужие объявления других риелторов — нельзя.
+// --- Какие объекты риелтор может класть в подборку (правило подтверждено 10.09.2026) ---
+// ТОЛЬКО собственные объявления (автор = текущая сессия: owner_email или tg_user_id).
+// Объявления парсера (служебный аккаунт Baylux) и других риелторов — нельзя.
 // Супер-админ — любые. «Принадлежность» = авторство объявления (owner_email / tg_user_id),
 // а не ответственность за объект в управлении (responsible_*) — это другая связь.
-const BAYLUX_EMAILS = new Set(ADMIN_EMAILS.map((e) => e.toLowerCase()));
 export function canPick(session, raw) {
   if (!session || !raw) return false;
   if (isSuperAdmin(session)) return true;
   const em = String(raw.owner_email || "").toLowerCase();
   if (session.email && em && em === String(session.email).toLowerCase()) return true;
   if (session.id != null && raw.tg_user_id != null && String(raw.tg_user_id) === String(session.id)) return true;
-  if (BAYLUX_EMAILS.has(em) || raw.tg_username === "bayluxhome") return true; // инвентарь компании
   return false;
 }
 

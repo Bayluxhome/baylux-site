@@ -54,7 +54,7 @@ export default function CollectionPicker({ id }) {
       const j = await r.json();
       if (!j.ok) throw new Error(j.error);
       if (j.rejected) setMsg(t("col_pick_rejected").replace("{n}", j.rejected));
-      router.push("/my#collections");
+      router.push("/my/collections");
     } catch {
       // Выбор не теряется: остаёмся на экране с теми же галочками.
       setState("ready"); setMsg(t("col_pick_save_err"));
@@ -67,7 +67,7 @@ export default function CollectionPicker({ id }) {
 
   return (
     <div>
-      <a href="/my#collections" className="btn btn-ghost" style={{ padding: "8px 14px" }}>← {t("col_done")}</a>
+      <a href="/my/collections" className="btn btn-ghost" style={{ padding: "8px 14px" }}>← {t("col_done")}</a>
       <h1 style={{ color: "var(--navy)", margin: "16px 0 4px" }}>{t("col_pick_h")}</h1>
       {coll && <p style={{ color: "var(--ink-soft)", margin: "0 0 16px" }}>{coll.title || t("col_untitled")}{coll.client_name ? ` · ${coll.client_name}` : ""}{added.length ? ` · ${t("col_pick_already").replace("{n}", added.length)}` : ""}</p>}
 
