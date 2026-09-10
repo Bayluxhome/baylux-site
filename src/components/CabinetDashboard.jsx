@@ -5,7 +5,7 @@ import { useLang } from "@/components/LangContext";
 
 // Дашборд кабинета: метрики, объекты с истекающей актуальностью, обращения и график.
 // Данные реальные: просмотры — из listing_views, обращения — из leads (sql/017).
-export default function CabinetDashboard({ stats, stale: staleInit, leads, series }) {
+export default function CabinetDashboard({ stats, stale: staleInit, leads, series, objects = [] }) {
   const { t } = useLang();
   const [stale, setStale] = useState(staleInit || []);
   const [busy, setBusy] = useState(null);
@@ -75,6 +75,13 @@ export default function CabinetDashboard({ stats, stale: staleInit, leads, serie
 
       <div className="cab-grid">
         <div>
+          {/* «Требуют обновления»: если пусто — явное состояние «всё актуально», а не отсутствие блока */}
+          {stale.length === 0 && (
+            <div className="cab-card">
+              <div className="cab-h"><h2>{t("cab_stale_h")}</h2></div>
+              <p className="cab-empty">{stats.active > 0 ? t("cab_stale_ok") : t("cab_objects_empty")}</p>
+            </div>
+          )}
           {stale.length > 0 && (
             <div className="cab-card">
               <div className="cab-h"><h2>{t("cab_stale_h")}</h2></div>
@@ -103,11 +110,36 @@ export default function CabinetDashboard({ stats, stale: staleInit, leads, serie
               ))}
             </div>
           )}
+
+          {/* «Мои объекты» — первые шесть с фото, характеристиками, статусом; остальное — в разделе */}
+          <div className="cab-card">
+            <div className="cab-h"><h2>{t("cab_nav_objects")}</h2><Link className="cab-ed" href="/my/objects">{t("cab_all_objects")} →</Link></div>
+            {objects.length === 0 ? (
+              <div className="cab-empty-box">
+                <p className="cab-empty">{t("cab_objects_empty")}</p>
+                <p className="cab-sub">{t("cab_objects_empty_p")}</p>
+                <Link className="btn btn-gold" href="/add">＋ {t("cab_nav_add")}</Link>
+              </div>
+            ) : objects.slice(0, 6).map((o) => (
+              <div className="cab-upd" key={o.id}>
+                <img className="cab-ph" src={o.photo} alt="" />
+                <div className="cab-in">
+                  <div className="cab-nm">{o.title}</div>
+                  <div className="cab-ds">{o.sub}</div>
+                  <span className={"cab-tag" + (o.status === "approved" ? " cab-tag-soft" : "")}>{t("my_" + (o.status || "pending"))}</span>
+                </div>
+                <div className="cab-acts">
+                  {o.slug && <Link className="cab-ed" href={`/property/${o.slug}`}>{t("my_view")}</Link>}
+                  <Link className="cab-ed" href={`/my/edit/${o.id}`}>{t("cab_edit")}</Link>
+                </div>
+              </div>
+            ))}
+          </div>
         </div>
 
         <div>
           <div className="cab-card">
-            <div className="cab-h"><h2>{t("cab_leads_h")}</h2></div>
+            <div className="cab-h"><h2>{t("cab_leads_h")}</h2><Link className="cab-ed" href="/my/leads">{t("cl_all_leads")} →</Link></div>
             {leadList.length ? leadList.slice(0, 8).map((l) => (
               <div className="cab-lead" key={l.id} style={l.status === "done" ? { opacity: 0.55 } : undefined}>
                 <div className="cab-av">{(l.name || "?").slice(0, 1).toUpperCase()}</div>

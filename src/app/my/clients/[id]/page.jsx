@@ -3,6 +3,7 @@ import { redirect, notFound } from "next/navigation";
 import { verifySession } from "@/lib/session";
 import { supa } from "@/lib/supabase";
 import { getClient, ownsClient, pubClient, seesAll } from "@/lib/clients";
+import { getRole, canCrm } from "@/lib/roles";
 import { slugify, cleanAddress } from "@/data/sheet";
 import ClientCard from "@/components/ClientCard";
 import { getLang } from "@/lib/serverLang";
@@ -15,6 +16,7 @@ export default async function ClientPage({ params }) {
   const lang = getLang();
   const session = verifySession(cookies().get("bx_session")?.value);
   if (!session) redirect("/my");
+  if (!canCrm(await getRole(session))) redirect("/my");
   const c = await getClient(params.id);
   if (!c || !ownsClient(session, c)) notFound();
 

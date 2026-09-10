@@ -9,6 +9,7 @@ import { cookies } from "next/headers";
 import { verifySession } from "@/lib/session";
 import { supa } from "@/lib/supabase";
 import { listClients, getClient, ownsClient, normClientFields, pubClient, seesAll } from "@/lib/clients";
+import { getRole, canCrm } from "@/lib/roles";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -18,6 +19,7 @@ const who = (s) => s.email || (s.id != null ? `tg:${s.id}` : "?");
 export async function GET() {
   const session = verifySession(cookies().get("bx_session")?.value);
   if (!session) return Response.json({ ok: false, error: "unauthorized" }, { status: 401 });
+  if (!canCrm(await getRole(session))) return Response.json({ ok: false, error: "forbidden" }, { status: 403 }); // CRM — только риелтор/сотрудник
   const list = await listClients(session);
   return Response.json({ ok: true, list: list.map(pubClient), seesAll: seesAll(session) });
 }
@@ -25,6 +27,7 @@ export async function GET() {
 export async function POST(req) {
   const session = verifySession(cookies().get("bx_session")?.value);
   if (!session) return Response.json({ ok: false, error: "unauthorized" }, { status: 401 });
+  if (!canCrm(await getRole(session))) return Response.json({ ok: false, error: "forbidden" }, { status: 403 }); // CRM — только риелтор/сотрудник
   if (!supa) return Response.json({ ok: false, error: "not_configured" }, { status: 503 });
   const b = await req.json().catch(() => ({}));
   const action = String(b.action || "");

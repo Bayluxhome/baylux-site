@@ -1,6 +1,7 @@
 import { cookies } from "next/headers";
 import { verifySession } from "@/lib/session";
 import { getById, isOwner } from "@/lib/collections";
+import { getRole, canCrm } from "@/lib/roles";
 import CollectionPicker from "@/components/CollectionPicker";
 import { getLang } from "@/lib/serverLang";
 import { t as tr } from "@/lib/dict";
@@ -14,7 +15,7 @@ export default async function PickPage({ params }) {
   const lang = getLang();
   const t = (k) => tr(lang, k);
   const session = verifySession(cookies().get("bx_session")?.value);
-  const c = session ? await getById(params.id) : null;
+  const c = session && canCrm(await getRole(session)) ? await getById(params.id) : null;
   if (!c || !isOwner(session, c)) {
     return (
       <div className="wrap" style={{ padding: "48px 24px", maxWidth: 560 }}>

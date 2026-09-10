@@ -5,6 +5,7 @@ import LoginBlock from "@/components/LoginBlock";
 import CabinetDashboard from "@/components/CabinetDashboard";
 import { loadCabinet } from "@/data/cabinetLoad";
 import { listClients } from "@/lib/clients";
+import { getRole, canCrm } from "@/lib/roles";
 import { getLang } from "@/lib/serverLang";
 import { t as tr } from "@/lib/dict";
 
@@ -30,10 +31,13 @@ export default async function MyPage() {
   }
 
   const d = await loadCabinet(session, lang);
-  const clients = await listClients(session);
+  // Блок клиентов — только риелтору/сотруднику; обычный пользователь CRM не видит (и API ему её не отдаст).
+  const crm = canCrm(await getRole(session));
+  const clients = crm ? await listClients(session) : [];
   const today = new Date(); today.setHours(23, 59, 59, 999);
   const due = clients.filter((c) => c.next_action_at && new Date(c.next_action_at) <= today && !["won", "lost"].includes(c.stage))
     .sort((a, b) => new Date(a.next_action_at) - new Date(b.next_action_at)).slice(0, 6);
+  const objects = d.ownItems.map((o) => ({ id: o.id, title: o.title, sub: o.sub, photo: o.photo, status: o.status, slug: o.slug }));
   const fmt = (iso) => { try { return new Date(iso).toLocaleString(lang === "ka" ? "ka-GE" : lang === "en" ? "en-GB" : "ru-RU", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" }); } catch { return ""; } };
 
   return (
@@ -50,9 +54,9 @@ export default async function MyPage() {
         </div>
       </div>
 
-      <CabinetDashboard stats={d.dashStats} stale={d.stale} leads={d.leads} series={d.series} />
+      <CabinetDashboard stats={d.dashStats} stale={d.stale} leads={d.leads} series={d.series} objects={objects.slice(0, 6)} />
 
-      <div className="cab-card" style={{ marginTop: 16 }}>
+      {crm && <div className="cab-card" style={{ marginTop: 16 }}>
         <div className="cab-h"><h2>{t("cl_today_h")}</h2><Link className="cab-ed" href="/my/clients">{t("cl_all")} →</Link></div>
         {due.length === 0 ? <p className="cab-empty">{clients.length ? t("cl_today_empty") : t("cl_empty")}</p> : due.map((c) => (
           <div className="cab-lead" key={c.id}>
@@ -64,7 +68,7 @@ export default async function MyPage() {
             <div className="cab-rt"><div className="cab-tm">{fmt(c.next_action_at)}</div><span className="cab-tag cab-tag-soft">{t("cl_stage_" + c.stage)}</span></div>
           </div>
         ))}
-      </div>
+      </div>}
     </div>
   );
 }

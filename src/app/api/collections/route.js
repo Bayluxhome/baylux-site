@@ -11,6 +11,7 @@ import { verifySession } from "@/lib/session";
 import { supa } from "@/lib/supabase";
 import { listMine, getById, isOwner, newToken, normClient, itemSnapshot, pickableUnits, MAX_ITEMS } from "@/lib/collections";
 import { getClient, ownsClient } from "@/lib/clients";
+import { getRole, canCrm } from "@/lib/roles";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -34,6 +35,7 @@ const pickRow = (u) => ({
 export async function GET(req) {
   const session = verifySession(cookies().get("bx_session")?.value);
   if (!session) return Response.json({ ok: false, error: "unauthorized" }, { status: 401 });
+  if (!canCrm(await getRole(session))) return Response.json({ ok: false, error: "forbidden" }, { status: 403 }); // подборки — только риелтор/сотрудник
   const pickFor = new URL(req.url).searchParams.get("pick");
   if (pickFor) {
     const c = await getById(pickFor);
@@ -50,6 +52,7 @@ export async function GET(req) {
 export async function POST(req) {
   const session = verifySession(cookies().get("bx_session")?.value);
   if (!session) return Response.json({ ok: false, error: "unauthorized" }, { status: 401 });
+  if (!canCrm(await getRole(session))) return Response.json({ ok: false, error: "forbidden" }, { status: 403 }); // подборки — только риелтор/сотрудник
   if (!supa) return Response.json({ ok: false, error: "not_configured" }, { status: 503 });
   const b = await req.json().catch(() => ({}));
   const action = String(b.action || "");

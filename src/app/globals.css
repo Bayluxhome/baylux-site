@@ -559,6 +559,9 @@ a.realtor-card:hover{box-shadow:0 8px 24px rgba(1,39,80,.08);transform:translate
 .cabsh-brand{font-weight:900;letter-spacing:.12em;font-size:18px}
 .cabsh-brand span{display:block;font-size:10px;letter-spacing:.35em;color:var(--gold);font-weight:700}
 .cabsh-user{font-size:13px;color:rgba(255,255,255,.7);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cabsh-role{font-size:11px;color:var(--gold);text-transform:uppercase;letter-spacing:.08em;margin-top:2px}
+.cab-empty-box{display:flex;flex-direction:column;align-items:flex-start;gap:6px;padding:6px 0}
+.cab-empty-box .btn{margin-top:6px}
 .cabsh-nav{display:flex;flex-direction:column;gap:4px;margin-top:6px}
 .cabsh-nav a{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:10px;color:rgba(255,255,255,.82);font-weight:600;font-size:14px;text-decoration:none}
 .cabsh-nav a:hover{background:rgba(255,255,255,.08);color:#fff}
