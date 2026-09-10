@@ -4,6 +4,7 @@ import { fetchSheet, slugify, cleanAddress, cleanDesc } from "./sheet";
 import { supa } from "@/lib/supabase";
 import { stripPrivateBuilding } from "@/lib/privacy";
 import { cache } from "react";
+import { unstable_cache } from "next/cache";
 
 const KIND_COMPLEX = /жк|новострой|комплекс|complex/i;
 
@@ -271,18 +272,21 @@ export async function getBuildingsList() {
 
 // Реальное число объектов по городам (для меню выбора города в шапке) — считается из того,
 // что фактически на сайте, и меняется при публикации/удалении.
-export async function getCityCounts() {
-  try {
-    const buildings = await getBuildings();
-    const counts = {};
-    for (const b of buildings) {
-      const d = b.district || "Батуми";
-      counts[d] = (counts[d] || 0) + b.units.length;
-    }
-    return counts;
-  } catch (e) {
-    return null;
+// Счётчики нужны в шапке КАЖДОЙ страницы. Это крошечный объект, поэтому его держим в кэше
+// Vercel (unstable_cache, 5 минут): текстовые страницы («О компании», «Политика») больше
+// не собирают всю базу даже на холодном инстансе — им достаточно этих 30 чисел.
+const cityCountsCached = unstable_cache(async () => {
+  const buildings = await getBuildings();
+  const counts = {};
+  for (const b of buildings) {
+    const d = b.district || "Батуми";
+    counts[d] = (counts[d] || 0) + b.units.length;
   }
+  return counts;
+}, ["city-counts-v1"], { revalidate: 300, tags: ["city-counts"] });
+
+export async function getCityCounts() {
+  try { return await cityCountsCached(); } catch (e) { return null; }
 }
 
 // Доп. обогащение цены (для локальных/сторонних данных без price_num)
