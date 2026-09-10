@@ -2,7 +2,6 @@ import "./globals.css";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import LeadModal from "@/components/LeadModal";
-import CollectionPanel from "@/components/CollectionPanel";
 import CookieConsent from "@/components/CookieConsent";
 import AnalyticsConsent from "@/components/AnalyticsConsent";
 import GoogleAnalytics from "@/components/GoogleAnalytics";
@@ -96,7 +95,6 @@ export default async function RootLayout({ children }) {
             <main>{children}</main>
             <Footer />
             <LeadModal />
-            <CollectionPanel />
             <CookieConsent />
             <AnalyticsConsent />
             <GoogleAnalytics />

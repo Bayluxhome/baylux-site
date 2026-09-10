@@ -1,8 +1,8 @@
 "use client";
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useLang } from "@/components/LangContext";
-import { writeActive, toActive, useActiveCollection } from "@/components/CollectionActive";
 import { SITE_URL } from "@/config";
 
 // Подборки для клиентов в кабинете (задача №07): создать, выбрать объекты (через панель),
@@ -15,7 +15,7 @@ async function api(body) {
 
 export default function CollectionsList() {
   const { t } = useLang();
-  const active = useActiveCollection();
+  const router = useRouter();
   const [list, setList] = useState(null);
   const [form, setForm] = useState({ title: "", client_name: "", client_phone: "", client_tg: "" });
   const [busy, setBusy] = useState("");
@@ -32,21 +32,27 @@ export default function CollectionsList() {
     if (!form.title.trim() && !form.client_name.trim()) return;
     setBusy("create");
     const j = await api({ action: "create", ...form });
-    if (j.ok) { setList((l) => [j.item, ...(l || [])]); setForm({ title: "", client_name: "", client_phone: "", client_tg: "" }); writeActive(toActive(j.item)); }
-    else alert(t("cab_err"));
-    setBusy("");
+    // После создания — сразу на экран выбора объектов (свои + инвентарь Baylux), не в общий каталог.
+    if (j.ok) router.push(`/my/collections/${j.item.id}/pick`);
+    else { alert(t("cab_err")); setBusy(""); }
   }
   async function patch(c, fields) {
     setBusy(c.id);
     const j = await api({ action: "update", id: c.id, ...fields });
-    if (j.ok) { upd(j.item); if (active?.id === c.id) writeActive(toActive(j.item)); } else alert(t("cab_err"));
+    if (j.ok) upd(j.item); else alert(t("cab_err"));
     setBusy("");
   }
   async function remove(c) {
     if (!confirm(t("col_delete_q"))) return;
     setBusy(c.id);
     const j = await api({ action: "delete", id: c.id });
-    if (j.ok) { setList((l) => l.filter((x) => x.id !== c.id)); if (active?.id === c.id) writeActive(null); } else alert(t("cab_err"));
+    if (j.ok) setList((l) => l.filter((x) => x.id !== c.id)); else alert(t("cab_err"));
+    setBusy("");
+  }
+  async function removeItem(c, listingId) {
+    setBusy(c.id);
+    const j = await api({ action: "remove", id: c.id, listingId });
+    if (j.ok) upd(j.item); else alert(t("cab_err"));
     setBusy("");
   }
   async function copy(v, key) {
@@ -76,7 +82,6 @@ export default function CollectionsList() {
       </form>
 
       {list === null ? <p className="cab-empty">…</p> : list.length === 0 ? <p className="cab-empty">{t("col_empty")}</p> : list.map((c) => {
-        const isActive = active?.id === c.id;
         return (
           <div className="cab-card" key={c.id} style={{ marginBottom: 12, opacity: c.enabled ? 1 : 0.7 }}>
             <div className="cab-h" style={{ alignItems: "flex-start" }}>
@@ -88,22 +93,23 @@ export default function CollectionsList() {
                   {!c.enabled && <span className="cab-tag cab-tag-soft" style={{ marginLeft: 8 }}>{t("col_disabled")}</span>}
                 </div>
               </div>
-              {isActive && <span className="cab-tag">{t("col_active")}</span>}
             </div>
 
             {c.items.length > 0 && (
-              <div style={{ margin: "8px 0", fontSize: 13, color: "var(--ink-soft)", lineHeight: 1.7 }}>
-                {c.items.slice(0, 6).map((i) => <div key={i.id}>· <Link href={`/property/${i.slug}`} style={{ color: "var(--navy)" }}>{i.title}</Link></div>)}
-                {c.items.length > 6 && <div>… +{c.items.length - 6}</div>}
+              <div style={{ margin: "8px 0", fontSize: 13, color: "var(--ink-soft)", lineHeight: 1.9 }}>
+                {c.items.map((i) => (
+                  <div key={i.id} style={{ display: "flex", gap: 8, alignItems: "center" }}>
+                    <Link href={`/property/${i.slug}`} style={{ color: "var(--navy)" }}>{i.title}</Link>
+                    <button type="button" className="oc-copy" title={t("col_remove")} aria-label={t("col_remove")} disabled={busy === c.id} onClick={() => removeItem(c, i.id)}>✕</button>
+                  </div>
+                ))}
               </div>
             )}
 
             <textarea rows={2} style={{ ...inp, marginTop: 8 }} placeholder={t("col_f_note")} defaultValue={c.note || ""} onBlur={(e) => e.target.value !== (c.note || "") && patch(c, { note: e.target.value })} />
 
             <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginTop: 10 }}>
-              {isActive
-                ? <button type="button" className="btn btn-ghost" onClick={() => writeActive(null)}>{t("col_stop_pick")}</button>
-                : <Link className="btn btn-gold" href="/catalog" onClick={() => writeActive(toActive(c))}>{t("col_pick")}</Link>}
+              <Link className="btn btn-gold" href={`/my/collections/${c.id}/pick`}>{t("col_pick")}</Link>
               <a className="btn btn-ghost" href={link(c)} target="_blank" rel="noopener">{t("col_open")}</a>
               <button type="button" className="btn btn-ghost" onClick={() => copy(link(c), "l" + c.id)}>{copied === "l" + c.id ? "✓" : t("col_copy_link")}</button>
               <button type="button" className="btn btn-ghost" onClick={() => copy(msg(c), "m" + c.id)}>{copied === "m" + c.id ? "✓" : t("col_copy_msg")}</button>

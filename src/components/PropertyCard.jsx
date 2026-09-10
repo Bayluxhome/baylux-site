@@ -4,7 +4,6 @@ import Link from "next/link";
 import Image from "next/image";
 import { DEAL_CLASS, fmtMoney } from "@/data/data";
 import FavButton from "@/components/FavButton";
-import CollectAddButton from "@/components/CollectAddButton";
 import { useLang } from "@/components/LangContext";
 import { typeLabel, cityLabel, translitAddress, formatDate } from "@/lib/dict";
 
@@ -105,8 +104,6 @@ export default function PropertyCard({ unit, qs = "" }) {
           </>
         )}
         <FavButton item={fav} />
-        {/* «в подборку» — появляется только у риелтора с активной подборкой (задача №06/07) */}
-        <CollectAddButton listingId={unit.id} />
       </div>
       <div className="body">
         <div className="price">
