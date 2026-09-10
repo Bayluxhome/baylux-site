@@ -503,6 +503,7 @@ export const DICT = {
     lead_s_new: "Новая", lead_s_in_work: "В работе", lead_s_done: "Закрыта",
     lead_next_in_work: "Взять в работу", lead_next_done: "Закрыть",
     lead_not_notified: "уведомление в Telegram не доставлено — дошлём автоматически",
+    lead_rn_sent: "риелтору отправлено в Telegram", lead_rn_failed: "риелтору не доставлено — повторим", lead_rn_skipped_no_telegram_chat: "у риелтора не привязан Telegram — уведомление не отправлено",
     lead_t_viewing: "Просмотр", lead_t_rent: "Аренда", lead_t_daily: "Посуточно", lead_t_management: "Управление", lead_t_complex: "ЖК", lead_t_cleaning: "Клининг", lead_t_landing: "Подборка", lead_t_other: "Обращение",
     // Служебный блок контакта собственника (задача №02)
     oc_copy: "Скопировать", oc_source: "исходное объявление", oc_none: "контакт в источнике не указан — ищите вручную по ссылке",
@@ -1077,6 +1078,7 @@ export const DICT = {
     lead_s_new: "New", lead_s_in_work: "In progress", lead_s_done: "Closed",
     lead_next_in_work: "Take", lead_next_done: "Close",
     lead_not_notified: "Telegram notification not delivered — will be resent automatically",
+    lead_rn_sent: "sent to the agent in Telegram", lead_rn_failed: "not delivered to the agent — will retry", lead_rn_skipped_no_telegram_chat: "agent has no Telegram linked — not sent",
     lead_t_viewing: "Viewing", lead_t_rent: "Rent", lead_t_daily: "Daily rent", lead_t_management: "Management", lead_t_complex: "Complex", lead_t_cleaning: "Cleaning", lead_t_landing: "Selection", lead_t_other: "Request",
     oc_copy: "Copy", oc_source: "original listing", oc_none: "no contact in the source — look it up manually via the link",
     cab_tab_collections: "Selections", col_new_h: "New selection", col_f_title: "Title (e.g. “Sea-view flats under $80k”)", col_f_client: "Client — name",
@@ -1647,6 +1649,7 @@ export const DICT = {
     lead_s_new: "ახალი", lead_s_in_work: "მუშავდება", lead_s_done: "დახურული",
     lead_next_in_work: "სამუშაოდ აღება", lead_next_done: "დახურვა",
     lead_not_notified: "Telegram-შეტყობინება არ მივიდა — ავტომატურად გაიგზავნება",
+    lead_rn_sent: "რიელტორს გაეგზავნა Telegram-ში", lead_rn_failed: "რიელტორს არ მივიდა — გავიმეორებთ", lead_rn_skipped_no_telegram_chat: "რიელტორს Telegram არ აქვს მიბმული — არ გაიგზავნა",
     lead_t_viewing: "დათვალიერება", lead_t_rent: "ქირავდება", lead_t_daily: "დღიურად", lead_t_management: "მართვა", lead_t_complex: "კომპლექსი", lead_t_cleaning: "დასუფთავება", lead_t_landing: "შერჩევა", lead_t_other: "მიმართვა",
     oc_copy: "კოპირება", oc_source: "თავდაპირველი განცხადება", oc_none: "წყაროში კონტაქტი არ არის — მოძებნეთ ბმულით",
     cab_tab_collections: "შერჩევები", col_new_h: "ახალი შერჩევა", col_f_title: "სათაური (მაგ. „ბინები ზღვასთან $80k-მდე“)", col_f_client: "კლიენტი — სახელი",

@@ -58,6 +58,11 @@ export default function LeadsList({ leads: initial, compact = false }) {
             {l.phone && <a className="cab-tel" href={`tel:${l.phone}`}>📞 {l.phone}</a>}
             {l.comment && <div className="cab-ds" style={{ marginTop: 2, fontStyle: "italic" }}>«{l.comment}»</div>}
             {l.notify_error && !l.notified_at && <div className="cab-ds" style={{ color: "#9a2b2b" }}>⚠️ {t("lead_not_notified")}</div>}
+            {l.realtor_notify_status && l.realtor_notify_status !== "skipped_no_realtor" && (
+              <div className="cab-ds" style={{ color: l.realtor_notify_status === "sent" ? "var(--ink-soft)" : "#9a2b2b" }}>
+                {l.realtor_notify_status === "sent" ? "✈️ " : "⚠️ "}{t("lead_rn_" + l.realtor_notify_status)}
+              </div>
+            )}
           </div>
           <div className="cab-rt">
             <div className="cab-tm">{timeAgo(l.created_at, t)}</div>
