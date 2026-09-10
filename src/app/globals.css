@@ -44,7 +44,30 @@ nav.main{display:flex;gap:2px;font-weight:500;font-size:15px}
 .navitem:hover .submenu{display:block}
 .submenu a{display:block;padding:10px 12px;border-radius:9px;color:var(--ink);font-size:14px;font-weight:500;white-space:nowrap}
 .submenu a:hover{background:var(--cream);color:var(--navy)}
-.hright{margin-left:auto;display:flex;align-items:center;gap:8px}
+.hright{margin-left:auto;display:flex;align-items:center;gap:8px;flex-shrink:0}
+.hrow{min-width:0}
+/* Имя пользователя в шапке — компактно (полное имя есть в кабинете) */
+.hlogin .hi-tx{display:inline-block;max-width:110px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+/* Ступенчатое сжатие шапки. Контенту шапки нужно ~1430px; ниже — ужимаем отступы и подписи,
+   а с 1100px включаем мобильное меню (раньше оно включалось только с 980px — между 980 и 1430
+   правая часть с кнопкой «Сдать / продать» уезжала за экран). */
+@media(max-width:1460px){
+  .hrow{gap:14px}
+  .navtop{padding:0 8px}
+}
+@media(max-width:1400px){
+  .hrow{gap:10px}
+  .hright{gap:4px}
+  nav.main{font-size:14px}
+  .navtop{padding:0 7px}
+  .hright .hicon:not(.hlang):not(.hlogin) .hi-tx{display:none}   /* «Поиск» → только иконка */
+  .hright>.hicon:first-child{padding:0;width:40px;justify-content:center}
+  .hlogin .hi-tx{max-width:80px}
+  .hright .btn-gold{padding-left:12px;padding-right:12px}
+}
+@media(max-width:1240px){
+  .loc{display:none}   /* выбор города остаётся в мобильном меню и в фильтрах каталога */
+}
 .hicon{display:inline-flex;align-items:center;gap:7px;height:40px;padding:0 12px;border-radius:10px;border:1px solid transparent;background:none;cursor:pointer;color:var(--navy);font-family:inherit;font-weight:600;font-size:14px}
 .hicon:hover{background:var(--cream)}
 .hicon-sq{padding:0;width:40px;justify-content:center;font-size:17px}
@@ -402,16 +425,28 @@ footer.site a:hover{color:var(--gold-lt)}
 .lb-arrow:hover,.lb-close:hover{background:rgba(255,255,255,.3)}
 .lb-count{position:absolute;bottom:22px;left:50%;transform:translateX(-50%);color:#fff;font-size:14px;background:rgba(0,0,0,.45);padding:5px 13px;border-radius:20px}
 @media(max-width:560px){ .lb-stage{width:100vw;height:80vh} .lb-arrow{width:42px;height:42px;font-size:26px} .lb-prev{left:8px} .lb-next{right:8px} }
-.pp-grid{display:grid;grid-template-columns:1fr 360px;gap:28px;margin-top:26px;align-items:start}
+/* minmax(0,1fr), а не 1fr: у grid-колонки по умолчанию min-width:auto, и одна кнопка с nowrap
+   («Отдать похожую в управление») расширяла ОБЕ колонки шире экрана — отсюда горизонтальный скролл
+   на телефоне. Правая колонка может ужиматься до 300px, дальше — одна колонка (см. media). */
+.pp-grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(300px,360px);gap:28px;margin-top:26px;align-items:start}
+.pp-grid>*{min-width:0}
+.pp-head{min-width:0}
+.pp-head h1,.pp-addr,.pp-head p{overflow-wrap:anywhere}
 .spec{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:18px 0}
 .spec div{background:var(--cream);border:1px solid var(--line);border-radius:12px;padding:13px 15px}
 .spec small{color:var(--ink-soft);font-size:12px;display:block}
 .spec b{font-size:16px;color:var(--navy)}
 .pp-desc{line-height:1.65;color:#3A3A3A}
 .pp-desc h3{color:var(--navy);margin:20px 0 8px;font-size:19px}
-.cta-card{border:1px solid var(--line);border-radius:18px;padding:22px;box-shadow:var(--shadow);position:sticky;top:88px;background:#fff}
+.cta-card{border:1px solid var(--line);border-radius:18px;padding:22px;box-shadow:var(--shadow);position:sticky;top:88px;background:#fff;width:100%;max-width:100%;box-sizing:border-box;min-width:0;overflow-wrap:anywhere}
 .cta-card .price{font-size:26px}
-.cta-card .btn{width:100%;margin-top:10px;padding:13px}
+/* Кнопки в карточке переносят текст: глобальный .btn — nowrap, и длинная подпись
+   («Забронировать просмотр», «Отдать похожую в управление») не должна растягивать карточку */
+.cta-card .btn{width:100%;margin-top:10px;padding:13px;min-width:0;white-space:normal;height:auto;line-height:1.3;text-align:center}
+.cta-card .price,.cta-card .perm{overflow-wrap:anywhere}
+.contact-btns{flex-wrap:wrap}
+.contact-btns .btn{min-width:0;white-space:normal;flex:1 1 130px}
+.seller-phone{overflow-wrap:anywhere}
 .agent{display:flex;gap:12px;align-items:center;margin-top:18px;padding-top:16px;border-top:1px solid var(--line)}
 .agent .av{width:46px;height:46px;border-radius:50%;background:var(--grad-gold)}
 .map-sm{aspect-ratio:1/1;width:100%;border-radius:14px;border:1px solid var(--line);margin-top:18px;overflow:hidden}
@@ -462,9 +497,12 @@ footer.site a:hover{color:var(--gold-lt)}
 .md-curr-lbl{flex-basis:100%;font-size:14px;color:var(--ink-soft);margin-bottom:4px}
 .md-curr-btn{flex:1;min-width:0;padding:9px 0;border:1px solid var(--line);border-radius:10px;background:#fff;font-weight:700;color:var(--navy);font-size:15px;cursor:pointer}
 .md-curr-btn.on{background:var(--navy);color:#fff;border-color:var(--navy)}
-@media(max-width:980px){
+/* Мобильное меню — с 1150px (см. комментарий у ступенчатого сжатия шапки выше) */
+@media(max-width:1150px){
   nav.main,.stat-row,.loc,.hright{display:none}
   .burger{display:inline-flex;align-items:center;justify-content:center}
+}
+@media(max-width:980px){
   .split{grid-template-columns:1fr}
   .map-home,.map-full{height:360px;position:relative;top:0;order:-1;margin-bottom:16px}
   .map-home.mapboxgl-map,.map-full.mapboxgl-map{position:relative;top:0}
