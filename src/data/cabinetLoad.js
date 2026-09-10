@@ -95,12 +95,15 @@ export async function loadCabinet(session, lang, { withDashboard = true } = {}) 
   const leads = leadsRaw.map((l) => ({ ...l, listing_slug: slugById[l.listing_id] || "" }));
   const views = await getViewsFor(allItems.map((x) => String(x.id)));
   const series = buildSeries(views.byDay, leads);
-  const stale = allItems.filter((x) => x.status === "approved" && x.daysLeft != null && x.daysLeft <= 20)
+  // «Требуют обновления» — ещё опубликованные (не в архиве), которым до архива ≤ 20 дней.
+  // Уже архивные сюда не входят: они не «требуют обновления», они истекли.
+  const isStale = (x) => x.status === "approved" && !x.archived && x.daysLeft != null && x.daysLeft <= 20;
+  const stale = allItems.filter(isStale)
     .sort((a, b) => a.daysLeft - b.daysLeft).slice(0, 5)
     .map((x) => ({ id: x.id, title: x.title, sub: x.sub, photo: x.photo, daysLeft: x.daysLeft }));
   const dashStats = {
     active: allItems.filter((x) => x.status === "approved" && !x.archived).length,
-    stale: allItems.filter((x) => x.status === "approved" && x.daysLeft != null && x.daysLeft <= 20).length,
+    stale: allItems.filter(isStale).length,
     views: views.total, leadsNew: leads.filter((l) => l.status === "new").length, leadsTotal: leads.length,
   };
   return { ...base, leads, series, stale, dashStats };
