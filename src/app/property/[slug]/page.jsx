@@ -13,6 +13,7 @@ import ViewCounter from "@/components/ViewCounter";
 import { PHONE, WA_PHONE, TG_CONTACT, SITE_URL } from "@/config";
 import { getLang } from "@/lib/serverLang";
 import { t as tr, typeLabel, amenLabel, translitAddress, cityLabel } from "@/lib/dict";
+import { propertyJsonLd, serializeJsonLd } from "@/lib/jsonld";
 
 // Язык страницы зависит от посетителя (cookies/headers через getLang) → рендерим по запросу (SSR).
 // Пре-рендера нет → сборка быстрая. ISR-кэш здесь нельзя: он несовместим с динамическими данными запроса.
@@ -83,55 +84,13 @@ export default async function PropertyPage({ params, searchParams }) {
   const waPrice = u.price && u.price !== "—" ? `${u.price}${priceSuffix.trim() ? " " + priceSuffix.trim() : ""}` : "";
   const propertyUrl = `${SITE_URL}/property/${u.slug}`;
 
-  const resType = /house|cottage|вилл|дом/i.test(`${u.type} ${u.category || ""}`) ? "House" : "Apartment";
-  const ldJson = {
-    "@context": "https://schema.org",
-    "@type": "RealEstateListing",
-    url: `https://bayluxhome.com/property/${u.slug}`,
-    name: `${ty}, ${u.area} ${sqm} — ${bname}, ${b.district}`,
-    description: u["desc_" + lang] || u.about || `${t("deal_" + u.deal)}: ${ty}, ${u.area} ${sqm}, ${bname}, ${b.district}.`,
-    image: photos.map((p) => (p.startsWith("http") ? p : `https://bayluxhome.com${p}`)),
-    ...(u.priceNum
-      ? {
-          offers: {
-            "@type": "Offer",
-            price: u.priceNum,
-            priceCurrency: u.currency || "USD",
-            availability: "https://schema.org/InStock",
-            url: `https://bayluxhome.com/property/${u.slug}`,
-          },
-        }
-      : {}),
-    about: {
-      "@type": resType,
-      name: `${ty}, ${u.area} ${sqm}`,
-      ...(u.rooms ? { numberOfRooms: Number(u.rooms) || u.rooms } : {}),
-      floorSize: { "@type": "QuantitativeValue", value: u.area, unitCode: "MTK" },
-      address: {
-        "@type": "PostalAddress",
-        streetAddress: bname,
-        addressLocality: b.district,
-        addressRegion: "Adjara",
-        addressCountry: "GE",
-      },
-    },
-  };
-  const breadcrumbJson = {
-    "@context": "https://schema.org",
-    "@type": "BreadcrumbList",
-    itemListElement: [
-      { "@type": "ListItem", position: 1, name: "Главная", item: "https://bayluxhome.com" },
-      { "@type": "ListItem", position: 2, name: "Каталог", item: "https://bayluxhome.com/catalog" },
-      { "@type": "ListItem", position: 3, name: bname, item: `https://bayluxhome.com/building/${b.slug}` },
-      { "@type": "ListItem", position: 4, name: `${ty}, ${u.area} м²`, item: `https://bayluxhome.com/property/${u.slug}` },
-    ],
-  };
+  // JSON-LD страницы: единый @graph (RealEstateListing → Offer → объект + крошки), локализован, на SITE_URL.
+  const ldJson = serializeJsonLd(propertyJsonLd(u, b, lang));
 
   return (
     <div className="wrap">
       <ViewCounter id={u.id} />
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(ldJson) }} />
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJson) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: ldJson }} />
       <div className="crumbs">
         <Link href="/">{t("crumb_home")}</Link> · <Link href="/catalog">{t("crumb_catalog")}</Link> ·{" "}
         <Link href={`/building/${b.slug}`}>{bname}</Link> · <span>{ty}, {u.area} {sqm}</span>

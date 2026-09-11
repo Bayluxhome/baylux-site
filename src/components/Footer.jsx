@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { getLang } from "@/lib/serverLang";
-import { t as tr, cityLabel } from "@/lib/dict";
+import { t as tr } from "@/lib/dict";
 import { OPERATOR, SOCIAL } from "@/config";
 import CookieLink from "@/components/CookieLink";
 
@@ -29,20 +29,12 @@ export default function Footer() {
           </div>
           <div>
             <h4>{t("foot_realty")}</h4>
-            {[
-              [t("nav_sale"), [["/kupit-kvartiru-batumi", "Батуми"], ["/kupit-kvartiru-tbilisi", "Тбилиси"]]],
-              [t("nav_rent"), [["/arenda-batumi", "Батуми"], ["/arenda-tbilisi", "Тбилиси"]]],
-              [t("nav_daily"), [["/posutochno-batumi", "Батуми"], ["/posutochno-tbilisi", "Тбилиси"]]],
-              [t("nav_new"), [["/novostroyki-batumi", "Батуми"]]],
-              [t("ft_apart"), [["/apartamenty-batumi", "Батуми"]]],
-            ].map(([label, links]) => (
-              <div key={label} style={{ display: "flex", gap: 8, flexWrap: "wrap", alignItems: "baseline", margin: "5px 0" }}>
-                <span style={{ opacity: 0.6, fontSize: 13 }}>{label}:</span>
-                {links.map(([href, city]) => (
-                  <Link key={href} href={href}>{cityLabel(lang, city)}</Link>
-                ))}
-              </div>
-            ))}
+            {/* Общие категории по всей Грузии — без городского фильтра (город в cookie не хранится, каталог берёт его только из URL) */}
+            <Link href="/catalog?deal=sale">{t("nav_sale")}</Link>
+            <Link href="/catalog?deal=rent">{t("nav_rent")}</Link>
+            <Link href="/catalog?new=1">{t("nav_new")}</Link>
+            <Link href="/catalog?deal=daily">{t("nav_daily")}</Link>
+            <Link href="/catalog?cat=apartment">{t("ft_apart")}</Link>
           </div>
           <div>
             <h4>{t("nav_services")}</h4>

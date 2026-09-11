@@ -158,7 +158,9 @@ const ORD = {
 export function formatAddress(raw, lang = "ru", kind) {
   const p = parseAddress(raw);
   if (!p) return "";
-  if (kind === "complex" || (!p.name && !p.house)) return p.raw;
+  // ЖК-бренд или строка без названия улицы (напр. «ул. 3» из битых данных) — отдаём как есть,
+  // собирать «3 Street» из одного номера нельзя.
+  if (kind === "complex" || !p.name) return p.raw;
   const name = nameFor(p, lang);
   const T = p.type ? TYPES[p.type] : null;
   const house = houseFor(p.house, lang) + (p.block ? (lang === "en" ? ` Bldg ${p.block}` : lang === "ka" ? ` კორპ. ${p.block}` : ` корп. ${p.block}`) : "");

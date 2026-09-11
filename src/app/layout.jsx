@@ -13,7 +13,8 @@ import { getUsdGel } from "@/lib/rate";
 import { getCityCounts } from "@/data/source";
 import { getLang } from "@/lib/serverLang";
 import { t as tr } from "@/lib/dict";
-import { PHONE_DISPLAY, SOCIAL } from "@/config";
+import { SITE_URL } from "@/config";
+import { orgJsonLd, serializeJsonLd } from "@/lib/jsonld";
 
 // Метаданные зависят от языка посетителя (getLang: cookie/домен/гео), поэтому это функция,
 // а не статический объект. Иначе грузинский посетитель видел бы грузинский сайт, но русский
@@ -24,7 +25,7 @@ export async function generateMetadata() {
   const lang = getLang();
   const t = (k) => tr(lang, k);
   return {
-    metadataBase: new URL("https://bayluxhome.com"),
+    metadataBase: new URL(SITE_URL),
     title: { default: t("meta_home_t"), template: "%s — Baylux" },
     description: t("meta_home_d"),
     alternates: { canonical: "/" },
@@ -34,7 +35,7 @@ export async function generateMetadata() {
       type: "website",
       locale: OG_LOCALE[lang] || "ka_GE",
       siteName: "Baylux Home",
-      url: "https://bayluxhome.com",
+      url: SITE_URL,
       images: [{ url: "/hero-batumi.jpg", width: 1200, height: 630, alt: t("meta_og_t") }],
     },
     twitter: {
@@ -67,27 +68,8 @@ export default async function RootLayout({ children }) {
         />
       </head>
       <body>
-        <script
-          type="application/ld+json"
-          dangerouslySetInnerHTML={{
-            __html: JSON.stringify({
-              "@context": "https://schema.org",
-              "@type": "RealEstateAgent",
-              name: "Baylux",
-              alternateName: ["Baylux Home", "bayluxhome", "bayluxhome.com"],
-              url: "https://bayluxhome.com",
-              sameAs: [SOCIAL.instagram, SOCIAL.facebook].filter(Boolean),
-              logo: "https://bayluxhome.com/baylux_logo.svg",
-              image: "https://bayluxhome.com/hero-batumi.jpg",
-              description:
-                "Агентство недвижимости в Батуми: продажа, аренда, посуточная аренда, управление и клининг.",
-              areaServed: { "@type": "City", name: "Batumi", address: { "@type": "PostalAddress", addressCountry: "GE" } },
-              address: { "@type": "PostalAddress", addressLocality: "Батуми", addressCountry: "GE" },
-              telephone: PHONE_DISPLAY,
-              email: "bayluxhome@gmail.com",
-            }),
-          }}
-        />
+        {/* Организация: одна сущность с @id (переиспользуется в JSON-LD объектов); areaServed — Грузия, address — офис в Батуми */}
+        <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: serializeJsonLd(orgJsonLd(initialLang)) }} />
         <LangProvider initial={initialLang}>
           <FilterProvider>
             <CurrencyManager rate={rate} />
