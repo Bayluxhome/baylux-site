@@ -24,11 +24,15 @@ export async function geocodeInCity(address, cityRu) {
     for (const f of j?.features || []) {
       const c = f?.center;
       if (!Array.isArray(c) || c.length !== 2) continue;
+      // Точность: принимаем только адрес/улицу/POI/квартал. Результат уровня «город/район/регион»
+      // означает, что улица не найдена — такую точку (центр города) выдавать за адрес нельзя.
+      const types = Array.isArray(f.place_type) ? f.place_type : [];
+      if (types.length && !types.some((x) => /address|street|poi|neighbourhood|locality|place\.suburb|road/i.test(x))) continue;
       const lat = Number(c[1]), lng = Number(c[0]);
       if (!inGeorgia(lat, lng)) continue;
-      if (!center) return { lat, lng, km: null, placeName: f.place_name || "" };
+      if (!center) return { lat, lng, km: null, placeName: f.place_name || "", type: types[0] || "" };
       const km = distanceKm(lat, lng, center[0], center[1]);
-      if (km <= CITY_RADIUS_KM) return { lat, lng, km: Math.round(km), placeName: f.place_name || "" };
+      if (km <= CITY_RADIUS_KM) return { lat, lng, km: Math.round(km), placeName: f.place_name || "", type: types[0] || "" };
     }
   } catch (e) { console.error("geocode error:", e?.message); }
   return null;

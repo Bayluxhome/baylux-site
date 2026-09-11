@@ -75,7 +75,7 @@ async function run(req, write) {
       if (!x) continue;
       if (x.g) {
         geocoded++;
-        if (samples.length < 15) samples.push({ id: x.r.id, from: x.addrRu, city: x.r.district, reason: x.reason || "cluster/null", curPoint: x.cur, newLat: Number(x.g.lat.toFixed(5)), newLng: Number(x.g.lng.toFixed(5)), km: x.g.km });
+        if (samples.length < 40) samples.push({ id: x.r.id, from: x.addrRu, city: x.r.district, reason: x.reason || "cluster/null", curPoint: x.cur, newLat: Number(x.g.lat.toFixed(5)), newLng: Number(x.g.lng.toFixed(5)), km: x.g.km, type: x.g.type, place: x.g.placeName });
         if (live) { await supa.from("listings").update({ lat: x.g.lat, lng: x.g.lng, geo_ok: true }).eq("id", x.r.id); updated++; }
       } else {
         notFound++;
