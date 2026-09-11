@@ -286,6 +286,24 @@ nav.main{display:flex;gap:2px;font-weight:500;font-size:15px}
 .cms .muted{color:var(--ink-soft);font-size:14px}
 .contact-row{display:flex;flex-direction:column;gap:12px;margin:18px 0}
 .contact-row a{display:inline-flex;align-items:center;gap:10px;font-weight:600;color:var(--navy);font-size:16px}
+/* Контакты: сведения слева, форма справа; на телефоне — в столбик */
+.co-grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(300px,420px);gap:32px;align-items:start;margin-top:8px}
+.co-grid>*{min-width:0}
+.co-list{margin-top:6px}
+.co-list>div{font-size:16px;color:var(--navy)}
+.cf-box{background:#fff;border:1px solid var(--line);border-radius:16px;padding:22px 20px;display:grid;gap:12px;position:relative}
+.cf-ok{text-align:center;padding:30px 20px;outline:none}
+.cf-field{display:grid;gap:6px}
+.cf-field label{font-size:13px;font-weight:600;color:var(--ink-soft)}
+.cf-inp{width:100%;padding:11px 13px;border-radius:10px;border:1.5px solid var(--line);font-size:15px;font-family:inherit;color:var(--navy);background:#fff}
+.cf-inp[aria-invalid="true"]{border-color:#c0392b}
+textarea.cf-inp{resize:vertical}
+.cf-err{color:#c0392b;font-size:13px}
+.cf-consent{display:flex;gap:9px;align-items:flex-start;font-size:13px;color:var(--ink-soft);cursor:pointer}
+.cf-consent input{margin-top:2px}
+.cf-consent a{text-decoration:underline}
+@media(max-width:820px){.co-grid{grid-template-columns:1fr}}
+footer.site .fbar-contacts a{display:inline;padding:0}
 @media(max-width:560px){.addform{grid-template-columns:1fr}}
 
 .card{background:var(--cream);border:1px solid var(--line);border-radius:18px;overflow:hidden;transition:.18s;cursor:pointer;display:block}

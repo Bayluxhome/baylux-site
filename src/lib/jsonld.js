@@ -2,7 +2,7 @@
 // Правила: только достоверные и видимые на странице данные; пустые поля выбрасываются,
 // а не заполняются нулями; все абсолютные URL — от SITE_URL (смена домена — в одном месте);
 // сериализация безопасна для вставки в <script> (экранируем «<» и U+2028/2029).
-import { SITE_URL, PHONE_DISPLAY, SOCIAL, OPERATOR } from "@/config";
+import { SITE_URL, SOCIAL, COMPANY, fmtPhone } from "@/config";
 import { unitCat } from "@/data/data";
 import { t as tr, typeLabel, cityLabel, translitAddress } from "@/lib/dict";
 
@@ -94,9 +94,11 @@ export function orgJsonLd(lang) {
     image: `${SITE_URL}/hero-batumi.jpg`,
     description: t("foot_about"),
     areaServed: { "@type": "Country", name: "Georgia" },
-    address: { "@type": "PostalAddress", addressLocality: cityLabel(lang, "Батуми"), addressCountry: "GE" },
-    telephone: PHONE_DISPLAY,
-    email: OPERATOR.email,
+    legalName: COMPANY.legalName || undefined,
+    address: { "@type": "PostalAddress", streetAddress: COMPANY.officeAddress || undefined, addressLocality: cityLabel(lang, COMPANY.officeCity), addressCountry: "GE" },
+    telephone: fmtPhone(COMPANY.phone),
+    email: COMPANY.email,
+    contactPoint: { "@type": "ContactPoint", contactType: "customer service", telephone: fmtPhone(COMPANY.phone), email: COMPANY.email, availableLanguage: ["ru", "en", "ka"] },
   };
 }
 

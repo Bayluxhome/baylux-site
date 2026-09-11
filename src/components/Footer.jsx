@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { getLang } from "@/lib/serverLang";
-import { t as tr } from "@/lib/dict";
-import { OPERATOR, SOCIAL } from "@/config";
+import { t as tr, cityLabel } from "@/lib/dict";
+import { COMPANY, SOCIAL, fmtPhone } from "@/config";
 import CookieLink from "@/components/CookieLink";
 
 export default function Footer() {
@@ -45,9 +45,16 @@ export default function Footer() {
             <Link href="/about">{t("foot_about_l")}</Link><Link href="/blog">{t("blog_h")}</Link><Link href="/news">{t("foot_news")}</Link><Link href="/contacts">{t("foot_contacts")}</Link><Link href="/terms">{t("foot_terms")}</Link><Link href="/privacy">{t("foot_privacy")}</Link><Link href="/cookies">{t("ck_title")}</Link><Link href="/rules">{t("rl_title")}</Link><CookieLink />
           </div>
         </div>
+        {/* Публично — бренд и контакты из COMPANY; оператор ПД (физлицо) — в Политике конфиденциальности («Юридическая информация») */}
         <div className="fbar" style={{ flexWrap: "wrap", gap: 6 }}>
-          <span>{t("foot_operator")}: {OPERATOR.name} · {OPERATOR.email} · {OPERATOR.phone}</span>
-          <span>© Baylux Home (bayluxhome.com) 2026 · Batumi, Georgia</span>
+          <span className="fbar-contacts">
+            {COMPANY.publicName}
+            {COMPANY.officeAddress ? <> · {COMPANY.officeAddress}, {cityLabel(lang, COMPANY.officeCity)}</> : null}
+            {" · "}<a href={"tel:+" + COMPANY.phone}>{fmtPhone(COMPANY.phone)}</a>
+            {" · "}<a href={"mailto:" + COMPANY.email}>{COMPANY.email}</a>
+            {" · "}<Link href="/privacy">{t("foot_legal")}</Link>
+          </span>
+          <span>© Baylux Home 2026 · Batumi, Georgia</span>
         </div>
       </div>
     </footer>

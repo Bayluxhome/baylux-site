@@ -16,9 +16,15 @@ const DEDUP_MIN = 10;
 
 export async function POST(req) {
   try {
+    if (!/application\/json/i.test(req.headers.get("content-type") || "")) return Response.json({ ok: false, error: "bad_type" }, { status: 415 });
     const data = await req.json().catch(() => ({}));
+    // Honeypot (форма «Контакты»): скрытое поле заполняют только боты — отвечаем «ок», ничего не сохраняя.
+    if (data.website) return Response.json({ ok: true, id: null });
     const name = (data.name || "").toString().trim().slice(0, 200);
-    const phone = (data.phone || "").toString().trim().slice(0, 100);
+    // Телефон нормализуем к «+цифры»: одинаковая запись для дедупа/лимита независимо от пробелов и скобок.
+    const rawPhone = (data.phone || "").toString().trim().slice(0, 100);
+    const digits = rawPhone.replace(/[^\d]/g, "");
+    const phone = digits.length >= 9 && digits.length <= 15 ? "+" + digits : rawPhone;
     const comment = (data.comment || "").toString().trim().slice(0, 1000);
     const type = (data.type || "").toString().slice(0, 100);          // подпись на языке посетителя (для истории)
     const typeKey = LEAD_TYPES[data.typeKey] ? String(data.typeKey) : "other"; // машинный тип
@@ -27,6 +33,10 @@ export async function POST(req) {
     const source = (data.source || "").toString().slice(0, 40);
 
     if (!phone) return Response.json({ ok: false, error: "empty" }, { status: 400 });
+    // Форма «Контакты»: серверная проверка обязательных полей (frontend-валидацию обходят).
+    if (typeKey === "contact_form" && (name.length < 2 || comment.length < 5 || !/^\+\d{9,15}$/.test(phone))) {
+      return Response.json({ ok: false, error: "invalid" }, { status: 400 });
+    }
     if (!supa) return Response.json({ ok: false, error: "not_configured" }, { status: 503 });
 
     // Лимит: не больше 5 заявок с одного телефона за 10 минут — защита от спама в чат менеджеров.

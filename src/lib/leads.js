@@ -25,6 +25,7 @@ export const LEAD_TYPES = {
   complex: "Заявка по ЖК",
   cleaning: "Клининг",
   landing: "Заявка со страницы подборки",
+  contact_form: "Сообщение с формы «Контакты»",
   other: "Обращение",
 };
 
