@@ -5,9 +5,16 @@ import { ADMIN_EMAILS, ADMIN_TG_IDS } from "@/config";
 // Fail-closed: если токен не задан, раньше подставлялась строка "baylux-dev" — публично
 // известный секрет, с которым можно подделать админскую сессию. Теперь на проде это ошибка
 // запуска, а в разработке — случайный секрет на процесс (сессии просто не проверятся).
-const RAW_SECRET = process.env.TELEGRAM_BOT_TOKEN;
-if (!RAW_SECRET && process.env.NODE_ENV === "production") throw new Error("TELEGRAM_BOT_TOKEN is not set — refusing to start without a session secret");
-const SECRET = crypto.createHash("sha256").update(RAW_SECRET || crypto.randomBytes(32).toString("hex")).digest();
+// Проверка ленивая (при первом подписании/проверке), а не при импорте: иначе локальный
+// `next build` без .env падает на этапе «Collecting page data», хотя секрет нужен только в рантайме.
+let SECRET_CACHE = null;
+function secret() {
+  if (SECRET_CACHE) return SECRET_CACHE;
+  const raw = process.env.TELEGRAM_BOT_TOKEN;
+  if (!raw && process.env.NODE_ENV === "production") throw new Error("TELEGRAM_BOT_TOKEN is not set — refusing to sign/verify sessions without a secret");
+  SECRET_CACHE = crypto.createHash("sha256").update(raw || crypto.randomBytes(32).toString("hex")).digest();
+  return SECRET_CACHE;
+}
 
 // Сравнение подписей за постоянное время — чтобы по времени ответа нельзя было подбирать подпись.
 function safeEqual(a, b) {
@@ -17,7 +24,7 @@ function safeEqual(a, b) {
 
 export function signSession(obj) {
   const data = Buffer.from(JSON.stringify(obj)).toString("base64url");
-  const sig = crypto.createHmac("sha256", SECRET).update(data).digest("base64url");
+  const sig = crypto.createHmac("sha256", secret()).update(data).digest("base64url");
   return `${data}.${sig}`;
 }
 
@@ -25,7 +32,7 @@ export function verifySession(token) {
   if (!token) return null;
   const [data, sig] = token.split(".");
   if (!data || !sig) return null;
-  const expect = crypto.createHmac("sha256", SECRET).update(data).digest("base64url");
+  const expect = crypto.createHmac("sha256", secret()).update(data).digest("base64url");
   if (!safeEqual(sig, expect)) return null;
   try {
     const obj = JSON.parse(Buffer.from(data, "base64url").toString());
