@@ -5,16 +5,24 @@ import { supa } from "@/lib/supabase";
 import { stripPrivateBuilding } from "@/lib/privacy";
 import { cache } from "react";
 import { unstable_cache } from "next/cache";
+import { assessCoords, CITY_CENTER } from "@/lib/geo";
+import { normDeal, normType } from "@/lib/classify";
 
 const KIND_COMPLEX = /жк|новострой|комплекс|complex/i;
 
 // Строки listings (одна = один лот) → структура домов с units[].
+// Без фолбэков: объявление с неизвестной сделкой публично не показывается (см. лог), тип без
+// сопоставления остаётся «как есть» (категория other), координаты вне города/Грузии → null
+// (объект остаётся в списке, но не ставится в чужой город на карте).
 function groupRows(rows) {
   const by = new Map();
   rows.forEach((r) => {
+    const dealU = normDeal(r.deal);
+    if (!dealU) { console.warn("listing skipped: unknown deal", r.id, r.deal); return; }
     const name = cleanAddress(r.building_name) || "Объект";
     const slug = slugify(name);
     if (!by.has(slug)) {
+      const geo = assessCoords(r);
       by.set(slug, {
         slug,
         name,
@@ -22,8 +30,9 @@ function groupRows(rows) {
         district: r.district || "Батуми",
         developer: r.developer || "",
         yearBuilt: r.year || "",
-        lat: Number(r.lat) || 41.64,
-        lng: Number(r.lng) || 41.63,
+        lat: geo.ok ? geo.lat : null,
+        lng: geo.ok ? geo.lng : null,
+        geoIssue: geo.ok ? "" : geo.reason,
         image: r.facade_photo || (r.photos && r.photos[0]) || "/placeholder-baylux.jpg",
         about: cleanDesc(r.about),
         lang: r.lang || "ru",
@@ -41,7 +50,6 @@ function groupRows(rows) {
     if (boost > (b.boost || 0)) b.boost = boost;
     if (r.complex && !b.complex) b.complex = r.complex;
     const uslug = slugify(name + "-" + (r.type || "") + "-" + (r.price || b.units.length + 1));
-    const dealU = r.deal || "sale";
     const areaN = r.area ? parseInt(r.area, 10) : 0;
     const pNum = r.price_num != null ? Number(r.price_num) : (parseInt(String(r.price || "").replace(/[^\d]/g, ""), 10) || null);
     const curU = r.currency === "GEL" ? "GEL" : (/₾|gel|лар/i.test(String(r.price || "")) ? "GEL" : "USD");
@@ -50,7 +58,8 @@ function groupRows(rows) {
       id: String(r.id || slug + "-" + b.units.length),
       slug: uslug,
       deal: dealU,
-      type: r.type || "Квартира",
+      // Канонический тип если распознан; иначе исходная строка (категория «other», не «квартира»).
+      type: normType(r.type) || String(r.type || "").trim(),
       rooms: r.rooms ? parseInt(r.rooms, 10) : 0,
       area: areaN,
       floor: r.floor || "—",
@@ -185,10 +194,11 @@ function dedupeUnits(buildings) {
   return buildings.map((b) => ({ ...b, units: b.units.filter((u) => !remove.has(u)) }));
 }
 
-// Город определяем по долготе: Батуми/побережье ≈ 41.6 (запад), Тбилиси/восток ≈ 44.7.
-// Порог 43 надёжно разделяет два кластера. Дома без координат имеют фолбэк 41.63 → запад (Батуми).
+// Запад/восток — по заявленному городу (справочник центров), а не по координатам объекта:
+// координаты могут быть неверными или отсутствовать. Неизвестный город → запад (главный рынок).
 function cityBucket(b) {
-  return Number(b.lng) > 43 ? "east" : "west";
+  const c = CITY_CENTER[String(b.district || "").trim()];
+  return c && c[1] > 43 ? "east" : "west";
 }
 
 // Порядок по умолчанию: чередуем города по кругу (round-robin), чтобы свежая пачка объявлений

@@ -4,6 +4,9 @@ import { verifySession, isAdmin, can } from "@/lib/session";
 import { supa } from "@/lib/supabase";
 import { OPERATOR } from "@/config";
 import { cleanAddress, cleanDesc } from "@/data/sheet";
+import { geocodeInCity } from "@/lib/geocode";
+import { translitAddress } from "@/lib/dict";
+import { normDeal, normType, perFor } from "@/lib/classify";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -15,15 +18,6 @@ const SITE = "https://bayluxhome.com";
 const DEAL_RU = { sale: "Продажа", rent: "Аренда", daily: "Посуточно" };
 const esc = (s) => String(s == null ? "" : s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
 
-// Центры городов — фолбэк, если адрес не геокодировался.
-const CITY_CENTER = {
-  "Батуми": { lat: 41.6168, lng: 41.6367 }, "Тбилиси": { lat: 41.7151, lng: 44.8271 },
-  "Кобулети": { lat: 41.8211, lng: 41.7766 }, "Гонио": { lat: 41.5636, lng: 41.5719 },
-  "Чакви": { lat: 41.7314, lng: 41.7264 }, "Кутаиси": { lat: 42.2679, lng: 42.7180 },
-  "Рустави": { lat: 41.5495, lng: 44.9938 }, "Бакуриани": { lat: 41.7460, lng: 43.5320 },
-  "Гудаури": { lat: 42.4770, lng: 44.4810 }, "Местиа": { lat: 43.0455, lng: 42.7290 },
-  "Махинджаури": { lat: 41.6708, lng: 41.6428 },
-};
 
 const sleep = (ms) => new Promise((res) => setTimeout(res, ms));
 // При флуд-лимите Telegram (429) ждём retry_after и повторяем — иначе при больших пачках часть карточек теряется.
@@ -67,17 +61,6 @@ function fmtPrice(num, currency) {
   if (!num) return null;
   const sym = currency === "GEL" ? "₾" : "$";
   return sym + String(num).replace(/\B(?=(\d{3})+(?!\d))/g, " ");
-}
-async function geocode(q) {
-  const key = process.env.NEXT_PUBLIC_MAPTILER_KEY;
-  if (!key) return null;
-  try {
-    const r = await fetch(`https://api.maptiler.com/geocoding/${encodeURIComponent(q)}.json?key=${key}&limit=1&country=ge`);
-    const j = await r.json();
-    const c = j?.features?.[0]?.center;
-    if (Array.isArray(c) && c.length === 2) return { lat: c[1], lng: c[0] };
-  } catch (e) { console.error("geocode error:", e?.message); }
-  return null;
 }
 function batchButtons(batchId) {
   return { inline_keyboard: [[
@@ -140,17 +123,18 @@ export async function POST(req) {
 
   // Предварительный ПАРАЛЛЕЛЬНЫЙ геокодинг (по 8 запросов за раз) — иначе 100 адресов
   // последовательно упёрлись бы в таймаут функции. Ключ = тот же запрос, что в цикле вставки.
+  // Ключ = адрес + город; геокодер (lib/geocode) принимает точку только в радиусе города.
   const geoKey = (r) => {
     const a = cleanAddress(r.address);
     const c = (r.city || "Батуми").toString().trim() || "Батуми";
-    return a ? `${a}, ${c}, Georgia` : null;
+    return a ? `${a}|${c}` : null;
   };
   const uniqKeys = [...new Set(rows.map(geoKey).filter(Boolean))];
   const geoMap = new Map();
   const GEO_CONC = 8;
   for (let i = 0; i < uniqKeys.length; i += GEO_CONC) {
     const chunk = uniqKeys.slice(i, i + GEO_CONC);
-    const res = await Promise.all(chunk.map((k) => geocode(k)));
+    const res = await Promise.all(chunk.map((k) => { const [a, c] = k.split("|"); return geocodeInCity(translitAddress(a, "en"), c); }));
     chunk.forEach((k, j) => geoMap.set(k, res[j]));
   }
 
@@ -160,7 +144,11 @@ export async function POST(req) {
     if (!address) { errors.push({ id: refId, reason: "адрес" }); continue; }
     if (!(parseInt(String(r.price || "").replace(/[^\d]/g, ""), 10) || 0)) { errors.push({ id: refId, reason: "цена" }); continue; }
 
-    const deal = ["sale", "rent", "daily"].includes(r.deal) ? r.deal : "sale";
+    // Сделка/тип — только канонические; неизвестное значение → в отчёт об ошибках, не «продажа»/«квартира».
+    const deal = normDeal(r.deal);
+    if (!deal) { errors.push({ id: refId, reason: `сделка: ${r.deal ?? "пусто"}` }); continue; }
+    const typeCanon = normType(r.type);
+    if (!typeCanon) { errors.push({ id: refId, reason: `тип: ${r.type ?? "пусто"}` }); continue; }
     const city = (r.city || "Батуми").toString().trim() || "Батуми";
     const currency = r.currency === "GEL" ? "GEL" : "USD";
     const priceNum = parseInt(String(r.price || "").replace(/[^\d]/g, ""), 10) || null;
@@ -169,10 +157,11 @@ export async function POST(req) {
     const buildingName = address || (r.type ? `${r.type}, ${city}` : "Объект");
     const about = cleanDesc(r.about); // чистим текст: ссылки, контакты, markdown [текст](url), скобки
 
-    // Геокодинг берём из пред-рассчитанной параллельной карты; фолбэк — центр города (geo_ok=false).
-    const g = geoMap.get(`${address}, ${city}, Georgia`) || null;
+    // Геокодинг из пред-рассчитанной карты. Не нашли в пределах города → координат нет (null, geo_ok=false):
+    // объект остаётся в списке, на карту не ставится; раньше подставлялся центр города.
+    const g = geoMap.get(`${address}|${city}`) || null;
     const geoOk = !!g;
-    const pt = g || CITY_CENTER[city] || CITY_CENTER["Батуми"];
+    const pt = g || { lat: null, lng: null };
     if (!geoOk) geoFails.push(refId);
 
     const row = {
@@ -181,13 +170,13 @@ export async function POST(req) {
       building_name: buildingName,
       kind: /новострой/i.test(r.type || "") || (r.complex || "").toString().trim() ? "complex" : "house",
       district: city, lat: pt.lat, lng: pt.lng,
-      deal, type: r.type || "Квартира",
+      deal, type: typeCanon,
       rooms: parseInt(r.rooms, 10) || 0, area: parseInt(r.area, 10) || 0,
       bathrooms: parseInt(r.bathrooms, 10) || null,
       floor: (r.floor || "—").toString(), year: parseInt(r.year, 10) || null,
       complex: (r.complex || "").toString().trim(), amenities, no_commission: !!r.no_commission,
       price: fmtPrice(priceNum, currency), currency, price_num: priceNum,
-      per: deal === "rent" ? "в месяц" : deal === "daily" ? "в сутки" : "",
+      per: perFor(deal),
       about,
       photos: Array.isArray(r.photos) ? r.photos.slice(0, 10) : [],
       photo_hashes: Array.isArray(r.photo_hashes) ? r.photo_hashes.slice(0, 10) : [],

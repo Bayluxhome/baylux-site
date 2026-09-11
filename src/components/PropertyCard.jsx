@@ -27,7 +27,9 @@ const fmtDate = (iso, lang) => formatDate(lang, iso);
 
 // qs — хвост ссылки на карточку (например «?c=<token>»): со страницы подборки объект
 // открывается с её контекстом, и заявка из карточки уходит риелтору-владельцу подборки.
-export default function PropertyCard({ unit, qs = "" }) {
+// onMap — показывать кнопку «На карте» (каталог): шлёт событие bx:showOnMap с slug дома,
+// CatalogSplit/MapView центрируют карту и открывают попап. Кнопка есть только у объектов с точкой.
+export default function PropertyCard({ unit, qs = "", onMap = false }) {
   const { t, lang } = useLang();
   const stripRef = useRef(null);
   const [pidx, setPidx] = useState(0);
@@ -77,8 +79,13 @@ export default function PropertyCard({ unit, qs = "" }) {
     ...(hasFloor ? [{ ic: <IcFloor key="f" />, txt: unit.floor }] : []),
   ];
   const fav = { slug: unit.slug, href: `/property/${unit.slug}`, title: `${ty}${unit.rooms ? `, ${unit.rooms} ${rs}` : ""}, ${unit.area} м²`, sub: `📍 ${district} · ${bname}`, price: unit.price, img: unit.img };
+  const hasPoint = Number.isFinite(b.lat) && Number.isFinite(b.lng);
+  const showOnMap = (e) => {
+    e.preventDefault(); e.stopPropagation();
+    window.dispatchEvent(new CustomEvent("bx:showOnMap", { detail: { building: b.slug, unit: unit.slug } }));
+  };
   return (
-    <Link className="card" href={`/property/${unit.slug}${qs}`}>
+    <Link className="card" href={`/property/${unit.slug}${qs}`} data-building={b.slug} data-unit={unit.slug}>
       <div className="ph">
         {photos ? (
           <div className="ph-strip" ref={stripRef} onScroll={onStripScroll}>
@@ -119,7 +126,12 @@ export default function PropertyCard({ unit, qs = "" }) {
         </div>
         <div className="caddr">{bname}</div>
         <div className="cdistrict">{sub}</div>
-        {dateStr ? <div className="cdate"><IcRefresh />{dateStr}</div> : null}
+        <div className="cfoot">
+          {dateStr ? <span className="cdate"><IcRefresh />{dateStr}</span> : <span />}
+          {onMap && (hasPoint
+            ? <button type="button" className="card-onmap" onClick={showOnMap}>📍 {t("map_on_map")}</button>
+            : <span className="card-nogeo">{t("map_no_geo")}</span>)}
+        </div>
       </div>
     </Link>
   );

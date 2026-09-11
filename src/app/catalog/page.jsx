@@ -1,6 +1,7 @@
 import Link from "next/link";
-import MapView from "@/components/MapView";
+import CatalogSplit from "@/components/CatalogSplit";
 import PropertyCard from "@/components/PropertyCard";
+import { CITY_CENTER } from "@/lib/geo";
 import { DEAL_LABEL, CAT_LABEL, GE_CITIES, unitCat, unitIsNew } from "@/data/data";
 import { getAllUnits } from "@/data/source";
 import { stripPrivate } from "@/lib/privacy";
@@ -136,26 +137,26 @@ export default async function CatalogPage({ searchParams }) {
   const bmap = new Map();
   for (const u of units) {
     const b = u.building;
-    if (!bmap.has(b.slug)) bmap.set(b.slug, { slug: b.slug, name: b.name, district: b.district, kind: b.kind, lat: b.lat, lng: b.lng, priceFrom: u.price, _min: priceVal(u) || Infinity, units: [] });
+    if (!bmap.has(b.slug)) bmap.set(b.slug, { slug: b.slug, name: b.name, name_ru: b.name_ru, name_en: b.name_en, name_ka: b.name_ka, district: b.district, kind: b.kind, lat: b.lat, lng: b.lng, priceFrom: u.price, _min: priceVal(u) || Infinity, units: [] });
     const e = bmap.get(b.slug);
     const pv = priceVal(u) || Infinity;
     if (pv < e._min) { e._min = pv; e.priceFrom = u.price; } // на точке дома — минимальная цена среди его объектов
     e.units.push({ slug: u.slug, deal: u.deal, type: u.type, rooms: u.rooms, area: u.area, price: u.price, per: u.per, img: u.unit_image || (u.photos && u.photos[0]) || u.img || "" });
   }
   const mapBuildings = Array.from(bmap.values());
+  // Объекты без достоверной точки (нет координат / не в своём городе) — в списке есть, на карте нет.
+  const hiddenCount = units.filter((u) => !Number.isFinite(u.building?.lat)).length;
 
-  // Центр карты: при выбранном городе — по центру его объектов (и подгоняем масштаб),
-  // без выбора — Батуми по умолчанию (а не общий вид на весь Кавказ).
-  let mapCenter = [41.642, 41.632]; // Батуми
-  let mapZoom = 11;
+  // Центр карты: выбранный город → его центр из справочника и fitBounds по валидным точкам;
+  // без города — Батуми (главный рынок), а не «средняя точка» и не общий вид на весь Кавказ.
+  const cityC = city ? CITY_CENTER[city] : null;
+  let mapCenter = cityC || CITY_CENTER["Батуми"];
+  let mapZoom = cityC ? 12 : 11;
   let fitMap = false;
   if (city) {
-    const pts = mapBuildings.filter((b) => b.lat && b.lng);
-    if (pts.length) {
-      mapCenter = [pts.reduce((s, b) => s + b.lat, 0) / pts.length, pts.reduce((s, b) => s + b.lng, 0) / pts.length];
-      mapZoom = 13;
-      fitMap = pts.length > 1;
-    }
+    const pts = mapBuildings.filter((b) => Number.isFinite(b.lat) && Number.isFinite(b.lng));
+    fitMap = pts.length > 1;
+    if (!cityC && pts.length) mapCenter = [pts[0].lat, pts[0].lng];
   }
 
   const qs = (k, v) => {
@@ -264,11 +265,10 @@ export default async function CatalogPage({ searchParams }) {
       {total === 0 ? (
         <p style={{ color: "var(--ink-soft)", padding: "30px 0" }}>{t("cat_empty")} <Link href="/catalog" style={{ color: "var(--navy)", fontWeight: 600 }}>{t("f_reset")}</Link></p>
       ) : (
-        <div className="split">
-          <div>
+        <CatalogSplit buildings={mapBuildings} center={mapCenter} zoom={mapZoom} fit={fitMap} hiddenCount={hiddenCount}>
             <div className="cards">
               {/* stripPrivate — чтобы email и Telegram-id владельца не попадали в HTML страницы */}
-              {pageUnits.map((u) => <PropertyCard key={u.id} unit={stripPrivate(u)} />)}
+              {pageUnits.map((u) => <PropertyCard key={u.id} unit={stripPrivate(u)} onMap />)}
             </div>
             {totalPages > 1 && (
               <nav className="pager" aria-label="Pagination">
@@ -285,9 +285,7 @@ export default async function CatalogPage({ searchParams }) {
                 {page < totalPages && <Link className="pg-arrow" href={qs("page", String(page + 1))} rel="next" aria-label="next">›</Link>}
               </nav>
             )}
-          </div>
-          <MapView buildings={mapBuildings} className="map-full" center={mapCenter} zoom={mapZoom} fit={fitMap} />
-        </div>
+        </CatalogSplit>
       )}
 
       {Object.keys(sp).length === 0 && (

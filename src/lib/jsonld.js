@@ -121,6 +121,7 @@ export function propertyJsonLd(u, b, lang) {
     .filter((p) => p && !PLACEHOLDER.test(p))
     .map(absUrl);
 
+  // source.js уже обнулил координаты вне города/Грузии и заглушки — здесь достаточно проверки на число.
   const hasGeo = Number.isFinite(b.lat) && Number.isFinite(b.lng) && !(b.lat === FALLBACK_LAT && b.lng === FALLBACK_LNG);
   const price = Number.isFinite(u.priceNum) && u.priceNum > 0 ? u.priceNum : null;
   const currency = u.currency === "GEL" ? "GEL" : "USD";

@@ -150,7 +150,9 @@ export default async function PropertyPage({ params, searchParams }) {
             <h3>{t("why_h")}</h3>
             <p>{t("why_p")}</p>
           </div>
-          <div className="map-sm"><MapView buildings={mapBuildings} className="map-sm" center={[b.lat, b.lng]} zoom={15} /></div>
+          {Number.isFinite(b.lat) && Number.isFinite(b.lng)
+            ? <div className="map-sm"><MapView buildings={mapBuildings} className="map-sm" center={[b.lat, b.lng]} zoom={15} /></div>
+            : <p className="muted map-nogeo">📍 {t("map_no_geo")}</p>}
         </div>
 
         <aside>

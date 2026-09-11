@@ -4,8 +4,10 @@ import { translateDescriptions, translateNames } from "@/lib/translate";
 import { watermarkBuffer } from "@/lib/watermarkServer";
 import { GE_CITIES } from "@/data/data";
 import { cityLabel } from "@/lib/dict";
-import { SITE_URL } from "@/config";
+import { SITE_URL, channelForCity } from "@/config";
 import { revalidateListings } from "@/lib/cache";
+import { geocodeInCity } from "@/lib/geocode";
+import { normType } from "@/lib/classify";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -15,17 +17,11 @@ const ADMIN = process.env.TELEGRAM_CHAT_ID; // чат CEO для модерац�
 const CHANNEL = process.env.TELEGRAM_CHANNEL || ""; // основной канал (Батуми/побережье)
 const CH_BATUMI = CHANNEL;                                  // запад/побережье
 const CH_TBILISI = process.env.TELEGRAM_CHANNEL_TBILISI || ""; // восток
-const HUB_BATUMI = { lat: 41.6168, lng: 41.6367 };
-const HUB_TBILISI = { lat: 41.7151, lng: 44.8271 };
-// Выбираем канал по ближайшему хабу (по координатам объекта), фолбэк — по названию.
+// Канал — по заявленному городу (общая логика config.channelForCity), не по координатам:
+// координаты могут быть неверными (геокодер путал города) — публикация уходила не в тот канал.
 function pickChannel(row) {
   if (!CH_TBILISI) return CH_BATUMI; // второго канала нет — всё в основной
-  const lat = Number(row.lat), lng = Number(row.lng);
-  if (isFinite(lat) && isFinite(lng) && (lat || lng)) {
-    const d2 = (h) => (lat - h.lat) ** 2 + (lng - h.lng) ** 2;
-    return d2(HUB_TBILISI) < d2(HUB_BATUMI) ? CH_TBILISI : CH_BATUMI;
-  }
-  return /тбилиси|рустави|мцхета|гори|телави|гудаури|бакуриани|tbilisi|rustavi/i.test(String(row.district || "")) ? CH_TBILISI : CH_BATUMI;
+  return channelForCity(row.district)?.key === "tbilisi" ? CH_TBILISI : CH_BATUMI;
 }
 const API = `https://api.telegram.org/bot${TOKEN}`;
 // Секрет вебхука — производный от токена бота. Без токена секрета нет вовсе (fail-closed):
@@ -242,17 +238,7 @@ function cleanTg(raw) {
   const m = String(raw || "").trim().match(/(?:t\.me\/|@)?([A-Za-z0-9_]{3,})/);
   return m ? m[1].replace(/[^A-Za-z0-9_]/g, "") : "";
 }
-async function geocode(q) {
-  const key = process.env.NEXT_PUBLIC_MAPTILER_KEY;
-  if (!key) return null;
-  try {
-    const r = await fetch(`https://api.maptiler.com/geocoding/${encodeURIComponent(q)}.json?key=${key}&limit=1&country=ge`);
-    const j = await r.json();
-    const c = j?.features?.[0]?.center;
-    if (Array.isArray(c) && c.length === 2) return { lat: c[1], lng: c[0] };
-  } catch (e) { console.error("geocode error:", e?.message); }
-  return null;
-}
+// Геокодер общий (lib/geocode): результат принимается только в радиусе заявленного города.
 
 // ---- Telegram helpers ----
 async function tg(method, body) {
@@ -371,7 +357,7 @@ async function finalizeListing(chat, uid, data, author) {
     building_name: cleanAddress(data.address) || (data.type ? `${data.type}, ${city}` : "Объект"),
     kind: COMPLEX_TYPES.test(data.type || "") || data.complex ? "complex" : "house",
     district: city,
-    lat: data.lat || 41.645, lng: data.lng || 41.642,
+    lat: data.lat ?? null, lng: data.lng ?? null, // без точки — модератор поставит («Исправить гео»), заглушек нет
     deal: data.deal, type: data.type, rooms: data.rooms || 0, area: data.area || 0,
     bathrooms: data.bathrooms || null, floor: data.floor || "—", year: data.year || null,
     complex: data.complex || "", amenities: (data.amenities || []).join(", "), no_commission: !!data.no_commission,
@@ -500,8 +486,11 @@ async function onMessage(msg) {
       data.deal = deal; await saveDraft(uid, "type", data); return ask(chat, "type", lang);
     }
     case "type": {
-      const c = canon(TYPES_L, TYPES_C, text);
-      data.type = c || text; await saveDraft(uid, "complex", data); return ask(chat, "complex", lang);
+      // Тип только из канонического списка: кнопка (canon) или распознанный алиас (normType).
+      // Произвольный текст не принимаем — иначе в базе появлялись бы типы вне справочника.
+      const c = canon(TYPES_L, TYPES_C, text) || normType(text);
+      if (!c) return ask(chat, "type", lang);
+      data.type = c; await saveDraft(uid, "complex", data); return ask(chat, "complex", lang);
     }
     case "complex": {
       if (!isSkip(text)) data.complex = text.trim();
@@ -509,7 +498,7 @@ async function onMessage(msg) {
     }
     case "address": {
       data.address = text;
-      const g = await geocode(`${text}, ${data.city || "Батуми"}, Georgia`);
+      const g = await geocodeInCity(text, data.city || "Батуми");
       if (g) { data.lat = g.lat; data.lng = g.lng; data.geo_auto = true; }
       await saveDraft(uid, "geo", data);
       return askGeo(chat, data, lang);

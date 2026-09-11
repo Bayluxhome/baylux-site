@@ -1,30 +1,17 @@
 import { cookies } from "next/headers";
 import { verifySession, isSuperAdmin } from "@/lib/session";
 import { supa } from "@/lib/supabase";
-import { translitAddress, cityLabel } from "@/lib/dict";
+import { translitAddress } from "@/lib/dict";
 import { cleanAddress } from "@/data/sheet";
 import { revalidateListings } from "@/lib/cache";
+import { geocodeInCity } from "@/lib/geocode";
+import { assessCoords } from "@/lib/geo";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 export const maxDuration = 60;
 
-// Латинские имена городов для геокодера (MapTiler плохо понимает кириллицу) —
-// из общего словаря переводов, чтобы новый город добавлялся в одном месте.
-const cityLat = (name) => cityLabel("en", name);
-
 const KEY = process.env.NEXT_PUBLIC_MAPTILER_KEY;
-
-async function geocode(q) {
-  if (!KEY) return null;
-  try {
-    const r = await fetch(`https://api.maptiler.com/geocoding/${encodeURIComponent(q)}.json?key=${KEY}&limit=1&country=ge`);
-    const j = await r.json();
-    const c = j?.features?.[0]?.center;
-    if (Array.isArray(c) && c.length === 2 && Number.isFinite(c[0]) && Number.isFinite(c[1])) return { lat: c[1], lng: c[0] };
-  } catch (e) { /* ignore */ }
-  return null;
-}
 
 async function fetchAll() {
   const all = [];
@@ -65,12 +52,14 @@ async function run(req, write) {
   for (const r of all) freq[ptKey(r)] = (freq[ptKey(r)] || 0) + 1;
   const topClusters = Object.entries(freq).sort((a, b) => b[1] - a[1]).slice(0, 6).map(([point, count]) => ({ point, count }));
 
-  // Цели: объекты без координат ИЛИ в крупном кластере.
-  const targetsAll = all.filter((r) => ptKey(r) === "null" || freq[ptKey(r)] >= minCluster);
+  // Цели: без координат, в крупном кластере ИЛИ с точкой не в своём городе (assessCoords: city_mismatch,
+  // outside_ge, fallback, swapped?). Ручные точки (уникальные и в своём городе) не трогаем.
+  const badReason = (r) => { const a = assessCoords(r); return a.ok ? "" : a.reason; };
+  const targetsAll = all.filter((r) => ptKey(r) === "null" || freq[ptKey(r)] >= minCluster || badReason(r));
   const targets = targetsAll.slice(0, limit);
 
   const samples = [];
-  let geocoded = 0, updated = 0;
+  let geocoded = 0, updated = 0, notFound = 0, cleared = 0;
   const CONC = 6;
   for (let i = 0; i < targets.length; i += CONC) {
     const chunk = targets.slice(i, i + CONC);
@@ -78,16 +67,25 @@ async function run(req, write) {
       const addrRu = cleanAddress(r.building_name || r.name_ru || "");
       if (!addrRu) return null;
       const addrLat = translitAddress(addrRu, "en", r.kind);
-      const city = cityLat(r.district) || "Batumi";
-      const query = `${addrLat}, ${city}, Georgia`;
-      const g = await geocode(query);
-      return { r, addrRu, query, g, cur: ptKey(r) };
+      // Геокодер с проверкой: точка принимается только в радиусе заявленного города.
+      const g = await geocodeInCity(addrLat, r.district || "Батуми");
+      return { r, addrRu, g, cur: ptKey(r), reason: badReason(r) };
     }));
     for (const x of res) {
-      if (!x || !x.g) continue;
-      geocoded++;
-      if (samples.length < 15) samples.push({ id: x.r.id, from: x.addrRu, curPoint: x.cur, newLat: Number(x.g.lat.toFixed(5)), newLng: Number(x.g.lng.toFixed(5)) });
-      if (live) { await supa.from("listings").update({ lat: x.g.lat, lng: x.g.lng, geo_ok: true }).eq("id", x.r.id); updated++; }
+      if (!x) continue;
+      if (x.g) {
+        geocoded++;
+        if (samples.length < 15) samples.push({ id: x.r.id, from: x.addrRu, city: x.r.district, reason: x.reason || "cluster/null", curPoint: x.cur, newLat: Number(x.g.lat.toFixed(5)), newLng: Number(x.g.lng.toFixed(5)), km: x.g.km });
+        if (live) { await supa.from("listings").update({ lat: x.g.lat, lng: x.g.lng, geo_ok: true }).eq("id", x.r.id); updated++; }
+      } else {
+        notFound++;
+        // Точка была заведомо неверной (чужой город) и заново не нашлась → обнуляем, чтобы объект
+        // не висел в чужом городе; он остаётся в каталоге без пина (модератор поставит вручную).
+        if (x.reason && x.cur !== "null") {
+          if (samples.length < 15) samples.push({ id: x.r.id, from: x.addrRu, city: x.r.district, reason: x.reason, curPoint: x.cur, action: "clear" });
+          if (live) { await supa.from("listings").update({ lat: null, lng: null, geo_ok: false }).eq("id", x.r.id); cleared++; }
+        }
+      }
     }
   }
   if (live && updated > 0) revalidateListings();
@@ -100,7 +98,9 @@ async function run(req, write) {
     targetsTotal: targetsAll.length,
     processedThisCall: targets.length,
     geocoded,
+    notFound,
     updated,
+    cleared,
     samples,
   });
 }

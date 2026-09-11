@@ -2,6 +2,8 @@ import { cookies } from "next/headers";
 import { verifySession, owns, can, isResponsible } from "@/lib/session";
 import { supa } from "@/lib/supabase";
 import { revalidateListings } from "@/lib/cache";
+import { normDeal, normType, perFor } from "@/lib/classify";
+import { assessCoords } from "@/lib/geo";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -66,19 +68,23 @@ export async function POST(req) {
     for (const mid of String(existing.tg_post_id).split(",")) await tg("deleteMessage", { chat_id: oldCh, message_id: Number(mid) });
   }
 
-  const deal = ["sale", "rent", "daily"].includes(b.deal) ? b.deal : "sale";
+  const deal = normDeal(b.deal);
+  if (!deal) return Response.json({ ok: false, error: "deal" }, { status: 400 });
+  const typeCanon = String(b.rooms).trim() === "0" ? "Студия" : normType(b.type);
+  if (!typeCanon) return Response.json({ ok: false, error: "type" }, { status: 400 });
   const city = (b.city || "Батуми").toString().trim() || "Батуми";
   const currency = b.currency === "GEL" ? "GEL" : "USD";
   const priceNum = parseInt(String(b.price || "").replace(/[^\d]/g, ""), 10) || null;
   const amenities = Array.isArray(b.amenities) ? b.amenities.filter(Boolean).join(", ") : (b.amenities || "");
-  const hasGeo = b.lat != null && b.lng != null;
+  const geo = assessCoords({ lat: b.lat, lng: b.lng, district: city });
+  const hasGeo = geo.ok;
   const row = {
     status: keepLive ? "approved" : "pending",
     building_name: (b.address || "").trim() || (b.type ? `${b.type}, ${city}` : "Объект"),
     kind: /новострой/i.test(b.type || "") || (b.complex || "").trim() ? "complex" : "house",
     district: city,
-    lat: Number(b.lat) || 41.645, lng: Number(b.lng) || 41.642,
-    deal, type: String(b.rooms).trim() === "0" ? "Студия" : (b.type || "Квартира"),
+    lat: hasGeo ? geo.lat : null, lng: hasGeo ? geo.lng : null,
+    deal, type: typeCanon,
     rooms: parseInt(b.rooms, 10) || 0, area: parseInt(b.area, 10) || 0, bathrooms: parseInt(b.bathrooms, 10) || null,
     floor: (b.floor || "—").toString(), year: parseInt(b.year, 10) || null,
     complex: (b.complex || "").toString().trim(), amenities, no_commission: !!b.noCommission,
@@ -93,7 +99,7 @@ export async function POST(req) {
     ...(canManageThis && b.contractUrl !== undefined ? { contract_url: (b.contractUrl || "").toString().trim() || null } : {}),
     // Ответственный сотрудник за объект — только админ.
     ...(canMng && b.responsibleEmail !== undefined ? { responsible_email: b.responsibleEmail || null, responsible_tg: b.responsibleTg != null ? Number(b.responsibleTg) : null } : {}),
-    price: fmtPrice(priceNum, currency), currency, price_num: priceNum, per: deal === "rent" ? "в месяц" : deal === "daily" ? "в сутки" : "",
+    price: fmtPrice(priceNum, currency), currency, price_num: priceNum, per: perFor(deal),
     about: (b.about || "").toString(), photos: Array.isArray(b.photos) ? b.photos.slice(0, 10) : [],
     facade_photo: (b.facade || "").toString() || null,
     tg_username: cleanTg(b.tg) || session.username || "", contact: phone, phone, tg_post_id: null,

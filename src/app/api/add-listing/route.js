@@ -1,6 +1,8 @@
 import { cookies } from "next/headers";
 import { verifySession, can } from "@/lib/session";
 import { supa } from "@/lib/supabase";
+import { normDeal, normType, perFor } from "@/lib/classify";
+import { assessCoords } from "@/lib/geo";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -60,9 +62,15 @@ export async function POST(req) {
   const phone = gePhone(b.contact);
   if (!phone) return Response.json({ ok: false, error: "phone" }, { status: 400 });
 
-  const deal = ["sale", "rent", "daily"].includes(b.deal) ? b.deal : "sale";
+  // Сделка и тип — только из канонического справочника; неизвестное значение = ошибка, а не «продажа»/«квартира».
+  const deal = normDeal(b.deal);
+  if (!deal) return Response.json({ ok: false, error: "deal" }, { status: 400 });
+  const typeCanon = String(b.rooms).trim() === "0" ? "Студия" : normType(b.type);
+  if (!typeCanon) return Response.json({ ok: false, error: "type" }, { status: 400 });
   const city = (b.city || "Батуми").toString().trim() || "Батуми";
-  const hasGeo = b.lat != null && b.lng != null;
+  // Координаты: только валидные и в пределах города; иначе null (модератор поставит точку). Заглушек нет.
+  const geo = assessCoords({ lat: b.lat, lng: b.lng, district: city });
+  const hasGeo = geo.ok;
   const currency = b.currency === "GEL" ? "GEL" : "USD";
   const priceNum = parseInt(String(b.price || "").replace(/[^\d]/g, ""), 10) || null;
   const priceStr = fmtPrice(priceNum, currency) || normPrice(b.price);
@@ -75,8 +83,8 @@ export async function POST(req) {
     building_name: buildingName,
     kind: /новострой/i.test(b.type || "") || (b.complex || "").trim() ? "complex" : "house",
     district: city,
-    lat: Number(b.lat) || 41.645, lng: Number(b.lng) || 41.642,
-    deal, type: String(b.rooms).trim() === "0" ? "Студия" : (b.type || "Квартира"),
+    lat: hasGeo ? geo.lat : null, lng: hasGeo ? geo.lng : null,
+    deal, type: typeCanon,
     rooms: parseInt(b.rooms, 10) || 0, area: parseInt(b.area, 10) || 0,
     bathrooms: parseInt(b.bathrooms, 10) || null,
     floor: (b.floor || "—").toString(), year: parseInt(b.year, 10) || null,
@@ -84,7 +92,7 @@ export async function POST(req) {
     // ВАЖНО: «под управлением Baylux» может выставить только админ. Заявка владельца (b.managed)
     // не доверяется напрямую — она показывается модератору в боте, флаг ставит админ при одобрении.
     managed_by_baylux: canMng ? !!b.managed : false,
-    price: priceStr, currency, price_num: priceNum, per: deal === "rent" ? "в месяц" : deal === "daily" ? "в сутки" : "",
+    price: priceStr, currency, price_num: priceNum, per: perFor(deal),
     about: (b.about || "").toString(), photos: Array.isArray(b.photos) ? b.photos.slice(0, 10) : [], photo_hashes: Array.isArray(b.photo_hashes) ? b.photo_hashes.slice(0, 10) : [], facade_photo: (b.facade || "").toString() || null,
     tg_user_id: session.id ?? null, owner_email: session.email || null, tg_username: cleanTg(b.tg) || session.username || "", contact: phone, phone,
   };

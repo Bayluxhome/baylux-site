@@ -104,8 +104,8 @@ export async function fetchSheet(url) {
         district: it.district || "Батуми",
         developer: it.developer || "",
         yearBuilt: it.year || "",
-        lat: parseFloat(it.lat) || 41.64,
-        lng: parseFloat(it.lng) || 41.63,
+        lat: parseFloat(it.lat) || null, // без координат — не на карте, а не «центр Батуми»
+        lng: parseFloat(it.lng) || null,
         image: it.building_image || it.unit_image || "/placeholder-baylux.jpg",
         about: it.about || "",
         units: [],

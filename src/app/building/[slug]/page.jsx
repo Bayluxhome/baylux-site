@@ -101,7 +101,9 @@ export default async function BuildingPage({ params }) {
             ))}
           </div>
 
-          <div className="map-sm"><MapView buildings={mapBuildings} className="map-sm" center={[b.lat, b.lng]} zoom={15} /></div>
+          {Number.isFinite(b.lat) && Number.isFinite(b.lng)
+            ? <div className="map-sm"><MapView buildings={mapBuildings} className="map-sm" center={[b.lat, b.lng]} zoom={15} /></div>
+            : <p className="muted map-nogeo">📍 {t("map_no_geo")}</p>}
         </div>
 
         <aside>
