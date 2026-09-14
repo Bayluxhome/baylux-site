@@ -13,18 +13,21 @@ export const CLARITY_ID = process.env.NEXT_PUBLIC_CLARITY_ID || "";
 export const TG_BOT = "baylux_leads_bot"; // имя бота для входа через Telegram
 export const TG_CONTACT = "bayluxhome"; // основной Telegram-контакт (владелец/агентство), без @ — фолбэк для объявлений без личного ника автора
 
-// Телефоны сайта. ВАЖНО: это два РАЗНЫХ номера.
-// PHONE — основной номер для звонков (tel:), берётся из env NEXT_PUBLIC_PHONE.
-// WA_PHONE — отдельный номер для WhatsApp (wa.me), НЕ менять.
-export const PHONE = process.env.NEXT_PUBLIC_PHONE || "995706070305"; // звонки, без +
-export const WA_PHONE = "995599200796"; // WhatsApp, без + — НЕ менять
+// Единый номер компании: звонки (tel:), WhatsApp (wa.me), футер, «Контакты»,
+// JSON-LD и контакт на объявлениях из таблицы (bulk-listing).
+// До 14.09.2026 номеров было два — для звонков 706 07 03 05, для WhatsApp 599 20 07 96;
+// решением руководства оставлен один — 599 20 07 96.
+// Намеренно БЕЗ env: переменная NEXT_PUBLIC_PHONE больше не читается, иначе номер снова
+// разъедется между кодом и хостингом. Менять номер — здесь, в одной строке.
+export const PHONE = "995599200796";    // без +
+export const WA_PHONE = PHONE;          // оставлен как отдельное имя: используется в коде страниц
 export function fmtPhone(d) {
   const s = String(d || "").replace(/\D/g, "");
   const m = s.match(/^(995)(\d{3})(\d{2})(\d{2})(\d{2})$/); // 995 XXX XX XX XX
   return m ? `+${m[1]} ${m[2]} ${m[3]} ${m[4]} ${m[5]}` : "+" + s;
 }
-export const PHONE_DISPLAY = fmtPhone(PHONE);   // +995 706 07 03 05
-export const WA_DISPLAY = fmtPhone(WA_PHONE);   // +995 599 20 07 96
+export const PHONE_DISPLAY = fmtPhone(PHONE);   // +995 599 20 07 96
+export const WA_DISPLAY = fmtPhone(WA_PHONE);   // тот же номер
 export const telLink = "tel:+" + PHONE;
 export function waLink(text) {
   const t = text || "Здравствуйте! Пишу с сайта Baylux по объекту.";
@@ -37,7 +40,7 @@ export function waLink(text) {
 export const OPERATOR = {
   name: "Kologrivova Tatiana", // ФИО оператора-физлица (до регистрации ШПС)
   email: "bayluxhome@gmail.com",
-  phone: PHONE_DISPLAY, // основной телефон сайта (из NEXT_PUBLIC_PHONE)
+  phone: PHONE_DISPLAY, // единый телефон компании
 };
 
 // Единый источник публичных контактов компании: страница «Контакты», футер, JSON-LD.

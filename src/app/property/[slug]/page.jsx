@@ -75,11 +75,10 @@ export default async function PropertyPage({ params, searchParams }) {
   // Контакт продавца (из объявления): телефон и/или Telegram-ник
   const cleanPhone = (u.phone || (/^\+?\d[\d\s()\-]{6,}$/.test(u.contact || "") ? u.contact : "")).replace(/[^\d]/g, "");
   const tgUser = (u.tg_username || (String(u.contact || "").trim().startsWith("@") ? u.contact.trim().slice(1) : "")).replace(/[^A-Za-z0-9_]/g, "");
-  // Получатель WhatsApp — правило прежнее: контакт из объявления, иначе номер Baylux.
+  // Получатель WhatsApp: личный номер риелтора из объявления, иначе номер Baylux.
   // Текст сообщения собирает сама кнопка (название · цена с валютой и периодом, ID, ссылка).
-  // У спарсенных объявлений в контакте стоит основной номер Baylux для звонков — WhatsApp
-  // на нём не ведётся, поэтому такие клики направляем на выделенный WhatsApp-номер.
-  // Личный номер риелтора остаётся его собственным.
+  // С 14.09.2026 у компании один номер (PHONE === WA_PHONE), поэтому сравнение ниже просто
+  // отличает «свой» контакт от корпоративного — на результат это не влияет.
   const waTo = cleanPhone && cleanPhone !== PHONE ? cleanPhone : WA_PHONE;
   const waPrice = u.price && u.price !== "—" ? `${u.price}${priceSuffix.trim() ? " " + priceSuffix.trim() : ""}` : "";
   const propertyUrl = `${SITE_URL}/property/${u.slug}`;
