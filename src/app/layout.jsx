@@ -11,6 +11,7 @@ import { FilterProvider } from "@/components/FilterContext";
 import { LangProvider } from "@/components/LangContext";
 import { getUsdGel } from "@/lib/rate";
 import { getCityCounts } from "@/data/source";
+import { headers } from "next/headers";
 import { getLang } from "@/lib/serverLang";
 import { t as tr } from "@/lib/dict";
 import { SITE_URL } from "@/config";
@@ -53,8 +54,12 @@ export async function generateMetadata() {
 }
 
 export default async function RootLayout({ children }) {
+  // «Голый» режим (публичная подборка /c/<token>): без глобальных Header/Footer — заголовок
+  // ставит middleware, поэтому меню нет уже в серверном HTML и оно не мелькает до гидрации.
+  // Провайдеры, валюта, форма заявки, аналитика и cookie-согласие сохраняются.
+  const bare = headers().get("x-bx-layout") === "bare";
   const rate = await getUsdGel();
-  const cityCounts = await getCityCounts();
+  const cityCounts = bare ? null : await getCityCounts(); // счётчики нужны только меню
   // Язык по умолчанию по домену/рынку (.ge→ka, .com→en, Грузия→ka) + уважение cookie.
   const initialLang = getLang();
   return (
@@ -69,13 +74,13 @@ export default async function RootLayout({ children }) {
       </head>
       <body>
         {/* Организация: одна сущность с @id (переиспользуется в JSON-LD объектов); areaServed — Грузия, address — офис в Батуми */}
-        <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: serializeJsonLd(orgJsonLd(initialLang)) }} />
+        {!bare && <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: serializeJsonLd(orgJsonLd(initialLang)) }} />}
         <LangProvider initial={initialLang}>
           <FilterProvider>
             <CurrencyManager rate={rate} />
-            <Header cityCounts={cityCounts} />
+            {!bare && <Header cityCounts={cityCounts} />}
             <main>{children}</main>
-            <Footer />
+            {!bare && <Footer />}
             <LeadModal />
             <CookieConsent />
             <AnalyticsConsent />

@@ -13,10 +13,19 @@ import { t as tr } from "@/lib/dict";
 // Клиента, его контакты и id подборки страница не раскрывает — в адресе только токен.
 export const dynamic = "force-dynamic";
 
+// Метаданные НЕЙТРАЛЬНЫЕ: название подборки риелтор часто пишет с именем клиента
+// («Подборка для Ирины»), а title/OG уходят в превью ссылки в мессенджере и могут попасть
+// третьим лицам. Само название видно клиенту в H1 на странице — там это уместно.
 export async function generateMetadata({ params }) {
   const lang = getLang();
   const c = await getByToken(params.token);
-  return { title: c && c.enabled ? (c.title || tr(lang, "col_page_h")) : tr(lang, "col_unavailable_h"), robots: { index: false, follow: false } };
+  const title = (c && c.enabled ? tr(lang, "col_page_h") : tr(lang, "col_unavailable_h")) + " — Baylux";
+  return {
+    title: { absolute: title },
+    description: tr(lang, "col_meta_d"),
+    robots: { index: false, follow: false },
+    openGraph: { title, description: tr(lang, "col_meta_d"), type: "website" },
+  };
 }
 
 export default async function CollectionPage({ params }) {

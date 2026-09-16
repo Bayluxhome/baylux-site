@@ -14,6 +14,7 @@ import { PHONE, WA_PHONE, TG_CONTACT, SITE_URL } from "@/config";
 import { getLang } from "@/lib/serverLang";
 import { t as tr, typeLabel, amenLabel, translitAddress, cityLabel } from "@/lib/dict";
 import { propertyJsonLd, serializeJsonLd } from "@/lib/jsonld";
+import PresShell from "@/components/PresShell";
 
 // Язык страницы зависит от посетителя (cookies/headers через getLang) → рендерим по запросу (SSR).
 // Пре-рендера нет → сборка быстрая. ISR-кэш здесь нельзя: он несовместим с динамическими данными запроса.
@@ -86,14 +87,21 @@ export default async function PropertyPage({ params, searchParams }) {
   // JSON-LD страницы: единый @graph (RealEstateListing → Offer → объект + крошки), локализован, на SITE_URL.
   const ldJson = serializeJsonLd(propertyJsonLd(u, b, lang));
 
-  return (
+  const body = (
     <div className="wrap">
       <ViewCounter id={u.id} />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: ldJson }} />
-      <div className="crumbs">
-        <Link href="/">{t("crumb_home")}</Link> · <Link href="/catalog">{t("crumb_catalog")}</Link> ·{" "}
-        <Link href={`/building/${b.slug}`}>{bname}</Link> · <span>{ty}, {u.area} {sqm}</span>
-      </div>
+      {/* В режиме презентации хлебные крошки ведут в каталог — заменяем их возвратом к подборке */}
+      {collectionToken ? (
+        <div className="crumbs">
+          <Link href={`/c/${collectionToken}`}>← {t("col_back")}</Link>
+        </div>
+      ) : (
+        <div className="crumbs">
+          <Link href="/">{t("crumb_home")}</Link> · <Link href="/catalog">{t("crumb_catalog")}</Link> ·{" "}
+          <Link href={`/building/${b.slug}`}>{bname}</Link> · <span>{ty}, {u.area} {sqm}</span>
+        </div>
+      )}
 
       <AdminEdit items={[{ id: u.id, label: "Редактировать объявление" }]} />
 
@@ -193,4 +201,8 @@ export default async function PropertyPage({ params, searchParams }) {
       </div>
     </div>
   );
+
+  // Открыт из подборки — показываем ту же «обложку», что и на /c/<token>:
+  // глобального меню на этом адресе нет (его отключает middleware + root layout).
+  return collectionToken ? <PresShell backHref={`/c/${collectionToken}`}>{body}</PresShell> : body;
 }

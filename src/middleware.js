@@ -8,6 +8,27 @@ const COOKIE = "bx_demo";
 const MAXAGE = 60 * 60 * 24 * 30; // 30 дней
 
 export function middleware(req) {
+  // Публичная подборка /c/<token> — «режим презентации» для клиента риелтора.
+  // Ставим заголовок запроса, по которому root layout НЕ рендерит глобальные Header/Footer.
+  // Решение серверное: меню отсутствует уже в HTML, не мелькает до гидрации и не даёт
+  // клиенту уйти из подборки в каталог. Подборки не индексируем (см. также robots в metadata).
+  // Страница объекта, открытая ИЗ подборки (/property/<slug>?c=<token>), — часть той же
+  // презентации: меню тоже не показываем, наверху даём «Вернуться к подборке».
+  const colToken = req.nextUrl.searchParams.get("c") || "";
+  const fromCollection = req.nextUrl.pathname.startsWith("/property/") && /^[A-Za-z0-9_-]{8,32}$/.test(colToken);
+
+  if (req.nextUrl.pathname.startsWith("/c/") || fromCollection) {
+    const headers = new Headers(req.headers);
+    headers.set("x-bx-layout", "bare");
+    const res = NextResponse.next({ request: { headers } });
+    res.headers.set("X-Robots-Tag", "noindex, nofollow");
+    return res;
+  }
+
+  // Дальше — ТОЛЬКО закрытая демо-витрина. Проверка обязательна: в matcher теперь есть
+  // /property/*, и без неё обычная карточка объекта (без ?c=) улетела бы в 404 ниже.
+  if (!req.nextUrl.pathname.startsWith("/demo")) return NextResponse.next();
+
   const key = process.env.DEMO_KEY || "";
   const provided = req.nextUrl.searchParams.get("key");
   const cookieVal = req.cookies.get(COOKIE)?.value;
@@ -37,5 +58,6 @@ export function middleware(req) {
   return res;
 }
 
-// Строго только /demo/* — остальной сайт middleware не трогает.
-export const config = { matcher: ["/demo/:path*"] };
+// Только /demo/* (закрытая витрина), /c/* (подборка) и /property/* (там режим презентации
+// включается лишь при валидном ?c=<token>). Остальной сайт middleware не трогает.
+export const config = { matcher: ["/demo/:path*", "/c/:path*", "/property/:path*"] };

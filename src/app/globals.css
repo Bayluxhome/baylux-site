@@ -375,6 +375,22 @@ footer.site .fbar-contacts a{display:inline;padding:0}
 .map-sel-note a{color:var(--gold-dk);font-weight:600}
 .price-pin:focus-visible{outline:2px solid var(--gold-dk);outline-offset:2px}
 .map-nogeo{border:1px dashed var(--line);border-radius:12px;padding:14px;margin-top:16px}
+
+/* Режим презентации: публичная подборка /c/<token> — без глобального меню.
+   Полоса не sticky и не fixed: пустого отступа сверху не остаётся, offset'ы не смещаются. */
+.pres{display:flex;flex-direction:column;min-height:100vh}
+.pres-bar{background:#fff;border-bottom:1px solid var(--line)}
+.pres-bar-in{display:flex;align-items:center;min-height:60px;padding-block:10px}
+.pres-logo{height:30px;width:auto;display:block}
+.pres-back{margin-left:auto;font-size:14px;font-weight:600;color:var(--gold-dk)}
+.pres-back:hover{color:var(--navy)}
+.pres-foot{margin-top:auto;background:var(--cream);border-top:1px solid var(--line)}
+.pres-foot-in{display:flex;align-items:center;gap:8px 18px;flex-wrap:wrap;padding-block:16px;font-size:13px;color:var(--ink-soft)}
+.pres-foot-brand{font-weight:700;color:var(--navy)}
+.pres-foot-in a{color:var(--ink-soft)}
+.pres-foot-in a:hover{color:var(--navy)}
+.pres-foot-site{margin-left:auto;font-weight:600;color:var(--gold-dk)!important}
+@media(max-width:560px){.pres-foot-site{margin-left:0}}
 .card .actions{display:flex;gap:8px;margin-top:13px}
 .card .actions .btn{flex:1;padding:9px}
 .unit-tag{display:inline-block;margin-top:10px;font-size:13px;font-weight:700;color:var(--gold-dk);background:rgba(201,169,97,.12);padding:4px 10px;border-radius:8px}
