@@ -46,3 +46,19 @@ export const isValidDeal = (d) => DEALS.includes(d);
 
 // Период цены по сделке (то, что хранится в listings.per).
 export const perFor = (deal) => (deal === "rent" ? "в месяц" : deal === "daily" ? "в сутки" : "");
+
+// Нижние границы правдоподобной цены. Те же значения, что в парсере и загрузчике
+// (parse_arendabatumi.py / upload_to_site.py, см. §11 руководства по парсингу):
+// ниже порога сумма почти всегда оказывается доплатой — паркинг, депозит, коммуналка.
+export const MIN_OK_PRICE = {
+  sale: { USD: 5000, GEL: 13000 },
+  rent: { USD: 200, GEL: 550 },
+  daily: { USD: 15, GEL: 40 },
+};
+
+// Цена ниже разумного порога для своей сделки? null — проверить нельзя (нет цены/сделки).
+export function priceTooLow(deal, priceNum, currency) {
+  const floor = MIN_OK_PRICE[deal]?.[currency === "GEL" ? "GEL" : "USD"];
+  if (!floor || !Number.isFinite(priceNum) || priceNum <= 0) return null;
+  return priceNum < floor ? floor : false;
+}

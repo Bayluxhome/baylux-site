@@ -1,11 +1,14 @@
 // Read-only аудит базы объявлений (задачи: карта/координаты, классификация, смешение языков).
 // GET /api/admin/audit?kind=geo|class|lang[&status=approved|all][&city=Батуми][&samples=30]
+// kind=class: помимо неизвестных сделок/типов ловит цены ниже порога своей сделки
+// (sale_price_low / rent_price_low / daily_price_low) — пороги общие с парсером, см. lib/classify.
 // Только суперадмин. НИЧЕГО не пишет — считает статистику и отдаёт примеры id/причин.
 // Идемпотентен: повторный вызов даёт тот же отчёт для тех же данных.
 import { cookies } from "next/headers";
 import { verifySession, isSuperAdmin } from "@/lib/session";
 import { supa, fetchAll } from "@/lib/supabase";
 import { unitCat } from "@/data/data";
+import { priceTooLow } from "@/lib/classify";
 import { assessCoords } from "@/lib/geo";
 
 export const runtime = "nodejs";
@@ -58,7 +61,11 @@ function auditClass(rows, max) {
     if (!["sale", "rent", "daily"].includes(deal)) flag("deal_unknown", r);
     if (!r.type) flag("type_empty", r);
     if (c === "other") flag("type_unmapped", r);
-    if (deal === "sale" && p != null && p < 5000) flag("sale_price_low", r, { p });
+    // Цена ниже порога своей сделки — тот же критерий, что у парсера и загрузчика.
+    // Ловит «паркинг +100$», принятый за цену: раньше отчёт показывал только дешёвые ПРОДАЖИ,
+    // и дешёвая аренда (₾150 за студию) всплывала лишь случайно.
+    const low = priceTooLow(deal, p, r.currency);
+    if (low) flag(`${deal}_price_low`, r, { p, cur: r.currency || "USD", floor: low });
     if (deal === "rent" && p != null && p > 15000) flag("rent_price_high", r, { p });
     if (deal === "daily" && p != null && p > 1500) flag("daily_price_high", r, { p });
     if ((deal === "rent" || deal === "daily") && !r.per) flag("rent_no_period", r);
