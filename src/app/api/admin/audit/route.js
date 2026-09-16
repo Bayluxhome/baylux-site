@@ -8,7 +8,7 @@ import { cookies } from "next/headers";
 import { verifySession, isSuperAdmin } from "@/lib/session";
 import { supa, fetchAll } from "@/lib/supabase";
 import { unitCat } from "@/data/data";
-import { priceTooLow } from "@/lib/classify";
+import { priceTooLow, MIN_OK_PRICE } from "@/lib/classify";
 import { assessCoords } from "@/lib/geo";
 
 export const runtime = "nodejs";
@@ -74,7 +74,8 @@ function auditClass(rows, max) {
     if (c === "apartment" && /\b(офис|склад|коммерч)/.test(String(r.type || "").toLowerCase())) flag("type_conflict", r);
     if (p == null) flag("price_missing", r);
   }
-  return { total: rows.length, dealValues: dealRaw.obj(), typeValues: typeRaw.obj(), categories: cat.obj(), sources: src.obj(), flags: Object.fromEntries(Object.entries(flags).map(([k, b]) => [k, b.get()])) };
+  // Пороги отдаём в отчёте: видно, по какому критерию считали (и по какой валюте).
+  return { total: rows.length, thresholds: MIN_OK_PRICE, dealValues: dealRaw.obj(), typeValues: typeRaw.obj(), categories: cat.obj(), sources: src.obj(), flags: Object.fromEntries(Object.entries(flags).map(([k, b]) => [k, b.get()])) };
 }
 
 function auditLang(rows, max) {
