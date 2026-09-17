@@ -19,7 +19,8 @@ export const dynamic = "force-dynamic";
 export async function generateMetadata({ params }) {
   const lang = getLang();
   const c = await getByToken(params.token);
-  const title = (c && c.enabled ? tr(lang, "col_page_h") : tr(lang, "col_unavailable_h")) + " — Baylux";
+  // Без «— Baylux» в заголовке: подборка подаётся как личная подборка риелтора (17.09.2026).
+  const title = c && c.enabled ? tr(lang, "col_page_h") : tr(lang, "col_unavailable_h");
   return {
     title: { absolute: title },
     description: tr(lang, "col_meta_d"),
