@@ -17,7 +17,7 @@ const CATS = [
   { d: "rent", c: "commercial", href: "/catalog?deal=rent&cat=commercial", ic: "🏪" },
   { d: "rent", c: "office", href: "/catalog?deal=rent&cat=office", ic: "💼" },
   { d: "rent", c: "garage", href: "/catalog?deal=rent&cat=garage", ic: "🅿️" },
-  { lk: "cat_jk", href: "/catalog?new=1", ic: "🏙️" },
+  { lk: "cat_jk", href: "/novostroyki", ic: "🏙️" },
   { d: "daily", c: "apartment", href: "/catalog?deal=daily&cat=apartment", ic: "🏖️" },
   { d: "daily", c: "house", href: "/catalog?deal=daily&cat=house", ic: "🏝️" },
   { lk: "foot_mgmt", href: "/#services", ic: "🔑" },

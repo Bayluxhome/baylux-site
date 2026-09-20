@@ -58,6 +58,18 @@ export async function POST(req) {
     const collToken = (data.collectionToken || "").toString().slice(0, 40);
     if (collToken) coll = await getByToken(collToken);
 
+    // Заявка по ЖК (раздел «Новостройки»): ответственный — эксперт, назначенный на комплекс.
+    // Идентификатор ЖК с клиента проверяем по базе; берём только опубликованный комплекс.
+    let expert = null;
+    const complexId = /^[0-9a-f-]{36}$/i.test(String(data.complexId || "")) ? String(data.complexId) : "";
+    if (complexId) {
+      const { data: cx } = await supa.from("complexes").select("id, name, expert_id, status").eq("id", complexId).maybeSingle();
+      if (cx && cx.status === "published" && cx.expert_id) {
+        const { data: r } = await supa.from("realtors").select("email, tg_user_id").eq("id", cx.expert_id).eq("status", "approved").maybeSingle();
+        if (r) expert = { email: r.email || null, tg: r.tg_user_id ?? null };
+      }
+    }
+
     const row = {
       name: name || null,
       phone,
@@ -69,8 +81,8 @@ export async function POST(req) {
       owner_email: listing?.owner_email || null,
       owner_tg: listing?.tg_user_id ?? null,
       // Ответственный: для объектов в управлении — назначенный сотрудник.
-      assigned_email: coll?.owner_email || (listing?.managed_by_baylux ? (listing.responsible_email || null) : null),
-      assigned_tg: coll?.owner_tg ?? (listing?.managed_by_baylux ? (listing.responsible_tg ?? null) : null),
+      assigned_email: coll?.owner_email || expert?.email || (listing?.managed_by_baylux ? (listing.responsible_email || null) : null),
+      assigned_tg: coll?.owner_tg ?? expert?.tg ?? (listing?.managed_by_baylux ? (listing.responsible_tg ?? null) : null),
       collection_id: coll?.id || null,
       source: source || null,
       utm_source: (data.utmSource || "").toString().slice(0, 100) || null,

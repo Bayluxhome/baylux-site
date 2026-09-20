@@ -1,8 +1,9 @@
 import { getBuildingsList } from "@/data/source";
 import { supa } from "@/lib/supabase";
 import { ARTICLES } from "@/data/articles";
+import { SITE_URL } from "@/config";
 
-const BASE = "https://bayluxhome.com";
+const BASE = SITE_URL;
 
 export default async function sitemap() {
   const now = new Date();
@@ -14,6 +15,7 @@ export default async function sitemap() {
     { url: `${BASE}/kupit-kvartiru-batumi`, lastModified: now, priority: 0.9 },
     { url: `${BASE}/apartamenty-batumi`, lastModified: now, priority: 0.9 },
     { url: `${BASE}/posutochno-batumi`, lastModified: now, priority: 0.9 },
+    { url: `${BASE}/novostroyki`, lastModified: now, priority: 0.9 },
     { url: `${BASE}/novostroyki-batumi`, lastModified: now, priority: 0.8 },
     { url: `${BASE}/kupit-kvartiru-tbilisi`, lastModified: now, priority: 0.9 },
     { url: `${BASE}/arenda-tbilisi`, lastModified: now, priority: 0.9 },
@@ -31,6 +33,9 @@ export default async function sitemap() {
     try {
       const { data } = await supa.from("news").select("id,created_at").eq("published", true);
       for (const n of data || []) urls.push({ url: `${BASE}/news/${n.id}`, lastModified: new Date(n.created_at), priority: 0.5 });
+      // Новостройки — только опубликованные ЖК
+      const { data: cx } = await supa.from("complexes").select("slug, updated_at").eq("status", "published");
+      for (const c of cx || []) urls.push({ url: `${BASE}/novostroyki/${c.slug}`, lastModified: new Date(c.updated_at || now), priority: 0.8 });
     } catch (e) { /* ignore */ }
   }
   for (const b of BUILDINGS) {

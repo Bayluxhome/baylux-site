@@ -32,7 +32,7 @@ export default function Footer() {
             {/* Общие категории по всей Грузии — без городского фильтра (город в cookie не хранится, каталог берёт его только из URL) */}
             <Link href="/catalog?deal=sale">{t("nav_sale")}</Link>
             <Link href="/catalog?deal=rent">{t("nav_rent")}</Link>
-            <Link href="/catalog?new=1">{t("nav_new")}</Link>
+            <Link href="/novostroyki">{t("nav_new")}</Link>
             <Link href="/catalog?deal=daily">{t("nav_daily")}</Link>
             <Link href="/catalog?cat=apartment">{t("ft_apart")}</Link>
           </div>

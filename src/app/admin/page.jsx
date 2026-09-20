@@ -82,6 +82,7 @@ export default async function AdminPage() {
   const navBefore = (
     <>
       {can(session, "news") && <a className="btn btn-ghost" href="/admin/news" style={{ padding: "9px 16px" }}>📰 Управление новостями</a>}
+      {can(session, "complexes") && <a className="btn btn-ghost" href="/admin/complexes" style={{ padding: "9px 16px" }}>🏗️ Новостройки</a>}
       {can(session, "realtors") && <a className="btn btn-ghost" href="/admin/realtors" style={{ padding: "9px 16px" }}>👤 Риелторы{realtorPending ? ` · ${realtorPending} новых` : ""}</a>}
       {can(session, "users") && <a className="btn btn-ghost" href="/admin/users" style={{ padding: "9px 16px" }}>👥 Пользователи{usersCount ? ` · ${usersCount}` : ""}</a>}
       {can(session, "managed") && <a className="btn btn-ghost" href="/admin/reports" style={{ padding: "9px 16px" }}>📊 Импорт сводки</a>}

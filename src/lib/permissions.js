@@ -5,6 +5,7 @@ export const PERMISSIONS = [
   { key: "managed", label: "Объекты в управлении" },
   { key: "leads", label: "Заявки клиентов (все обращения с сайта)" },
   { key: "news", label: "Новости" },
+  { key: "complexes", label: "Новостройки (ЖК и планировки)" },
   { key: "realtors", label: "Риелторы" },
   { key: "users", label: "Пользователи" },
 ];

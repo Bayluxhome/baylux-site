@@ -41,9 +41,11 @@ const NAV = [
     { d: "rent", c: "warehouse", href: "/catalog?deal=rent&cat=warehouse" },
     { d: "rent", c: "garage", href: "/catalog?deal=rent&cat=garage" },
   ] },
-  { label: "Новостройки", href: "/catalog?new=1", sub: [
-    { lk: "cat_jk", href: "/catalog?new=1" },
-    { lk: "cat_cottage", href: "/catalog?cat=house&new=1" },
+  // Новостройки — отдельный раздел с базой ЖК от менеджеров (только объекты с договором),
+  // а не фильтр каталога по спарсенным объявлениям.
+  { label: "Новостройки", href: "/novostroyki", sub: [
+    { lk: "cat_jk", href: "/novostroyki?kind=apartments" },
+    { lk: "cat_cottage", href: "/novostroyki?kind=cottages" },
   ] },
   { label: "Посуточно", href: "/catalog?deal=daily", sub: [
     { d: "daily", c: "apartment", href: "/catalog?deal=daily&cat=apartment" },

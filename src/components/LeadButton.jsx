@@ -5,9 +5,10 @@
 // typeKey — машинный тип заявки (viewing / rent / daily / management / complex / cleaning / landing),
 // не зависит от языка посетителя; по нему менеджер видит тип по-русски (см. lib/leads.js).
 // collectionToken — контекст подборки (№07): заявка уйдёт риелтору-владельцу подборки.
-export default function LeadButton({ className = "btn btn-gold", type = "", typeKey = "other", object = "", title = "", listingId = "", source = "", collectionToken = "", children }) {
+// complexId — заявка по ЖК из раздела «Новостройки»: уйдёт эксперту, назначенному на этот ЖК.
+export default function LeadButton({ className = "btn btn-gold", type = "", typeKey = "other", object = "", title = "", listingId = "", source = "", collectionToken = "", complexId = "", children }) {
   function open() {
-    window.dispatchEvent(new CustomEvent("baylux:lead", { detail: { type, typeKey, object, title, listingId, source, collectionToken } }));
+    window.dispatchEvent(new CustomEvent("baylux:lead", { detail: { type, typeKey, object, title, listingId, source, collectionToken, complexId } }));
   }
   return (
     <button type="button" className={className} onClick={open}>

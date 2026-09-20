@@ -24,6 +24,7 @@ const esc = (s) => String(s || "").replace(/&/g, "&amp;").replace(/</g, "&lt;").
 const hasPoint = (b) => Number.isFinite(b?.lat) && Number.isFinite(b?.lng) && Math.abs(b.lat) <= 90 && Math.abs(b.lng) <= 180 && !(b.lat === 0 && b.lng === 0);
 
 // buildings: [{ slug, name, district, kind, lat, lng, priceFrom, units:[{slug,deal,type,rooms,area,price,per}] }]
+//   опционально href / linkLabel — куда ведёт ссылка в попапе (для ЖК из раздела «Новостройки»)
 // selected — slug дома, который нужно показать/открыть программно (кнопка «На карте» у карточки).
 // onSelect(slug|null) — обратная связь: клик по пину / закрытие карточки на карте.
 export default function MapView({ buildings = [], center = [41.642, 41.632], zoom = 13, className = "map-home", onSelect, fit = true, selected = null }) {
@@ -90,7 +91,7 @@ export default function MapView({ buildings = [], center = [41.642, 41.632], zoo
          <button class="mc-close" data-close="1" aria-label="${esc(t("map_close"))}">✕</button>
        </div>
        <div class="mc-list">${rows}</div>
-       <a class="mc-all" href="/building/${b.slug}">${esc(t("map_open_house"))}</a>`;
+       <a class="mc-all" href="${esc(b.href || `/building/${b.slug}`)}">${esc(b.linkLabel || t("map_open_house"))}</a>`;
     card.style.display = "block";
   }
 

@@ -25,7 +25,7 @@ export default async function Page() {
       prefix="nb"
       slug="novostroyki-batumi"
       units={units}
-      catalogHref="/catalog?new=1"
+      catalogHref="/novostroyki"
       crumbLk="nav_new"
       extraHref="/kupit-kvartiru-batumi"
       extraLk="kb_list_h"
