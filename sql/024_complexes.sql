@@ -42,7 +42,7 @@ create table if not exists complexes (
   photos jsonb not null default '[]'::jsonb,   -- публичные URL из storage listing-photos
   cover text,                            -- обложка (URL), если пусто — photos[0]
 
-  expert_id uuid,                        -- риелтор-эксперт из realtors (блок «Поможем подобрать»)
+  expert_id text,                        -- риелтор-эксперт: realtors.id (числовой), см. 025 для уже созданных таблиц
   contract_note text,                    -- служебное: условия договора/комиссии — публично НЕ показывается
 
   views int not null default 0,

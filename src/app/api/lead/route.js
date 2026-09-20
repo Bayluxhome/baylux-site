@@ -65,7 +65,7 @@ export async function POST(req) {
     if (complexId) {
       const { data: cx } = await supa.from("complexes").select("id, name, expert_id, status").eq("id", complexId).maybeSingle();
       if (cx && cx.status === "published" && cx.expert_id) {
-        const { data: r } = await supa.from("realtors").select("email, tg_user_id").eq("id", cx.expert_id).eq("status", "approved").maybeSingle();
+        const { data: r } = await supa.from("realtors").select("email, tg_user_id").eq("id", String(cx.expert_id)).eq("status", "approved").maybeSingle();
         if (r) expert = { email: r.email || null, tg: r.tg_user_id ?? null };
       }
     }

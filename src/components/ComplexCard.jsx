@@ -9,8 +9,9 @@ const TAG_ICON = { sea: "🌊", installment: "％", investment: "📈", renovate
 export function fmtDone(c, t) {
   if (c.completed) return t("nb_done_ok");
   if (!c.completion_year) return "—";
+  // {Q} — римская цифра (RU/KA: «IV кв. 2026»), {q} — арабская (EN: «Q4 2026»)
   const Q = ["", "I", "II", "III", "IV"];
-  return c.completion_q ? t("nb_done_q").replace("{q}", Q[c.completion_q]).replace("{y}", c.completion_year) : String(c.completion_year);
+  return c.completion_q ? t("nb_done_q").replace("{Q}", Q[c.completion_q]).replace("{q}", c.completion_q).replace("{y}", c.completion_year) : String(c.completion_year);
 }
 export const fmtNum = (n) => String(Math.round(Number(n))).replace(/\B(?=(\d{3})+(?!\d))/g, " ");
 

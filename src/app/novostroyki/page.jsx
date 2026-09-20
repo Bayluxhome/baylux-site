@@ -50,7 +50,9 @@ export default async function NovostroykiPage({ searchParams }) {
 
   const all = await getPublishedComplexes();
   const list = filterComplexes(all, f);
-  const featured = list.find((c) => c.featured) || null;
+  // «Рекомендуем» закрепляем сверху только при сортировке по умолчанию: если клиент выбрал
+  // «дешевле» или «по доходности», порядок должен быть честным, без закреплённой карточки.
+  const featured = f.sort === "popular" ? list.find((c) => c.featured) || null : null;
   const rest = featured ? list.filter((c) => c.id !== featured.id) : list;
 
   // Эксперт для блока «Поможем подобрать»: у «рекомендуемого» ЖК, иначе первый назначенный.
@@ -92,7 +94,7 @@ export default async function NovostroykiPage({ searchParams }) {
 
       <section className="nb-hero">
         <div className="nb-kicker">{t("nb_kicker")}</div>
-        <h1>{t("nb_h1")}</h1>
+        <h1>{t("nb_title")}</h1>
         <p>{t("nb_sub")}</p>
       </section>
 

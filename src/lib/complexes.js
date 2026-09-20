@@ -162,7 +162,8 @@ export function normalizeComplexInput(b = {}) {
     amenities: s(b.amenities, 500),
     photos,
     cover: /^https?:\/\//i.test(String(b.cover || "")) ? String(b.cover).trim() : null,
-    expert_id: /^[0-9a-f-]{36}$/i.test(String(b.expert_id || "")) ? b.expert_id : null,
+    // id риелторов в таблице realtors — числовые (1, 2, 7…), не UUID; храним как текст
+    expert_id: /^[A-Za-z0-9-]{1,40}$/.test(String(b.expert_id || "")) ? String(b.expert_id) : null,
     contract_note: s(b.contract_note, 2000),
   };
 }
