@@ -18,7 +18,8 @@ const NAV = [
   ["/my/profile", "cab_nav_profile", "◉", false],
 ];
 
-export default function CabinetShell({ children, name, role = "user", crm = false, adminHref }) {
+// complexes — у сотрудника есть право «Новостройки»: прямой пункт в меню, чтобы не ходить через админку.
+export default function CabinetShell({ children, name, role = "user", crm = false, adminHref, complexes = false }) {
   const { t } = useLang();
   const path = usePathname() || "";
   const [open, setOpen] = useState(false);
@@ -37,6 +38,7 @@ export default function CabinetShell({ children, name, role = "user", crm = fals
               <span className="cabsh-ic">{ic}</span>{t(key)}
             </Link>
           ))}
+          {complexes && <Link href="/admin/complexes" className="cabsh-admin">🏗️ {t("cab_nav_complexes")}</Link>}
           {role === "staff" && adminHref && <Link href={adminHref} className="cabsh-admin">⚙️ {t("cab_nav_admin")}</Link>}
         </nav>
         <div className="cabsh-foot">

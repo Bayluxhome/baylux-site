@@ -1,5 +1,5 @@
 import { cookies } from "next/headers";
-import { verifySession } from "@/lib/session";
+import { verifySession, can } from "@/lib/session";
 import { getRole, canCrm } from "@/lib/roles";
 import CabinetShell from "@/components/CabinetShell";
 
@@ -12,7 +12,7 @@ export default async function MyLayout({ children }) {
   if (!session) return children;
   const role = await getRole(session);
   return (
-    <CabinetShell name={session.name || session.username || session.email || ""} role={role} crm={canCrm(role)} adminHref="/admin">
+    <CabinetShell name={session.name || session.username || session.email || ""} role={role} crm={canCrm(role)} adminHref="/admin" complexes={can(session, "complexes")}>
       {children}
     </CabinetShell>
   );
