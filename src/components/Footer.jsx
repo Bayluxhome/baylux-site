@@ -15,7 +15,7 @@ export default function Footer() {
       <div className="wrap">
         <div className="fgrid">
           <div>
-            <AclassName="logo" href="/"><img src="/baylux_logo_white.svg" alt="Baylux" /></A>
+            <A className="logo" href="/"><img src="/baylux_logo_white.svg" alt="Baylux" /></A>
             <p style={{ marginTop: 14, fontSize: 14, maxWidth: 300 }}>{t("foot_about")}</p>
             <div className="fsocial">
               {SOCIAL.instagram && (
@@ -33,19 +33,19 @@ export default function Footer() {
           <div>
             <h4>{t("foot_realty")}</h4>
             {/* Общие категории по всей Грузии — без городского фильтра (город в cookie не хранится, каталог берёт его только из URL) */}
-            <Ahref="/catalog?deal=sale">{t("nav_sale")}</A>
-            <Ahref="/catalog?deal=rent">{t("nav_rent")}</A>
-            <Ahref="/novostroyki">{t("nav_new")}</A>
-            <Ahref="/catalog?deal=daily">{t("nav_daily")}</A>
-            <Ahref="/catalog?cat=apartment">{t("ft_apart")}</A>
+            <A href="/catalog?deal=sale">{t("nav_sale")}</A>
+            <A href="/catalog?deal=rent">{t("nav_rent")}</A>
+            <A href="/novostroyki">{t("nav_new")}</A>
+            <A href="/catalog?deal=daily">{t("nav_daily")}</A>
+            <A href="/catalog?cat=apartment">{t("ft_apart")}</A>
           </div>
           <div>
             <h4>{t("nav_services")}</h4>
-            <Ahref="/property-management">{t("foot_mgmt")}</A><Ahref="/cleaning">{t("foot_cleaning")}</A><Ahref="/realtors">{t("foot_realtors")}</A>
+            <A href="/property-management">{t("foot_mgmt")}</A><A href="/cleaning">{t("foot_cleaning")}</A><A href="/realtors">{t("foot_realtors")}</A>
           </div>
           <div>
             <h4>{t("foot_company")}</h4>
-            <Ahref="/about">{t("foot_about_l")}</A><Ahref="/blog">{t("blog_h")}</A><Ahref="/news">{t("foot_news")}</A><Ahref="/contacts">{t("foot_contacts")}</A><Ahref="/terms">{t("foot_terms")}</A><Ahref="/privacy">{t("foot_privacy")}</A><Ahref="/cookies">{t("ck_title")}</A><Ahref="/rules">{t("rl_title")}</A><CookieLink />
+            <A href="/about">{t("foot_about_l")}</A><A href="/blog">{t("blog_h")}</A><A href="/news">{t("foot_news")}</A><A href="/contacts">{t("foot_contacts")}</A><A href="/terms">{t("foot_terms")}</A><A href="/privacy">{t("foot_privacy")}</A><A href="/cookies">{t("ck_title")}</A><A href="/rules">{t("rl_title")}</A><CookieLink />
           </div>
         </div>
         {/* Публично — бренд и контакты из COMPANY; оператор ПД (физлицо) — в Политике конфиденциальности («Юридическая информация») */}
@@ -55,7 +55,7 @@ export default function Footer() {
             {COMPANY.officeAddress ? <> · {COMPANY.officeAddress}, {cityLabel(lang, COMPANY.officeCity)}</> : null}
             {" · "}<a href={"tel:+" + COMPANY.phone}>{fmtPhone(COMPANY.phone)}</a>
             {" · "}<a href={"mailto:" + COMPANY.email}>{COMPANY.email}</a>
-            {" · "}<Ahref="/privacy">{t("foot_legal")}</A>
+            {" · "}<A href="/privacy">{t("foot_legal")}</A>
           </span>
           <span>© Baylux Home 2026 · Batumi, Georgia</span>
         </div>
