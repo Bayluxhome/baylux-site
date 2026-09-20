@@ -1,6 +1,7 @@
 import SeoLanding from "@/components/SeoLanding";
 import { getAllUnits } from "@/data/source";
 import { getLang } from "@/lib/serverLang";
+import { altFor, withLang } from "@/lib/i18nPath";
 import { t as tr } from "@/lib/dict";
 
 export const revalidate = 300;
@@ -11,8 +12,8 @@ export async function generateMetadata() {
   return {
     title: t("at_mt"),
     description: t("at_md"),
-    alternates: { canonical: "/arenda-tbilisi" },
-    openGraph: { title: t("at_mt"), description: t("at_md"), type: "website", url: "https://bayluxhome.com/arenda-tbilisi", images: ["/hero-tbilisi.webp"] },
+    alternates: altFor(lang, "/arenda-tbilisi"),
+    openGraph: { title: t("at_mt"), description: t("at_md"), type: "website", url: withLang(lang, "/arenda-tbilisi"), images: ["/hero-tbilisi.webp"] },
   };
 }
 

@@ -16,6 +16,7 @@ import { getLang } from "@/lib/serverLang";
 import { t as tr } from "@/lib/dict";
 import { SITE_URL } from "@/config";
 import { orgJsonLd, serializeJsonLd } from "@/lib/jsonld";
+import { altFor } from "@/lib/i18nPath";
 
 // Метаданные зависят от языка посетителя (getLang: cookie/домен/гео), поэтому это функция,
 // а не статический объект. Иначе грузинский посетитель видел бы грузинский сайт, но русский
@@ -25,18 +26,21 @@ const OG_LOCALE = { ru: "ru_RU", en: "en_US", ka: "ka_GE" };
 export async function generateMetadata() {
   const lang = getLang();
   const t = (k) => tr(lang, k);
+  // Канонический адрес и hreflang — по пути без префикса (x-bx-path от middleware).
+  // Страницы со своим alternates переопределяют этот блок целиком через altFor(lang, path).
+  const path = headers().get("x-bx-path") || "/";
   return {
     metadataBase: new URL(SITE_URL),
     title: { default: t("meta_home_t"), template: "%s — Baylux" },
     description: t("meta_home_d"),
-    alternates: { canonical: "/" },
+    alternates: altFor(lang, path),
     openGraph: {
       title: t("meta_og_t"),
       description: t("meta_og_d"),
       type: "website",
       locale: OG_LOCALE[lang] || "ka_GE",
       siteName: "Baylux Home",
-      url: SITE_URL,
+      url: `${SITE_URL}/${lang}`,
       images: [{ url: "/hero-batumi.jpg", width: 1200, height: 630, alt: t("meta_og_t") }],
     },
     twitter: {

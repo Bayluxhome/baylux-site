@@ -1,13 +1,17 @@
 import LeadButton from "@/components/LeadButton";
 import { getLang } from "@/lib/serverLang";
+import { altFor } from "@/lib/i18nPath";
 import { t as tr } from "@/lib/dict";
 
 // TODO: полноценный раздел клининга — следующий спринт (прайс, виды уборки, фото).
-export const metadata = {
-  title: "Клининг в Батуми — уборка квартир и апартаментов",
-  description: "Профессиональная уборка квартир в Батуми: после гостей, генеральная и регулярная. Заявка онлайн — рассчитаем стоимость.",
-  alternates: { canonical: "/cleaning" },
-};
+export async function generateMetadata() {
+  const lang = getLang();
+  return {
+    title: "Клининг в Батуми — уборка квартир и апартаментов",
+    description: "Профессиональная уборка квартир в Батуми: после гостей, генеральная и регулярная. Заявка онлайн — рассчитаем стоимость.",
+    alternates: altFor(lang, "/cleaning"),
+  };
+}
 
 export default function CleaningPage() {
   const lang = getLang();

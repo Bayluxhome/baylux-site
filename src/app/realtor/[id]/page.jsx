@@ -4,6 +4,7 @@ import PropertyCard from "@/components/PropertyCard";
 import { getRealtorById, getRealtorUnits } from "@/data/realtors";
 import { stripPrivate } from "@/lib/privacy";
 import { getLang } from "@/lib/serverLang";
+import { altFor } from "@/lib/i18nPath";
 import { t as tr } from "@/lib/dict";
 
 // Язык страницы зависит от посетителя → рендерим по запросу.
@@ -11,11 +12,12 @@ export const dynamic = "force-dynamic";
 
 export async function generateMetadata({ params }) {
   const r = await getRealtorById(params.id);
-  if (!r) return { title: "Риелтор не найден", robots: { index: false, follow: false } };
+  const lang = getLang();
+  if (!r) return { title: tr(lang, "prop_nf"), robots: { index: false, follow: false } };
   return {
-    title: `${r.name} — риелтор Baylux в Батуми и Грузии`,
-    description: (r.bio || `Объекты риелтора ${r.name}: продажа и аренда недвижимости в Батуми и по всей Грузии.`).slice(0, 300),
-    alternates: { canonical: `/realtor/${r.id}` },
+    title: `${r.name} — ${tr(lang, "rl_role")} Baylux`,
+    description: (r.bio || `${r.name}: ${tr(lang, "meta_realtors_d")}`).slice(0, 300),
+    alternates: altFor(lang, `/realtor/${r.id}`),
   };
 }
 

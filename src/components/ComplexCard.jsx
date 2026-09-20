@@ -2,6 +2,7 @@ import Link from "next/link";
 import { getLang } from "@/lib/serverLang";
 import { t as tr, cityLabel } from "@/lib/dict";
 import { complexTags } from "@/lib/complexes";
+import { withLang } from "@/lib/i18nPath";
 
 const TAG_ORDER = ["sea", "installment", "investment", "renovated", "premium", "eco", "completed"];
 const TAG_ICON = { sea: "🌊", installment: "％", investment: "📈", renovated: "🖌", premium: "💎", eco: "🌿", completed: "✓", building: "🏗" };
@@ -22,7 +23,7 @@ export default function ComplexCard({ c, featured = false }) {
   const cover = c.cover || (Array.isArray(c.photos) && c.photos[0]) || "/placeholder-baylux.jpg";
   const tags = complexTags(c);
   const shown = TAG_ORDER.filter((k) => tags[k]).slice(0, featured ? 3 : 2);
-  const href = `/novostroyki/${c.slug}`;
+  const href = withLang(lang, `/novostroyki/${c.slug}`);
   const desc = c["desc_" + lang] || c.desc_ru || "";
   const place = `${cityLabel(lang, c.city)}${c.district ? `, ${c.district}` : ""}`;
 

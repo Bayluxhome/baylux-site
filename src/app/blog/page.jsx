@@ -1,13 +1,17 @@
 import Link from "next/link";
 import { ARTICLES, articleField } from "@/data/articles";
 import { getLang } from "@/lib/serverLang";
+import { altFor } from "@/lib/i18nPath";
 import { t as tr, formatDate } from "@/lib/dict";
 
-export const metadata = {
-  title: "Статьи о недвижимости в Грузии и Батуми — Baylux",
-  description: "Гид по аренде и покупке недвижимости в Батуми и Тбилиси: цены по районам, новостройки с инфраструктурой, посуточная аренда и доходность. Статьи от команды Baylux.",
-  alternates: { canonical: "/blog" },
-};
+export async function generateMetadata() {
+  const lang = getLang();
+  return {
+    title: "Статьи о недвижимости в Грузии и Батуми — Baylux",
+    description: "Гид по аренде и покупке недвижимости в Батуми и Тбилиси: цены по районам, новостройки с инфраструктурой, посуточная аренда и доходность. Статьи от команды Baylux.",
+    alternates: altFor(lang, "/blog"),
+  };
+}
 
 function fmtDate(s, lang) {
   // formatDate: для ka Intl отдаёт русские месяцы (нет данных локали) — там свой список.

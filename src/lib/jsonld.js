@@ -106,7 +106,9 @@ export function orgJsonLd(lang) {
 // u — unit из findUnit (уже без приватных полей), b — его здание, lang — язык страницы.
 export function propertyJsonLd(u, b, lang) {
   const t = (k) => tr(lang, k);
-  const url = `${SITE_URL}/property/${u.slug}`;
+  // Адреса — с языковым префиксом: канонический URL страницы теперь /ru/property/…
+  const root = `${SITE_URL}/${lang}`;
+  const url = `${root}/property/${u.slug}`;
   const ty = typeLabel(lang, u.type);
   const sqm = t("sqm");
   const city = cityLabel(lang, b.district || "Батуми");
@@ -170,9 +172,9 @@ export function propertyJsonLd(u, b, lang) {
     "@type": "BreadcrumbList",
     "@id": `${url}#breadcrumbs`,
     itemListElement: [
-      { "@type": "ListItem", position: 1, name: t("crumb_home"), item: SITE_URL },
-      { "@type": "ListItem", position: 2, name: t("crumb_catalog"), item: `${SITE_URL}/catalog` },
-      { "@type": "ListItem", position: 3, name: bname, item: `${SITE_URL}/building/${b.slug}` },
+      { "@type": "ListItem", position: 1, name: t("crumb_home"), item: root },
+      { "@type": "ListItem", position: 2, name: t("crumb_catalog"), item: `${root}/catalog` },
+      { "@type": "ListItem", position: 3, name: bname, item: `${root}/building/${b.slug}` },
       { "@type": "ListItem", position: 4, name: `${ty}, ${u.area} ${sqm}`, item: url },
     ],
   };

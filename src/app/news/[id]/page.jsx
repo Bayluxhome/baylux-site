@@ -2,6 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { supa } from "@/lib/supabase";
 import { getLang } from "@/lib/serverLang";
+import { altFor, withLang } from "@/lib/i18nPath";
 import { t as tr, newsField, formatDate } from "@/lib/dict";
 
 export const revalidate = 120;
@@ -21,9 +22,9 @@ export async function generateMetadata({ params }) {
   return {
     title: `${title} — Baylux`,
     description: desc,
-    alternates: { canonical: `/news/${n.id}` },
+    alternates: altFor(lang, `/news/${n.id}`),
     openGraph: {
-      title, description: desc, type: "article",
+      title, description: desc, type: "article", url: withLang(lang, `/news/${n.id}`),
       images: [n.image ? (n.image.startsWith("http") ? n.image : `https://bayluxhome.com${n.image}`) : "https://bayluxhome.com/hero-batumi.jpg"],
     },
   };

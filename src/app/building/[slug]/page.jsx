@@ -10,26 +10,30 @@ import TelegramContactButton from "@/components/TelegramContactButton";
 import WhatsAppContactButton from "@/components/WhatsAppContactButton";
 import { WA_PHONE, TG_CONTACT, SITE_URL } from "@/config";
 import { getLang } from "@/lib/serverLang";
-import { t as tr, typeLabel, translitAddress } from "@/lib/dict";
+import { t as tr, typeLabel, translitAddress, cityLabel } from "@/lib/dict";
+import { altFor, withLang } from "@/lib/i18nPath";
 
 // Язык страницы зависит от посетителя (cookies/headers через getLang) → рендерим по запросу (SSR).
 // Пре-рендера нет → сборка быстрая. ISR-кэш здесь нельзя: он несовместим с динамическими данными запроса.
 export const dynamic = "force-dynamic";
 
+// Заголовок на языке страницы и с реальным городом дома (b.district — это город).
+// Раньше «Батуми» было зашито: тбилисские дома назывались «Ортачала — Тбилиси, Батуми».
 export async function generateMetadata({ params }) {
   const b = await findBuilding(params.slug);
-  if (!b) return { title: "Объект не найден" };
+  const lang = getLang();
+  const t = (k) => tr(lang, k);
+  if (!b) return { title: t("prop_nf") };
   const photo = b.facade_photo || (b.units && b.units[0] && b.units[0].photos && b.units[0].photos[0]) || "/hero-batumi.jpg";
+  const bname = translitAddress(b["name_" + lang] || b.name, lang, b.kind);
+  const city = cityLabel(lang, b.district || "Батуми");
+  const title = `${bname} — ${city}`;
+  const desc = `${bname}: ${b.units.length} ${t("map_objects")} · ${city}. ${(b["desc_" + lang] || b.about || "").slice(0, 120)}`.trim();
   return {
-    title: `${b.name} — ${b.district}, Батуми`,
-    description: `${b.name}: ${b.units.length} объект(ов) на продажу и аренду в районе ${b.district}, Батуми. ${(b.about || "").slice(0, 120)}`,
-    alternates: { canonical: `/building/${b.slug}` },
-    openGraph: {
-      title: `${b.name} — ${b.district}, Батуми`,
-      description: `${b.name}: ${b.units.length} объект(ов) в районе ${b.district}, Батуми.`,
-      images: [photo.startsWith("http") ? photo : `https://bayluxhome.com${photo}`],
-      type: "website",
-    },
+    title,
+    description: desc,
+    alternates: altFor(lang, `/building/${b.slug}`),
+    openGraph: { title, description: desc, images: [photo.startsWith("http") ? photo : `${SITE_URL}${photo}`], type: "website", url: withLang(lang, `/building/${b.slug}`) },
   };
 }
 

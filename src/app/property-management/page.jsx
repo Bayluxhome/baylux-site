@@ -4,6 +4,7 @@ import PMCalc from "@/components/PMCalc";
 import PMLeadForm from "@/components/PMLeadForm";
 import { getAllUnits } from "@/data/source";
 import { getLang } from "@/lib/serverLang";
+import { altFor } from "@/lib/i18nPath";
 import { t as tr, translitAddress } from "@/lib/dict";
 
 export const revalidate = 300;
@@ -15,7 +16,7 @@ export async function generateMetadata() {
     title: "Управление недвижимостью в Батуми — Baylux Holiday Homes",
     description:
       "Квартиры и апартаменты под управлением Baylux в Батуми: посуточная и долгосрочная аренда. Сдайте свою квартиру в управление — гости, уборка и отчёты на нас.",
-    alternates: { canonical: "/property-management" },
+    alternates: altFor(lang, "/property-management"),
     openGraph: {
       title: "Baylux Holiday Homes — управление недвижимостью в Батуми",
       description: "Жильё под управлением Baylux и сдача вашей квартиры в управление.",

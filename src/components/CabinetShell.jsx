@@ -3,6 +3,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useLang } from "@/components/LangContext";
+import { stripLang } from "@/lib/i18nPath";
 
 // Каркас кабинета (задача №06, этап 1): тёмно-синее боковое меню, светлая рабочая область.
 // На узких экранах меню сворачивается в кнопку. Разделы, которых ещё нет (сделки, задачи,
@@ -21,7 +22,7 @@ const NAV = [
 // complexes — у сотрудника есть право «Новостройки»: прямой пункт в меню, чтобы не ходить через админку.
 export default function CabinetShell({ children, name, role = "user", crm = false, adminHref, complexes = false }) {
   const { t } = useLang();
-  const path = usePathname() || "";
+  const path = stripLang(usePathname() || ""); // адрес в браузере с языком (/ru/my/…) — сравниваем без него
   const [open, setOpen] = useState(false);
   const active = (href) => (href === "/my" ? path === "/my" : path.startsWith(href));
   const nav = NAV.filter(([, , , needCrm]) => !needCrm || crm);

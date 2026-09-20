@@ -12,6 +12,7 @@ import WhatsAppContactButton from "@/components/WhatsAppContactButton";
 import ViewCounter from "@/components/ViewCounter";
 import { PHONE, WA_PHONE, TG_CONTACT, SITE_URL } from "@/config";
 import { getLang } from "@/lib/serverLang";
+import { altFor } from "@/lib/i18nPath";
 import { t as tr, typeLabel, amenLabel, translitAddress, cityLabel } from "@/lib/dict";
 import { propertyJsonLd, serializeJsonLd } from "@/lib/jsonld";
 import PresShell from "@/components/PresShell";
@@ -38,7 +39,7 @@ export async function generateMetadata({ params }) {
   return {
     title: `${title} · ${u.price}`,
     description: desc,
-    alternates: { canonical: `/property/${u.slug}` },
+    alternates: altFor(lang, `/property/${u.slug}`),
     openGraph: {
       title,
       description: desc,

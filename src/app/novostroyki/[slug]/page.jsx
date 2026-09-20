@@ -12,6 +12,7 @@ import { supa } from "@/lib/supabase";
 import { verifySession, can } from "@/lib/session";
 import { SITE_URL } from "@/config";
 import { getLang } from "@/lib/serverLang";
+import { altFor } from "@/lib/i18nPath";
 import { t as tr, cityLabel } from "@/lib/dict";
 
 export const dynamic = "force-dynamic";
@@ -29,8 +30,8 @@ export async function generateMetadata({ params }) {
   return {
     title,
     description: desc || t("nb_meta_d"),
-    alternates: { canonical: `/novostroyki/${c.slug}` },
-    openGraph: { title, description: desc || t("nb_meta_d"), type: "website", url: `${SITE_URL}/novostroyki/${c.slug}`, images: [cover.startsWith("http") ? cover : `${SITE_URL}${cover}`] },
+    alternates: altFor(lang, `/novostroyki/${c.slug}`),
+    openGraph: { title, description: desc || t("nb_meta_d"), type: "website", url: `${SITE_URL}/${lang}/novostroyki/${c.slug}`, images: [cover.startsWith("http") ? cover : `${SITE_URL}${cover}`] },
   };
 }
 
@@ -72,7 +73,7 @@ export default async function ComplexPage({ params }) {
   ].filter(Boolean);
 
   // JSON-LD: жилой комплекс + крошки; цена «от» выражаем через AggregateOffer (lowPrice), а не как цену каждой квартиры.
-  const url = `${SITE_URL}/novostroyki/${c.slug}`;
+  const url = `${SITE_URL}/${lang}/novostroyki/${c.slug}`;
   const availUnits = units.filter((u) => u.available !== false && Number(u.price) > 0);
   const ld = {
     "@context": "https://schema.org",
@@ -86,8 +87,8 @@ export default async function ComplexPage({ params }) {
         ...(availUnits.length ? { offers: { "@type": "AggregateOffer", priceCurrency: "USD", lowPrice: Math.min(...availUnits.map((u) => Number(u.price))), highPrice: Math.max(...availUnits.map((u) => Number(u.price))), offerCount: availUnits.length, seller: { "@id": ORG_ID } } } : {}),
       },
       { "@type": "BreadcrumbList", "@id": `${url}#breadcrumbs`, itemListElement: [
-        { "@type": "ListItem", position: 1, name: t("crumb_home"), item: SITE_URL },
-        { "@type": "ListItem", position: 2, name: t("nb_crumb"), item: `${SITE_URL}/novostroyki` },
+        { "@type": "ListItem", position: 1, name: t("crumb_home"), item: `${SITE_URL}/${lang}` },
+        { "@type": "ListItem", position: 2, name: t("nb_crumb"), item: `${SITE_URL}/${lang}/novostroyki` },
         { "@type": "ListItem", position: 3, name: c.name, item: url },
       ] },
     ],

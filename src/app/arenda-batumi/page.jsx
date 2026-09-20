@@ -4,6 +4,7 @@ import LeadButton from "@/components/LeadButton";
 import { getAllUnits } from "@/data/source";
 import { stripPrivate } from "@/lib/privacy";
 import { getLang } from "@/lib/serverLang";
+import { altFor, withLang } from "@/lib/i18nPath";
 import { t as tr } from "@/lib/dict";
 
 export const revalidate = 300;
@@ -14,8 +15,8 @@ export async function generateMetadata() {
   return {
     title: t("ar_mt"),
     description: t("ar_md"),
-    alternates: { canonical: "/arenda-batumi" },
-    openGraph: { title: t("ar_mt"), description: t("ar_md"), type: "website", url: "https://bayluxhome.com/arenda-batumi", images: ["/hero-batumi.jpg"] },
+    alternates: altFor(lang, "/arenda-batumi"),
+    openGraph: { title: t("ar_mt"), description: t("ar_md"), type: "website", url: withLang(lang, "/arenda-batumi"), images: ["/hero-batumi.jpg"] },
   };
 }
 

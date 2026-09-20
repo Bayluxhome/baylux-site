@@ -6,6 +6,7 @@ import { DEAL_LABEL, CAT_LABEL, GE_CITIES, unitCat, unitIsNew } from "@/data/dat
 import { getAllUnits } from "@/data/source";
 import { stripPrivate } from "@/lib/privacy";
 import { getLang } from "@/lib/serverLang";
+import { altFor, withLang } from "@/lib/i18nPath";
 import { t as tr, cityLabel, amenLabel } from "@/lib/dict";
 
 export const revalidate = 300;
@@ -17,6 +18,13 @@ export function generateMetadata({ searchParams }) {
   const deal = searchParams?.deal || "";
   const isNew = searchParams?.new === "1" || searchParams?.type === "new";
   const lang = getLang();
+  // Канонический адрес: раздел по сделке (?deal=sale / ?deal=rent / ?deal=daily / ?new=1) —
+  // самостоятельная страница со своим заголовком, поэтому ссылается сама на себя; остальные
+  // фильтры (город, тип, цена…) схлопываются в свой раздел. Пагинация — само-ссылающаяся.
+  const p = new URLSearchParams();
+  if (isNew) p.set("new", "1"); else if (["sale", "rent", "daily"].includes(deal)) p.set("deal", deal);
+  if (page > 1) p.set("page", String(page));
+  const canonPath = "/catalog" + (p.toString() ? "?" + p.toString() : "");
   // Для en/ka — переведённые заголовки из словаря (иначе грузин видел бы русский title).
   // Для ru ниже остаются заголовки, заточенные под частотные русские запросы (Wordstat), —
   // их специально не трогаем, это рабочая SEO-оптимизация.
@@ -26,7 +34,7 @@ export function generateMetadata({ searchParams }) {
     return {
       title: dealName ? `${dealName} — ${base}` : base,
       description: tr(lang, "meta_catalog_d"),
-      alternates: { canonical: page > 1 ? `/catalog?page=${page}` : "/catalog" },
+      alternates: altFor(lang, canonPath),
     };
   }
   // Заголовки под частотные запросы (Wordstat): «купить квартиру», «снять квартиру», «посуточно».
@@ -45,13 +53,10 @@ export function generateMetadata({ searchParams }) {
     title = "Купить квартиру в Батуми и Грузии — апартаменты у моря";
     description = "Купить квартиру или апартаменты в Батуми и Грузии. Первичка и вторичка у моря — цены, фото, помощь местной команды Baylux.";
   }
-  // Само-ссылающийся canonical: страница ?page=N указывает на саму себя (а не на page 1),
-  // иначе Google схлопнул бы пагинацию в одну страницу и не проиндексировал бы глубокие объекты.
-  const canonical = page > 1 ? `/catalog?page=${page}` : "/catalog";
   return {
     title,
     description,
-    alternates: { canonical },
+    alternates: altFor(lang, canonPath),
   };
 }
 
@@ -164,7 +169,7 @@ export default async function CatalogPage({ searchParams }) {
     for (const [key, val] of Object.entries(sp)) { if (Array.isArray(val)) val.forEach((x) => p.append(key, x)); else if (val != null) p.set(key, val); }
     if (v) p.set(k, v); else p.delete(k);
     if (k !== "page") p.delete("page"); // смена любого фильтра/сортировки/поиска возвращает на 1-ю страницу
-    const s = p.toString(); return "/catalog" + (s ? "?" + s : "");
+    const s = p.toString(); return withLang(lang, "/catalog" + (s ? "?" + s : ""));
   };
 
   // Скрытые поля для формы поиска/фильтров — переносят текущие параметры (кроме q/page, их задаёт сама форма).

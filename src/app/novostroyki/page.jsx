@@ -9,6 +9,7 @@ import { GE_CITIES } from "@/data/data";
 import { CITY_CENTER } from "@/lib/geo";
 import { SITE_URL } from "@/config";
 import { getLang } from "@/lib/serverLang";
+import { altFor } from "@/lib/i18nPath";
 import { t as tr, cityLabel } from "@/lib/dict";
 
 // Раздел «Новостройки»: собственная база ЖК от менеджеров (только объекты с договором).
@@ -24,8 +25,8 @@ export async function generateMetadata() {
   return {
     title: { absolute: t("nb_meta_t") },
     description: t("nb_meta_d"),
-    alternates: { canonical: "/novostroyki" },
-    openGraph: { title: t("nb_meta_t"), description: t("nb_meta_d"), type: "website", url: `${SITE_URL}/novostroyki`, images: ["/hero-batumi.jpg"] },
+    alternates: altFor(lang, "/novostroyki"),
+    openGraph: { title: t("nb_meta_t"), description: t("nb_meta_d"), type: "website", url: `${SITE_URL}/${lang}/novostroyki`, images: ["/hero-batumi.jpg"] },
   };
 }
 

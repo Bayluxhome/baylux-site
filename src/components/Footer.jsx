@@ -1,18 +1,21 @@
 import Link from "next/link";
 import { getLang } from "@/lib/serverLang";
 import { t as tr, cityLabel } from "@/lib/dict";
+import { withLang } from "@/lib/i18nPath";
 import { COMPANY, SOCIAL, fmtPhone } from "@/config";
 import CookieLink from "@/components/CookieLink";
 
 export default function Footer() {
   const lang = getLang();
   const t = (k) => tr(lang, k);
+  // Все внутренние ссылки — в языковую ветку (/ru/…), чтобы обходиться без редиректа.
+  const A = ({ href, ...p }) => <Link href={withLang(lang, href)} {...p} />;
   return (
     <footer className="site">
       <div className="wrap">
         <div className="fgrid">
           <div>
-            <Link className="logo" href="/"><img src="/baylux_logo_white.svg" alt="Baylux" /></Link>
+            <AclassName="logo" href="/"><img src="/baylux_logo_white.svg" alt="Baylux" /></A>
             <p style={{ marginTop: 14, fontSize: 14, maxWidth: 300 }}>{t("foot_about")}</p>
             <div className="fsocial">
               {SOCIAL.instagram && (
@@ -30,19 +33,19 @@ export default function Footer() {
           <div>
             <h4>{t("foot_realty")}</h4>
             {/* Общие категории по всей Грузии — без городского фильтра (город в cookie не хранится, каталог берёт его только из URL) */}
-            <Link href="/catalog?deal=sale">{t("nav_sale")}</Link>
-            <Link href="/catalog?deal=rent">{t("nav_rent")}</Link>
-            <Link href="/novostroyki">{t("nav_new")}</Link>
-            <Link href="/catalog?deal=daily">{t("nav_daily")}</Link>
-            <Link href="/catalog?cat=apartment">{t("ft_apart")}</Link>
+            <Ahref="/catalog?deal=sale">{t("nav_sale")}</A>
+            <Ahref="/catalog?deal=rent">{t("nav_rent")}</A>
+            <Ahref="/novostroyki">{t("nav_new")}</A>
+            <Ahref="/catalog?deal=daily">{t("nav_daily")}</A>
+            <Ahref="/catalog?cat=apartment">{t("ft_apart")}</A>
           </div>
           <div>
             <h4>{t("nav_services")}</h4>
-            <Link href="/property-management">{t("foot_mgmt")}</Link><Link href="/cleaning">{t("foot_cleaning")}</Link><Link href="/realtors">{t("foot_realtors")}</Link>
+            <Ahref="/property-management">{t("foot_mgmt")}</A><Ahref="/cleaning">{t("foot_cleaning")}</A><Ahref="/realtors">{t("foot_realtors")}</A>
           </div>
           <div>
             <h4>{t("foot_company")}</h4>
-            <Link href="/about">{t("foot_about_l")}</Link><Link href="/blog">{t("blog_h")}</Link><Link href="/news">{t("foot_news")}</Link><Link href="/contacts">{t("foot_contacts")}</Link><Link href="/terms">{t("foot_terms")}</Link><Link href="/privacy">{t("foot_privacy")}</Link><Link href="/cookies">{t("ck_title")}</Link><Link href="/rules">{t("rl_title")}</Link><CookieLink />
+            <Ahref="/about">{t("foot_about_l")}</A><Ahref="/blog">{t("blog_h")}</A><Ahref="/news">{t("foot_news")}</A><Ahref="/contacts">{t("foot_contacts")}</A><Ahref="/terms">{t("foot_terms")}</A><Ahref="/privacy">{t("foot_privacy")}</A><Ahref="/cookies">{t("ck_title")}</A><Ahref="/rules">{t("rl_title")}</A><CookieLink />
           </div>
         </div>
         {/* Публично — бренд и контакты из COMPANY; оператор ПД (физлицо) — в Политике конфиденциальности («Юридическая информация») */}
@@ -52,7 +55,7 @@ export default function Footer() {
             {COMPANY.officeAddress ? <> · {COMPANY.officeAddress}, {cityLabel(lang, COMPANY.officeCity)}</> : null}
             {" · "}<a href={"tel:+" + COMPANY.phone}>{fmtPhone(COMPANY.phone)}</a>
             {" · "}<a href={"mailto:" + COMPANY.email}>{COMPANY.email}</a>
-            {" · "}<Link href="/privacy">{t("foot_legal")}</Link>
+            {" · "}<Ahref="/privacy">{t("foot_legal")}</A>
           </span>
           <span>© Baylux Home 2026 · Batumi, Georgia</span>
         </div>

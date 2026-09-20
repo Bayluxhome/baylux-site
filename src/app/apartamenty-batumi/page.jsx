@@ -2,6 +2,7 @@ import SeoLanding from "@/components/SeoLanding";
 import { getAllUnits } from "@/data/source";
 import { unitCat } from "@/data/data";
 import { getLang } from "@/lib/serverLang";
+import { altFor, withLang } from "@/lib/i18nPath";
 import { t as tr } from "@/lib/dict";
 
 export const revalidate = 300;
@@ -12,8 +13,8 @@ export async function generateMetadata() {
   return {
     title: t("ap_mt"),
     description: t("ap_md"),
-    alternates: { canonical: "/apartamenty-batumi" },
-    openGraph: { title: t("ap_mt"), description: t("ap_md"), type: "website", url: "https://bayluxhome.com/apartamenty-batumi", images: ["/hero-batumi.jpg"] },
+    alternates: altFor(lang, "/apartamenty-batumi"),
+    openGraph: { title: t("ap_mt"), description: t("ap_md"), type: "website", url: withLang(lang, "/apartamenty-batumi"), images: ["/hero-batumi.jpg"] },
   };
 }
 

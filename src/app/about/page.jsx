@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { getLang } from "@/lib/serverLang";
+import { altFor } from "@/lib/i18nPath";
 import { t as tr } from "@/lib/dict";
 import { SITE_URL } from "@/config";
 
@@ -9,8 +10,8 @@ export async function generateMetadata() {
   return {
     title: { absolute: t("ab_meta_t") },
     description: t("ab_meta_d"),
-    alternates: { canonical: "/about" },
-    openGraph: { title: t("ab_meta_t"), description: t("ab_meta_d"), type: "website", url: `${SITE_URL}/about` },
+    alternates: altFor(lang, "/about"),
+    openGraph: { title: t("ab_meta_t"), description: t("ab_meta_d"), type: "website", url: `${SITE_URL}/${lang}/about` },
   };
 }
 

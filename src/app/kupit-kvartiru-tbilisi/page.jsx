@@ -2,6 +2,7 @@ import SeoLanding from "@/components/SeoLanding";
 import { getAllUnits } from "@/data/source";
 import { unitCat } from "@/data/data";
 import { getLang } from "@/lib/serverLang";
+import { altFor, withLang } from "@/lib/i18nPath";
 import { t as tr } from "@/lib/dict";
 
 export const revalidate = 300;
@@ -12,8 +13,8 @@ export async function generateMetadata() {
   return {
     title: t("kt_mt"),
     description: t("kt_md"),
-    alternates: { canonical: "/kupit-kvartiru-tbilisi" },
-    openGraph: { title: t("kt_mt"), description: t("kt_md"), type: "website", url: "https://bayluxhome.com/kupit-kvartiru-tbilisi", images: ["/hero-tbilisi.webp"] },
+    alternates: altFor(lang, "/kupit-kvartiru-tbilisi"),
+    openGraph: { title: t("kt_mt"), description: t("kt_md"), type: "website", url: withLang(lang, "/kupit-kvartiru-tbilisi"), images: ["/hero-tbilisi.webp"] },
   };
 }
 

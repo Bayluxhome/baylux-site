@@ -5,6 +5,7 @@ import { GE_CITIES } from "@/data/data";
 import { useFilter } from "@/components/FilterContext";
 import { useLang } from "@/components/LangContext";
 import { cityLabel } from "@/lib/dict";
+import { withLang } from "@/lib/i18nPath";
 import LeadButton from "@/components/LeadButton";
 
 const LANGS = [
@@ -62,6 +63,8 @@ export default function Header({ cityCounts } = {}) {
   const [open, setOpen] = useState(false);
   const fc = useFilter();
   const { lang: uiLang, setLang: setUiLang, t } = useLang();
+  // Ссылки меню — сразу в языковую ветку (/ru/catalog), без промежуточного редиректа.
+  const L = (h) => withLang(uiLang, h);
   const city = (fc && fc.f && fc.f.city) || "";
   const label = city ? cityLabel(uiLang, city) : t("allGeorgia");
   const [langOpen, setLangOpen] = useState(false);
@@ -103,7 +106,7 @@ export default function Header({ cityCounts } = {}) {
     <>
     <header className="site">
       <div className="wrap hrow">
-        <Link className="logo" href="/"><img src="/baylux_logo.svg" alt="Baylux" /></Link>
+        <Link className="logo" href={L("/")}><img src="/baylux_logo.svg" alt="Baylux" /></Link>
 
         <div className="loc" ref={locRef}>
           <button className="loc-btn" onClick={(e) => { e.stopPropagation(); setOpen((v) => !v); }}>
@@ -131,20 +134,20 @@ export default function Header({ cityCounts } = {}) {
         <nav className="main">
           {NAV.map((it) => (
             <div className="navitem" key={it.label}>
-              <Link className="navtop" href={it.href}>{NAV_KEY[it.label] ? t(NAV_KEY[it.label]) : it.label}<span className="navcar">▾</span></Link>
+              <Link className="navtop" href={L(it.href)}>{NAV_KEY[it.label] ? t(NAV_KEY[it.label]) : it.label}<span className="navcar">▾</span></Link>
               <div className="submenu">
-                {it.sub.map((s) => <Link key={s.href + (s.lk || s.c)} href={s.href}>{s.lk ? t(s.lk) : `${t("deal_" + s.d)} · ${t("cat_" + s.c)}`}</Link>)}
+                {it.sub.map((s) => <Link key={s.href + (s.lk || s.c)} href={L(s.href)}>{s.lk ? t(s.lk) : `${t("deal_" + s.d)} · ${t("cat_" + s.c)}`}</Link>)}
               </div>
             </div>
           ))}
         </nav>
 
         <div className="hright">
-          <Link className="hicon" href="/catalog" title="Поиск объектов" aria-label="Поиск">
+          <Link className="hicon" href={L("/catalog")} title="Поиск объектов" aria-label="Поиск">
             <svg className="hi-ic" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="7" /><path d="m21 21-4.3-4.3" /></svg>
             <span className="hi-tx">{t("search")}</span>
           </Link>
-          <Link className="hicon hicon-sq" href="/favorites" title="Избранное" aria-label="Избранное">♡{favCount > 0 && <span className="fav-count">{favCount}</span>}</Link>
+          <Link className="hicon hicon-sq" href={L("/favorites")} title="Избранное" aria-label="Избранное">♡{favCount > 0 && <span className="fav-count">{favCount}</span>}</Link>
 
           <div className="langw" ref={langRef}>
             <button className="hicon hlang" onClick={(e) => { e.stopPropagation(); setLangOpen((v) => !v); }} title={t("lp_lang")} aria-label={t("lp_lang")}>
@@ -170,11 +173,11 @@ export default function Header({ cityCounts } = {}) {
 
           <span className="hdiv" />
 
-          <Link className={"hicon hlogin" + (auth && auth.in ? " hlogin-in" : "")} href="/my" title="Личный кабинет">
+          <Link className={"hicon hlogin" + (auth && auth.in ? " hlogin-in" : "")} href={L("/my")} title="Личный кабинет">
             <span className="hi-ic">👤</span><span className="hi-tx">{auth && auth.in ? (auth.name ? auth.name.split(" ")[0] : t("cabinet")) : t("login")}</span>
           </Link>
 
-          <Link className="btn btn-gold" href="/add">{t("sell")}</Link>
+          <Link className="btn btn-gold" href={L("/add")}>{t("sell")}</Link>
         </div>
 
         <button className="burger" aria-label="Меню" onClick={() => setMenuOpen(true)}>☰</button>
@@ -197,10 +200,10 @@ export default function Header({ cityCounts } = {}) {
                 <button key={c.code} type="button" className={"md-curr-btn" + (curr === c.code ? " on" : "")} onClick={() => { setCurr(c.code); if (typeof window !== "undefined" && window.bxApplyCurrency) window.bxApplyCurrency(c.code); }}>{c.sym} {c.code}</button>
               ))}
             </div>
-            {NAV.map((it) => <Link key={it.label} href={it.href} className="md-item" onClick={() => setMenuOpen(false)}>{NAV_KEY[it.label] ? t(NAV_KEY[it.label]) : it.label}</Link>)}
-            <Link href="/catalog" className="md-item" onClick={() => setMenuOpen(false)}>🔍 {t("search")}</Link>
-            <Link href="/my" className="md-item" onClick={() => setMenuOpen(false)}>👤 {auth && auth.in ? t("cabinet") : t("login")}</Link>
-            <Link href="/add" className="md-item md-sell" onClick={() => setMenuOpen(false)}>{t("sell")}</Link>
+            {NAV.map((it) => <Link key={it.label} href={L(it.href)} className="md-item" onClick={() => setMenuOpen(false)}>{NAV_KEY[it.label] ? t(NAV_KEY[it.label]) : it.label}</Link>)}
+            <Link href={L("/catalog")} className="md-item" onClick={() => setMenuOpen(false)}>🔍 {t("search")}</Link>
+            <Link href={L("/my")} className="md-item" onClick={() => setMenuOpen(false)}>👤 {auth && auth.in ? t("cabinet") : t("login")}</Link>
+            <Link href={L("/add")} className="md-item md-sell" onClick={() => setMenuOpen(false)}>{t("sell")}</Link>
           </div>
         </div>
       )}

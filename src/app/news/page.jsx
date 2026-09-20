@@ -1,14 +1,18 @@
 import Link from "next/link";
 import { supa } from "@/lib/supabase";
 import { getLang } from "@/lib/serverLang";
+import { altFor } from "@/lib/i18nPath";
 import { t as tr, newsField, formatDate } from "@/lib/dict";
 
 export const revalidate = 120;
-export const metadata = {
-  title: "Новости Baylux — недвижимость в Батуми и Грузии",
-  description: "Новости агентства Baylux: новые проекты и новостройки, обновления сервиса, открытие офисов и выход на новые рынки в Грузии.",
-  alternates: { canonical: "/news" },
-};
+export async function generateMetadata() {
+  const lang = getLang();
+  return {
+    title: "Новости Baylux — недвижимость в Батуми и Грузии",
+    description: "Новости агентства Baylux: новые проекты и новостройки, обновления сервиса, открытие офисов и выход на новые рынки в Грузии.",
+    alternates: altFor(lang, "/news"),
+  };
+}
 
 function fmtDate(s, lang) {
   // formatDate: для ka Intl отдаёт русские месяцы (нет данных локали) — там свой список.

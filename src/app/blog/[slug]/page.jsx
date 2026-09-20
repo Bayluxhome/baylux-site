@@ -2,6 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ARTICLES, getArticle, articleField } from "@/data/articles";
 import { getLang } from "@/lib/serverLang";
+import { altFor, withLang } from "@/lib/i18nPath";
 import { t as tr, formatDate } from "@/lib/dict";
 
 const SITE = "https://bayluxhome.com";
@@ -19,8 +20,8 @@ export async function generateMetadata({ params }) {
   return {
     title: `${title} — Baylux`,
     description,
-    alternates: { canonical: `/blog/${a.slug}` },
-    openGraph: { title, description, type: "article", url: `${SITE}/blog/${a.slug}`, images: [a.image] },
+    alternates: altFor(lang, `/blog/${a.slug}`),
+    openGraph: { title, description, type: "article", url: `${SITE}${withLang(lang, `/blog/${a.slug}`)}`, images: [a.image] },
   };
 }
 

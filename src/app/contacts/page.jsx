@@ -1,5 +1,6 @@
 import { COMPANY, SITE_URL, WA_DISPLAY, waLink, fmtPhone } from "@/config";
 import { getLang } from "@/lib/serverLang";
+import { altFor } from "@/lib/i18nPath";
 import { t as tr, cityLabel } from "@/lib/dict";
 import ContactForm from "@/components/ContactForm";
 
@@ -9,8 +10,8 @@ export async function generateMetadata() {
   return {
     title: { absolute: t("co_meta_t") },
     description: t("co_meta_d"),
-    alternates: { canonical: "/contacts" },
-    openGraph: { title: t("co_meta_t"), description: t("co_meta_d"), type: "website", url: `${SITE_URL}/contacts` },
+    alternates: altFor(lang, "/contacts"),
+    openGraph: { title: t("co_meta_t"), description: t("co_meta_d"), type: "website", url: `${SITE_URL}/${lang}/contacts` },
   };
 }
 

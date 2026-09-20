@@ -1,6 +1,7 @@
 import SeoLanding from "@/components/SeoLanding";
 import { getAllUnits } from "@/data/source";
 import { getLang } from "@/lib/serverLang";
+import { altFor, withLang } from "@/lib/i18nPath";
 import { t as tr } from "@/lib/dict";
 
 export const revalidate = 300;
@@ -11,8 +12,8 @@ export async function generateMetadata() {
   return {
     title: t("pt_mt"),
     description: t("pt_md"),
-    alternates: { canonical: "/posutochno-tbilisi" },
-    openGraph: { title: t("pt_mt"), description: t("pt_md"), type: "website", url: "https://bayluxhome.com/posutochno-tbilisi", images: ["/hero-tbilisi.webp"] },
+    alternates: altFor(lang, "/posutochno-tbilisi"),
+    openGraph: { title: t("pt_mt"), description: t("pt_md"), type: "website", url: withLang(lang, "/posutochno-tbilisi"), images: ["/hero-tbilisi.webp"] },
   };
 }
 

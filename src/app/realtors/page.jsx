@@ -2,6 +2,7 @@ import Link from "next/link";
 import { supa } from "@/lib/supabase";
 import { countByRealtor } from "@/data/realtors";
 import { getLang } from "@/lib/serverLang";
+import { altFor } from "@/lib/i18nPath";
 import { t as tr } from "@/lib/dict";
 
 // Язык страницы зависит от запроса (getLang читает cookies/headers), поэтому ISR здесь нельзя —
@@ -12,7 +13,7 @@ export async function generateMetadata() {
   return {
     title: tr(lang, "meta_realtors_t"),
     description: tr(lang, "meta_realtors_d"),
-    alternates: { canonical: "/realtors" },
+    alternates: altFor(lang, "/realtors"),
   };
 }
 

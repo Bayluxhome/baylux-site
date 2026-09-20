@@ -6,6 +6,7 @@ import { DEAL_CLASS, fmtMoney } from "@/data/data";
 import FavButton from "@/components/FavButton";
 import { useLang } from "@/components/LangContext";
 import { typeLabel, cityLabel, translitAddress, formatDate } from "@/lib/dict";
+import { withLang } from "@/lib/i18nPath";
 
 // Русское склонение для бейджа дублей: 1 дубль / 2-4 дубля / 5+ дублей (en/ka — формы совпадают).
 function dupePluralKey(n) {
@@ -85,7 +86,7 @@ export default function PropertyCard({ unit, qs = "", onMap = false }) {
     window.dispatchEvent(new CustomEvent("bx:showOnMap", { detail: { building: b.slug, unit: unit.slug } }));
   };
   return (
-    <Link className="card" href={`/property/${unit.slug}${qs}`} data-building={b.slug} data-unit={unit.slug}>
+    <Link className="card" href={withLang(lang, `/property/${unit.slug}${qs}`)} data-building={b.slug} data-unit={unit.slug}>
       <div className="ph">
         {photos ? (
           <div className="ph-strip" ref={stripRef} onScroll={onStripScroll}>
