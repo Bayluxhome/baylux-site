@@ -21,11 +21,21 @@ export async function generateMetadata({ params }) {
   const c = await getByToken(params.token);
   // Без «— Baylux» в заголовке: подборка подаётся как личная подборка риелтора (17.09.2026).
   const title = c && c.enabled ? tr(lang, "col_page_h") : tr(lang, "col_unavailable_h");
+  // Картинка превью — фото первого объекта подборки (нейтрально, без логотипа Baylux).
+  // Без неё мессенджер показывал голую ссылку или подставлял обложку сайта.
+  let image = null;
+  if (c && c.enabled && Array.isArray(c.items) && c.items.length) {
+    const all = await getAllUnits();
+    const byId = new Map(all.map((u) => [String(u.id), u]));
+    const first = c.items.map((i) => byId.get(String(i.id))).find(Boolean); // первый по порядку подборки
+    const src = first && (first.img || (first.photos && first.photos[0]));
+    if (src && /^https?:\/\//.test(src)) image = src;
+  }
   return {
     title: { absolute: title },
     description: tr(lang, "col_meta_d"),
     robots: { index: false, follow: false },
-    openGraph: { title, description: tr(lang, "col_meta_d"), type: "website" },
+    openGraph: { title, description: tr(lang, "col_meta_d"), type: "website", ...(image ? { images: [{ url: image }] } : {}) },
   };
 }
 

@@ -14,7 +14,7 @@ async function api(body) {
 }
 
 export default function CollectionsList() {
-  const { t } = useLang();
+  const { t, lang } = useLang();
   const router = useRouter();
   const [list, setList] = useState(null);
   const [form, setForm] = useState({ title: "", client_name: "", client_phone: "", client_tg: "" });
@@ -24,7 +24,9 @@ export default function CollectionsList() {
   useEffect(() => { fetch("/api/collections").then((r) => r.json()).then((j) => setList(j.ok ? j.list : [])).catch(() => setList([])); }, []);
 
   const upd = (c) => setList((l) => l.map((x) => (x.id === c.id ? c : x)));
-  const link = (c) => `${SITE_URL}/c/${c.token}`;
+  // Ссылка сразу с языком риелтора (/ru/c/…): без префикса был редирект, а превью Telegram
+  // редирект не проходит и показывает главную сайта вместо подборки.
+  const link = (c) => `${SITE_URL}/${lang || "ru"}/c/${c.token}`;
   const msg = (c) => (c.note || t("col_msg_default").replace("{name}", c.client_name || "").replace(/\s+/g, " ").trim()) + "\n" + link(c);
 
   async function create(e) {

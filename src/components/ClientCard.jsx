@@ -137,7 +137,7 @@ export default function ClientCard({ client: initial, notes: notesInit, collecti
               <div className="cl-sub">{x.items.map((i) => i.title).join(" · ")}</div>
               <div style={{ display: "flex", gap: 8, marginTop: 4 }}>
                 <Link className="cab-ed" href={`/my/collections/${x.id}/pick`}>{t("col_pick")}</Link>
-                <a className="cab-ed" href={`/c/${x.token}`} target="_blank" rel="noopener">{t("col_open")}</a>
+                <a className="cab-ed" href={`/${lang || "ru"}/c/${x.token}`} target="_blank" rel="noopener">{t("col_open")}</a>
               </div>
             </div>
           ))}

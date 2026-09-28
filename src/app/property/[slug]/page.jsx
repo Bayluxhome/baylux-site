@@ -95,7 +95,7 @@ export default async function PropertyPage({ params, searchParams }) {
       {/* В режиме презентации хлебные крошки ведут в каталог — заменяем их возвратом к подборке */}
       {collectionToken ? (
         <div className="crumbs">
-          <Link href={`/c/${collectionToken}`}>← {t("col_back")}</Link>
+          <Link href={withLang(lang, `/c/${collectionToken}`)}>← {t("col_back")}</Link>
         </div>
       ) : (
         <div className="crumbs">
@@ -205,5 +205,5 @@ export default async function PropertyPage({ params, searchParams }) {
 
   // Открыт из подборки — показываем ту же «обложку», что и на /c/<token>:
   // глобального меню на этом адресе нет (его отключает middleware + root layout).
-  return collectionToken ? <PresShell backHref={`/c/${collectionToken}`}>{body}</PresShell> : body;
+  return collectionToken ? <PresShell backHref={withLang(lang, `/c/${collectionToken}`)}>{body}</PresShell> : body;
 }

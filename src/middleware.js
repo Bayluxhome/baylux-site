@@ -49,33 +49,44 @@ export function middleware(req) {
   if (pathname.startsWith("/demo")) return demo(req);
 
   const m = LANG_RE.exec(pathname);
+  const colToken = url.searchParams.get("c") || "";
+  const isShared = (p) => p.startsWith("/c/") || (p.startsWith("/property/") && /^[A-Za-z0-9_-]{8,32}$/.test(colToken));
 
-  // Без префикса → редирект на языковую ветку (параметры запроса сохраняем).
-  if (!m) {
+  // Ссылки подборок без префикса (/c/<token>, уже разосланные клиентам) отдаём СРАЗУ, без редиректа:
+  // превью ссылок Telegram редирект не проходит и показывало главную сайта вместо подборки
+  // (28.09.2026). Страницы подборок noindex — дублей для поисковиков это не создаёт.
+  const sharedNoPrefix = !m && isShared(pathname);
+
+  // Остальное без префикса → редирект на языковую ветку (параметры запроса сохраняем).
+  if (!m && !sharedNoPrefix) {
     const lang = pickLang(req);
     const target = url.clone();
     target.pathname = pathname === "/" ? `/${lang}` : `/${lang}${pathname}`;
     return NextResponse.redirect(target, 308);
   }
 
-  const lang = m[1];
-  const inner = pathname.replace(LANG_RE, "") || "/";
+  const lang = m ? m[1] : pickLang(req);
+  const inner = m ? (pathname.replace(LANG_RE, "") || "/") : pathname;
 
   const headers = new Headers(req.headers);
   headers.set("x-bx-lang", lang);
   headers.set("x-bx-path", inner);
 
   // Режим презентации: публичная подборка и открытая из неё карточка объекта — без меню сайта.
-  const colToken = url.searchParams.get("c") || "";
-  const bare = inner.startsWith("/c/") || (inner.startsWith("/property/") && /^[A-Za-z0-9_-]{8,32}$/.test(colToken));
+  const bare = isShared(inner);
   if (bare) headers.set("x-bx-layout", "bare");
 
-  const rewritten = url.clone();
-  rewritten.pathname = inner;
-  const res = NextResponse.rewrite(rewritten, { request: { headers } });
+  let res;
+  if (m) {
+    const rewritten = url.clone();
+    rewritten.pathname = inner;
+    res = NextResponse.rewrite(rewritten, { request: { headers } });
+  } else {
+    res = NextResponse.next({ request: { headers } }); // подборка без префикса — путь уже внутренний
+  }
   if (bare) res.headers.set("X-Robots-Tag", "noindex, nofollow");
   // Язык из адреса — главнее старой cookie: обновляем её, чтобы редирект с корня вёл сюда же.
-  if (req.cookies.get("bxLang")?.value !== lang) res.cookies.set("bxLang", lang, { path: "/", maxAge: 31536000, sameSite: "lax" });
+  if (m && req.cookies.get("bxLang")?.value !== lang) res.cookies.set("bxLang", lang, { path: "/", maxAge: 31536000, sameSite: "lax" });
   return res;
 }
 
