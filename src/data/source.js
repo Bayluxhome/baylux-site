@@ -258,23 +258,45 @@ async function buildAll() {
 // Почему память, а не кэш Vercel (unstable_cache): у него лимит 2 МБ на запись, а база
 // с описаниями на трёх языках больше. У «тёплого» инстанса кэш есть, у холодного — одна сборка.
 // cache() из React сверху — чтобы внутри одного запроса результат не доставался дважды.
-const TTL_MS = 90_000;
+// 28.09.2026: TTL 90 с → 5 мин. Сайт упёрся в лимит CPU Vercel (12 ч при 4 ч): каждые 90 с
+// каждый инстанс заново собирал всю базу (дедуп по фото, чередование городов), а под
+// обходом Googlebot инстансов много. Правки объявлений по-прежнему сбрасывают кэш
+// через invalidateBuildings() (на инстансе, принявшем правку; остальные — в пределах TTL).
+const TTL_MS = 5 * 60_000;
 let memo = { at: 0, promise: null };
-function getBuildingsShared() {
+
+// Снимок базы + всё производное от неё считается ОДИН раз на сборку, а не на каждый запрос.
+// Раньше каждая карточка объекта заново очищала все ~2400 объявлений (stripPrivate),
+// разворачивала их в плоский список дважды (публичный и служебный) и искала линейно.
+function buildSnapshot(raw) {
+  const pub = raw.map(stripPrivateBuilding);
+  const unitsPub = flatten(pub);
+  const unitsRaw = flatten(raw);
+  // При совпадении slug побеждает первый — как у прежнего линейного find().
+  const index = (list) => { const m = new Map(); for (const x of list) if (!m.has(x.slug)) m.set(x.slug, x); return m; };
+  const bySlugPub = index(unitsPub);
+  const bySlugRaw = index(unitsRaw);
+  const buildingBySlug = index(pub);
+  return { raw, pub, unitsPub, unitsRaw, bySlugPub, bySlugRaw, buildingBySlug };
+}
+
+function getSnapshotShared() {
   const now = Date.now();
   if (memo.promise && now - memo.at < TTL_MS) return memo.promise;
-  const p = buildAll().catch((e) => { memo = { at: 0, promise: null }; throw e; });
+  const p = buildAll().then(buildSnapshot).catch((e) => { memo = { at: 0, promise: null }; throw e; });
   memo = { at: now, promise: p };
   return p;
 }
 export function invalidateBuildings() { memo = { at: 0, promise: null }; }
-const getBuildings = cache(() => getBuildingsShared());
+const getSnapshot = cache(() => getSnapshotShared());
+const getBuildings = cache(async () => (await getSnapshot()).raw);
 
 // Публичная выдача = те же дома, но БЕЗ служебных полей у объявлений.
-// Чистим один раз на весь список (и результат кэшируется), а не на каждой карточке:
+// Чистим один раз на весь список (в снимке), а не на каждой карточке:
 // раньше очистка стояла у мест вывода, одно из них забыли — и owner_email уехал
 // в HTML через вложенный building.units. Теперь ни одна страница не может её пропустить.
-const getBuildingsPublic = cache(async () => (await getBuildings()).map(stripPrivateBuilding));
+// Массивы снимка общие для всех запросов — потребители их не мутируют (только filter/slice/[...].sort).
+const getBuildingsPublic = cache(async () => (await getSnapshot()).pub);
 
 export async function getBuildingsList() {
   return getBuildingsPublic();
@@ -318,21 +340,21 @@ function flatten(bs) {
 // --- Публичные выборки: очищены, их можно отдавать в вёрстку и клиентские компоненты ---
 
 export async function getAllUnits() {
-  return flatten(await getBuildingsPublic());
+  return (await getSnapshot()).unitsPub;
 }
 
 export async function findBuilding(slug) {
-  const bs = await getBuildingsPublic();
-  return bs.find((b) => b.slug === slug) || null;
+  return (await getSnapshot()).buildingBySlug.get(slug) || null;
 }
 
 export async function findUnit(slug) {
-  const bs = await getBuildingsPublic();
-  for (const b of bs) {
-    const u = b.units.find((x) => x.slug === slug);
-    if (u) return { ...enrichUnit(u), building: b, img: u.unit_image || b.image };
-  }
-  return null;
+  const u = (await getSnapshot()).bySlugPub.get(slug);
+  return u ? { ...u } : null;
+}
+
+// Служебная копия одного объявления по slug (для сопоставления с риелтором) — без обхода всей базы.
+export async function findUnitRaw(slug) {
+  return (await getSnapshot()).bySlugRaw.get(slug) || null;
 }
 
 // --- Служебная выборка: СО служебными полями (owner_email, tg_user_id, контакты собственника) ---
@@ -340,5 +362,5 @@ export async function findUnit(slug) {
 // НЕЛЬЗЯ передавать результат в вёрстку или в пропсы клиентских компонентов —
 // поля попадут в HTML страницы. Для вывода берите getAllUnits/findUnit.
 export async function getAllUnitsRaw() {
-  return flatten(await getBuildings());
+  return (await getSnapshot()).unitsRaw;
 }

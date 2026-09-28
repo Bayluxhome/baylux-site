@@ -1,6 +1,7 @@
 import { cookies } from "next/headers";
 import { verifySession } from "@/lib/session";
 import { supa } from "@/lib/supabase";
+import { revalidateRealtors } from "@/lib/cache";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -46,6 +47,7 @@ export async function POST(req) {
     const { data: ins } = await supa.from("realtors").insert({ ...row, tg_user_id: byId ? session.id : null, email: byId ? null : session.email }).select("id").single();
     realtorId = ins?.id;
   }
+  revalidateRealtors();
 
   // Заявка админу в Telegram с кнопками модерации
   if (ADMIN && TOKEN && realtorId) {
@@ -65,5 +67,6 @@ export async function DELETE() {
   let q = supa.from("realtors").delete();
   q = session.id != null ? q.eq("tg_user_id", session.id) : q.eq("email", session.email);
   await q;
+  revalidateRealtors();
   return Response.json({ ok: true });
 }

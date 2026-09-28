@@ -1,6 +1,7 @@
 import { cookies } from "next/headers";
 import { verifySession, can } from "@/lib/session";
 import { supa } from "@/lib/supabase";
+import { revalidateRealtors } from "@/lib/cache";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -16,6 +17,7 @@ export async function POST(req) {
   const status = b.action === "approve" ? "approved" : "rejected";
   const { error } = await supa.from("realtors").update({ status }).eq("id", b.id);
   if (error) return Response.json({ ok: false });
+  revalidateRealtors();
   return Response.json({ ok: true, status });
 }
 
@@ -28,5 +30,6 @@ export async function DELETE(req) {
   try { b = await req.json(); } catch { return Response.json({ ok: false }); }
   if (!b.id) return Response.json({ ok: false });
   await supa.from("realtors").delete().eq("id", b.id);
+  revalidateRealtors();
   return Response.json({ ok: true });
 }

@@ -5,7 +5,7 @@ import { watermarkBuffer } from "@/lib/watermarkServer";
 import { GE_CITIES } from "@/data/data";
 import { cityLabel } from "@/lib/dict";
 import { SITE_URL, channelForCity } from "@/config";
-import { revalidateListings } from "@/lib/cache";
+import { revalidateListings, revalidateRealtors } from "@/lib/cache";
 import { geocodeInCity } from "@/lib/geocode";
 import { normType } from "@/lib/classify";
 
@@ -655,6 +655,7 @@ async function onCallback(cb) {
   if (action === "rap" || action === "rrj") {
     const rstatus = action === "rap" ? "approved" : "rejected";
     const { data: rr } = await supa.from("realtors").update({ status: rstatus }).eq("id", id).select("*").single();
+    revalidateRealtors();
     await tg("answerCallbackQuery", { callback_query_id: cb.id, text: rstatus === "approved" ? "Риелтор одобрен" : "Отклонён" });
     const rtag = rstatus === "approved" ? "✅ ОДОБРЕН" : "❌ ОТКЛОНЁН";
     if (cb.message.caption != null) {

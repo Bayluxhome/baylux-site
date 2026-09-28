@@ -1,14 +1,25 @@
 import { cache } from "react";
 import { supa } from "@/lib/supabase";
-import { getAllUnitsRaw } from "@/data/source";
+import { getAllUnitsRaw, findUnitRaw } from "@/data/source";
 import { stripPrivate } from "@/lib/privacy";
 
 // Одобренные риелторы. Связь с объявлением — по tg_user_id ИЛИ email (owner_email листинга).
+// Список меняется редко, а нужен на КАЖДОЙ карточке объекта — держим его в памяти инстанса 5 минут,
+// чтобы не ходить в Supabase на каждый запрос (28.09.2026, экономия CPU/вызовов).
+const REALTORS_TTL_MS = 5 * 60_000;
+let realtorsMemo = { at: 0, promise: null };
 export const getRealtors = cache(async () => {
   if (!supa) return [];
-  const { data } = await supa.from("realtors").select("*").eq("status", "approved");
-  return data || [];
+  const now = Date.now();
+  if (!realtorsMemo.promise || now - realtorsMemo.at >= REALTORS_TTL_MS) {
+    const p = supa.from("realtors").select("*").eq("status", "approved")
+      .then(({ data, error }) => { if (error) throw error; return data || []; })
+      .catch((e) => { realtorsMemo = { at: 0, promise: null }; console.error("realtors:", e?.message); return []; });
+    realtorsMemo = { at: now, promise: p };
+  }
+  return realtorsMemo.promise;
 });
+export function invalidateRealtors() { realtorsMemo = { at: 0, promise: null }; }
 
 const emailKey = (v) => String(v || "").trim().toLowerCase();
 
@@ -29,7 +40,7 @@ export function matchRealtor(realtors, unit) {
 // Здесь берём служебную копию того же объявления и ищем риелтора по ней.
 export async function getRealtorForSlug(slug) {
   if (!slug) return null;
-  const u = (await getAllUnitsRaw()).find((x) => x.slug === slug);
+  const u = await findUnitRaw(slug);
   return u ? matchRealtor(await getRealtors(), u) : null;
 }
 
