@@ -12,7 +12,7 @@ import WhatsAppContactButton from "@/components/WhatsAppContactButton";
 import ViewCounter from "@/components/ViewCounter";
 import { PHONE, WA_PHONE, TG_CONTACT, SITE_URL } from "@/config";
 import { getLang } from "@/lib/serverLang";
-import { altFor } from "@/lib/i18nPath";
+import { altFor, withLang } from "@/lib/i18nPath";
 import { t as tr, typeLabel, amenLabel, translitAddress, cityLabel } from "@/lib/dict";
 import { propertyJsonLd, serializeJsonLd } from "@/lib/jsonld";
 import PresShell from "@/components/PresShell";
@@ -179,7 +179,7 @@ export default async function PropertyPage({ params, searchParams }) {
                 и ведём на страницу риелтора с его объектами. Если собственник — помечаем как
                 собственника. Иначе (импорт/агентская загрузка) — прежний блок команды Baylux. */}
             {realtor ? (
-              <Link href={`/realtor/${realtor.id}`} className="agent agent-link">
+              <Link href={withLang(lang, `/realtor/${realtor.id}`)} className="agent agent-link">
                 <div className="av">
                   {realtor.photo ? <img src={realtor.photo} alt={realtor.name} /> : <span>{(realtor.name || "B").slice(0, 1).toUpperCase()}</span>}
                 </div>
