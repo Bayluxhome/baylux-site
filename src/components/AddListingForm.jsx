@@ -104,9 +104,14 @@ export default function AddListingForm({ initial, editId }) {
   }
 
   // Обратное геокодирование: по клику на карту — заполняем поле адреса (улица + дом).
+  // 02.10.2026: ТОЛЬКО если адрес пустой или его же подставила карта раньше. Раньше клик по карте
+  // затирал адрес, который риелтор ввёл сам («Леха и Марии Качинских, 19» → «Улица Адлиа, 1»
+  // по ближайшему дому в базе карт), и объект уезжал на чужой адрес.
+  const addrAuto = useRef(!(init.f && init.f.address));
   async function reverseGeocode(lat, lng) {
     const key = process.env.NEXT_PUBLIC_MAPTILER_KEY;
     if (!key) return;
+    if (f.address.trim() && !addrAuto.current) return; // адрес введён вручную — не трогаем
     try {
       const r = await fetch(`https://api.maptiler.com/geocoding/${lng},${lat}.json?key=${key}&language=ru&limit=1`);
       const j = await r.json();
@@ -115,13 +120,14 @@ export default function AddListingForm({ initial, editId }) {
       const street = feat.text || (feat.place_name || "").split(",")[0] || "";
       const house = feat.address || feat.properties?.address || "";
       const line = (street + (house ? ", " + house : "")).trim();
-      if (line) upd("address", line);
+      if (line) { upd("address", line); addrAuto.current = true; }
     } catch (e) { /* адрес оставим как есть */ }
   }
 
   // Адрес: точка двигается сама — авто-геокод с задержкой при вводе и по Enter (Enter НЕ сабмитит форму).
   const onAddrChange = (val) => {
     upd("address", val);
+    addrAuto.current = !val.trim(); // риелтор печатает сам → карта больше не перезаписывает адрес
     clearTimeout(geoTimer.current);
     geoTimer.current = setTimeout(() => geocodeAddress(val, f.city), 800);
   };
