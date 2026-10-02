@@ -1,10 +1,17 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useLang } from "@/components/LangContext";
 
 export default function RealtorPanel({ initial }) {
   const { t } = useLang();
   const [open, setOpen] = useState(!!initial);
+  // Переход из меню «Стать риелтором» (/my/profile#realtor) — сразу раскрываем форму и прокручиваем к ней.
+  useEffect(() => {
+    if (window.location.hash === "#realtor") {
+      setOpen(true);
+      setTimeout(() => document.getElementById("realtor")?.scrollIntoView({ behavior: "smooth", block: "start" }), 50);
+    }
+  }, []);
   const [f, setF] = useState({ name: initial?.name || "", phone: initial?.phone || "", deal_types: initial?.deal_types || "", bio: initial?.bio || "" });
   const [photo, setPhoto] = useState(initial?.photo || "");
   const [uploading, setUploading] = useState(false);
@@ -48,7 +55,7 @@ export default function RealtorPanel({ initial }) {
   );
 
   return (
-    <div style={{ marginTop: 30, paddingTop: 22, borderTop: "1px solid var(--line)" }}>
+    <div id="realtor" style={{ marginTop: 30, paddingTop: 22, borderTop: "1px solid var(--line)", scrollMarginTop: 90 }}>
       <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 6, flexWrap: "wrap" }}>
         <h2 style={{ color: "var(--navy)", fontSize: 18, margin: 0 }}>{t("rp_title")}</h2>
         {statusBadge}

@@ -56,6 +56,7 @@ const NAV = [
     { lk: "foot_mgmt", href: "/property-management" },
     { lk: "foot_cleaning", href: "/cleaning" },
     { lk: "foot_realtors", href: "/realtors" },
+    { lk: "rp_become", href: "/my/profile#realtor" },
   ] },
 ];
 
@@ -203,6 +204,8 @@ export default function Header({ cityCounts } = {}) {
             {NAV.map((it) => <Link key={it.label} href={L(it.href)} className="md-item" onClick={() => setMenuOpen(false)}>{NAV_KEY[it.label] ? t(NAV_KEY[it.label]) : it.label}</Link>)}
             <Link href={L("/catalog")} className="md-item" onClick={() => setMenuOpen(false)}>🔍 {t("search")}</Link>
             <Link href={L("/my")} className="md-item" onClick={() => setMenuOpen(false)}>👤 {auth && auth.in ? t("cabinet") : t("login")}</Link>
+            {/* Регистрация риелтора: профиль → форма «Стать риелтором» (без входа — сначала вход) */}
+            <Link href={L("/my/profile#realtor")} className="md-item" onClick={() => setMenuOpen(false)}>🤝 {t("rp_become")}</Link>
             <Link href={L("/add")} className="md-item md-sell" onClick={() => setMenuOpen(false)}>{t("sell")}</Link>
           </div>
         </div>
