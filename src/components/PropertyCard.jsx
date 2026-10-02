@@ -53,7 +53,9 @@ export default function PropertyCard({ unit, qs = "", onMap = false }) {
   const dupeText = unit.dupeCount > 0 ? t(dupePluralKey(unit.dupeCount)).replace("{n}", unit.dupeCount) : "";
   const ty = typeLabel(lang, unit.type);
   const district = cityLabel(lang, b.district || "Батуми");
-  const bname = translitAddress(b["name_" + lang] || b.name, lang, b.kind);
+  const addr = translitAddress(b["name_" + lang] || b.name, lang, b.kind);
+  // ЖК — первым (02.10.2026): адреса у новостроек района часто одинаковые, различает их название ЖК.
+  const bname = b.complex ? `${b.complex}, ${addr}` : addr;
   const photos = unit.photos && unit.photos.length > 1 ? unit.photos : null;
   const sqm = t("sqm");
   const priceSuffix = unit.deal === "rent" ? t("ps_rent") : unit.deal === "daily" ? t("ps_daily") : "";

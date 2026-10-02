@@ -208,6 +208,7 @@ nav.main{display:flex;gap:2px;font-weight:500;font-size:15px}
 .explore{padding-block:42px 18px}
 .split{display:grid;grid-template-columns:43fr 57fr;gap:22px;align-items:start}
 .cards{display:grid;grid-template-columns:1fr 1fr;gap:22px}
+.bld-cards{margin-bottom:26px}
 .cards.three{grid-template-columns:repeat(3,1fr)}
 .map-home{height:560px;border-radius:18px;box-shadow:var(--shadow);border:1px solid var(--line);position:sticky;top:88px;align-self:start;overflow:hidden}
 .map-full{height:calc(100vh - 170px);border-radius:16px;box-shadow:var(--shadow);border:1px solid var(--line);position:sticky;top:88px;align-self:start;overflow:hidden}

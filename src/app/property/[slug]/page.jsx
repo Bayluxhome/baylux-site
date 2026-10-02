@@ -66,7 +66,10 @@ export default async function PropertyPage({ params, searchParams }) {
   const priceSuffix = u.deal === "rent" ? t("ps_rent") : u.deal === "daily" ? t("ps_daily") : "";
 
   const photos = (u.photos && u.photos.length) ? u.photos : [u.img || "/placeholder-baylux.jpg"];
-  const mapBuildings = [{ slug: b.slug, name: b.name, district: b.district, kind: b.kind, lat: b.lat, lng: b.lng, priceFrom: u.price, units: [{ slug: u.slug, deal: u.deal, type: u.type, rooms: u.rooms, area: u.area, price: u.price, per: u.per, img: (u.photos && u.photos[0]) || u.img || "" }] }];
+  // Точка на карте — своя у объявления (её ставит риелтор), а не общая точка «дома».
+  const pLat = Number.isFinite(u.lat) ? u.lat : b.lat;
+  const pLng = Number.isFinite(u.lng) ? u.lng : b.lng;
+  const mapBuildings = [{ slug: b.slug, name: b.name, district: b.district, kind: b.kind, lat: pLat, lng: pLng, priceFrom: u.price, units: [{ slug: u.slug, deal: u.deal, type: u.type, rooms: u.rooms, area: u.area, price: u.price, per: u.per, img: (u.photos && u.photos[0]) || u.img || "" }] }];
   const ctaMain = u.deal === "daily" ? t("cta_daily") : u.deal === "rent" ? t("cta_rent") : t("cta_view");
   const specs = [[t("sp_type"), ty], [t("sp_area"), u.area + " " + sqm], [t("sp_rooms"), u.rooms || "—"]];
   if (u.bathrooms) specs.push([t("sp_bath"), u.bathrooms]);
@@ -100,7 +103,7 @@ export default async function PropertyPage({ params, searchParams }) {
       ) : (
         <div className="crumbs">
           <Link href="/">{t("crumb_home")}</Link> · <Link href="/catalog">{t("crumb_catalog")}</Link> ·{" "}
-          <Link href={`/building/${b.slug}`}>{bname}</Link> · <span>{ty}, {u.area} {sqm}</span>
+          <Link href={withLang(lang, `/building/${b.slug}`)}>{bname}</Link> · <span>{ty}, {u.area} {sqm}</span>
         </div>
       )}
 
@@ -110,7 +113,7 @@ export default async function PropertyPage({ params, searchParams }) {
         <div>
           <h1>{ty}{u.rooms ? `, ${u.rooms} ${t("rooms_short")}` : ""}, {u.area} {sqm}</h1>
           <div className="cdistrict" style={{ marginTop: 8, fontSize: 15 }}>
-            📍 {b.district} · <Link href={`/building/${b.slug}`} style={{ color: "var(--gold-dk)", fontWeight: 600 }}>{bname}</Link> · {t("deal_" + u.deal)}
+            📍 {b.district} · <Link href={withLang(lang, `/building/${b.slug}`)} style={{ color: "var(--gold-dk)", fontWeight: 600 }}>{bname}</Link> · {t("deal_" + u.deal)}
           </div>
           {u.boost > 0 && <span className="boost-badge" style={{ marginTop: 8, display: "inline-block" }}>{t("boost_badge")}</span>}
         </div>
@@ -158,8 +161,8 @@ export default async function PropertyPage({ params, searchParams }) {
             <h3>{t("why_h")}</h3>
             <p>{t("why_p")}</p>
           </div>
-          {Number.isFinite(b.lat) && Number.isFinite(b.lng)
-            ? <div className="map-sm"><MapView buildings={mapBuildings} className="map-sm" center={[b.lat, b.lng]} zoom={15} /></div>
+          {Number.isFinite(pLat) && Number.isFinite(pLng)
+            ? <div className="map-sm"><MapView buildings={mapBuildings} className="map-sm" center={[pLat, pLng]} zoom={15} /></div>
             : <p className="muted map-nogeo">📍 {t("map_no_geo")}</p>}
         </div>
 
@@ -174,7 +177,7 @@ export default async function PropertyPage({ params, searchParams }) {
               <TelegramContactButton className="btn btn-tg" username={tgUser || TG_CONTACT} propertyId={u.id || u.slug} propertyTitle={`${ty}, ${u.area} ${sqm} — ${bname}`} propertyPath={`/property/${u.slug}`}>✈️ Telegram</TelegramContactButton>
             </div>
             <LeadButton className="btn btn-ghost" type="Управление" typeKey="management" object={b.name} title={t("mgmt_btn")} listingId={u.id} source="property">{t("mgmt_btn")}</LeadButton>
-            <Link href={`/building/${b.slug}`} className="btn btn-ghost" style={{ width: "100%", marginTop: 10 }}>{t("all_in")} «{bname}»</Link>
+            <Link href={withLang(lang, `/building/${b.slug}`)} className="btn btn-ghost" style={{ width: "100%", marginTop: 10 }}>{t("all_in")} «{bname}»</Link>
             {/* Автор объявления. Если его подал зарегистрированный риелтор — показываем его
                 и ведём на страницу риелтора с его объектами. Если собственник — помечаем как
                 собственника. Иначе (импорт/агентская загрузка) — прежний блок команды Baylux. */}

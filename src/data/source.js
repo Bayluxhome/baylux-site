@@ -7,6 +7,7 @@ import { cache } from "react";
 import { unstable_cache } from "next/cache";
 import { assessCoords, CITY_CENTER } from "@/lib/geo";
 import { normDeal, normType } from "@/lib/classify";
+import { PHONE } from "@/config";
 
 const KIND_COMPLEX = /жк|новострой|комплекс|complex/i;
 
@@ -14,19 +15,55 @@ const KIND_COMPLEX = /жк|новострой|комплекс|complex/i;
 // Без фолбэков: объявление с неизвестной сделкой публично не показывается (см. лог), тип без
 // сопоставления остаётся «как есть» (категория other), координаты вне города/Грузии → null
 // (объект остаётся в списке, но не ставится в чужой город на карте).
+// ── Группировка объявлений в дома (02.10.2026) ──
+// Раньше дом = только адрес. Форма подачи подставляет адрес по точке на карте, и у риелторов
+// разные ЖК в районе Адлиа получили один адрес «Улица Адлиа, 1» — сайт склеил Marina Club,
+// Оптиму и Sunset в один «дом» с координатами первого объявления. Теперь дом = адрес + ЖК
+// (название нормализуется: «Marina Club» = «MARINACLUB») + близость точек (не дальше GROUP_RADIUS_M).
+const GROUP_RADIUS_M = 120;
+const normComplex = (s) => String(s || "")
+  .toLowerCase()
+  .replace(/^\s*(жк|ж\.к\.|жилой комплекс|residential complex|complex)\s+/i, "")
+  .replace(/[^a-zа-яё0-9ა-ჿ]+/gi, "");
+function distM(a, b) {
+  const R = 6371000, toR = Math.PI / 180;
+  const dLat = (b.lat - a.lat) * toR, dLng = (b.lng - a.lng) * toR;
+  const h = Math.sin(dLat / 2) ** 2 + Math.cos(a.lat * toR) * Math.cos(b.lat * toR) * Math.sin(dLng / 2) ** 2;
+  return 2 * R * Math.asin(Math.sqrt(h));
+}
+
 function groupRows(rows) {
-  const by = new Map();
+  const by = new Map();      // slug дома → дом
+  const groups = new Map();  // ключ «адрес|ЖК» → дома с этим ключом (делятся по расстоянию)
+  const usedUnitSlugs = new Set();
   rows.forEach((r) => {
     const dealU = normDeal(r.deal);
     if (!dealU) { console.warn("listing skipped: unknown deal", r.id, r.deal); return; }
     const name = cleanAddress(r.building_name) || "Объект";
-    const slug = slugify(name);
+    const complexRaw = String(r.complex || "").trim();
+    const cxKey = normComplex(complexRaw);
+    const key = slugify(name) + "|" + cxKey;
+    const geo = assessCoords(r);
+    const pt = geo.ok ? { lat: geo.lat, lng: geo.lng } : null;
+    if (!groups.has(key)) groups.set(key, []);
+    const cands = groups.get(key);
+    // Дом с тем же адресом и ЖК: без точки — к первому; с точкой — к ближайшему в радиусе.
+    let target = null;
+    if (!pt) target = cands[0] || null;
+    else target = cands.find((c) => c.lat == null || distM(c, pt) <= GROUP_RADIUS_M) || null;
+    let slug;
+    if (target) slug = target.slug;
+    else {
+      const base = slugify(complexRaw ? `${complexRaw} ${name}` : name);
+      slug = base;
+      for (let i = 2; by.has(slug); i++) slug = `${base}-${i}`;
+    }
+    if (target && target.lat == null && pt) { target.lat = pt.lat; target.lng = pt.lng; target.geoIssue = ""; }
     if (!by.has(slug)) {
-      const geo = assessCoords(r);
-      by.set(slug, {
+      const nb = {
         slug,
         name,
-        kind: KIND_COMPLEX.test(r.kind || "") ? "complex" : "house",
+        kind: KIND_COMPLEX.test(r.kind || "") || cxKey ? "complex" : "house",
         district: r.district || "Батуми",
         developer: r.developer || "",
         yearBuilt: r.year || "",
@@ -40,8 +77,11 @@ function groupRows(rows) {
         // Чистим и переведённые названия: карточки/страницы показывают name_<lang> в первую очередь,
         // а они в базе хранятся с тем же markdown-мусором, что и адрес.
         name_ru: cleanAddress(r.name_ru), name_en: cleanAddress(r.name_en), name_ka: cleanAddress(r.name_ka),
+        complex: complexRaw,
         units: [],
-      });
+      };
+      by.set(slug, nb);
+      cands.push(nb);
     }
     const b = by.get(slug);
     if (r.facade_photo) b.image = r.facade_photo; // фото фасада всегда приоритетнее для обложки дома
@@ -49,7 +89,13 @@ function groupRows(rows) {
     const boost = parseInt(r.boost, 10) || 0;
     if (boost > (b.boost || 0)) b.boost = boost;
     if (r.complex && !b.complex) b.complex = r.complex;
-    const uslug = slugify(name + "-" + (r.type || "") + "-" + (r.price || b.units.length + 1));
+    // slug объявления должен быть уникальным на всём сайте. Раньше «адрес-тип-цена» совпадал у
+    // разных объявлений (63 совпадения на 02.10.2026: «vake-kvartira-900» ×3 и т.п.) — карточка
+    // в каталоге открывала ЧУЖОЕ объявление. Первое (самое новое) сохраняет прежний адрес,
+    // остальным добавляется кусок id.
+    let uslug = slugify(name + "-" + (r.type || "") + "-" + (r.price || b.units.length + 1));
+    if (usedUnitSlugs.has(uslug)) uslug = `${uslug}-${String(r.id || usedUnitSlugs.size).replace(/[^a-z0-9]/gi, "").slice(0, 6).toLowerCase()}`;
+    usedUnitSlugs.add(uslug);
     const areaN = r.area ? parseInt(r.area, 10) : 0;
     const pNum = r.price_num != null ? Number(r.price_num) : (parseInt(String(r.price || "").replace(/[^\d]/g, ""), 10) || null);
     const curU = r.currency === "GEL" ? "GEL" : (/₾|gel|лар/i.test(String(r.price || "")) ? "GEL" : "USD");
@@ -65,6 +111,9 @@ function groupRows(rows) {
       floor: r.floor || "—",
       price: r.price || "—",
       per: r.per || "",
+      // Своя точка объявления — карта на карточке объекта ставит её, а не точку «дома».
+      lat: pt ? pt.lat : null,
+      lng: pt ? pt.lng : null,
       unit_image: (r.photos && r.photos[0]) || "",
       photos: Array.isArray(r.photos) ? r.photos : [],
       photo_hashes: Array.isArray(r.photo_hashes) ? r.photo_hashes : [],
@@ -151,6 +200,13 @@ function dupeFallbackKey(u, b) {
 // схлопывать. Настоящий дубль (тот же объект у разных риелторов) имеет и те же фото, и ту же
 // площадь, поэтому по-прежнему схлопывается. Из группы остаётся один primary (больше фото,
 // затем новее), у него dupeCount и dupes[].
+// Объявление риелтора/собственника, а не копия парсера. Парсер грузит через аккаунт админа
+// (bulk-listing), поэтому автор есть и у его строк — отличаем по контакту: у копий парсера
+// стоит телефон агентства (config PHONE).
+const digits = (s) => String(s || "").replace(/\D/g, "");
+const isAgencyContact = (u) => { const d = digits(u.contact || u.phone); return !d || d.endsWith(PHONE.slice(-9)); };
+const isOwned = (u) => !isAgencyContact(u);
+
 function dedupeUnits(buildings) {
   const items = [];
   buildings.forEach((b) => b.units.forEach((u) => items.push({ u, b })));
@@ -180,6 +236,11 @@ function dedupeUnits(buildings) {
   for (const idxs of groups.values()) {
     if (idxs.length < 2) continue;
     idxs.sort((a, c) => {
+      // 02.10.2026: объявление, поданное риелтором/собственником на сайте (есть автор), всегда
+      // главнее копии, которую парсер взял из Telegram-группы. Раньше главной могла стать копия
+      // парсера (у неё больше фото) — и объект риелтора показывался с телефоном Baylux.
+      const oa = isOwned(items[a].u) ? 1 : 0, oc = isOwned(items[c].u) ? 1 : 0;
+      if (oa !== oc) return oc - oa;
       const pa = items[a].u.photos?.length || 0, pc = items[c].u.photos?.length || 0;
       if (pc !== pa) return pc - pa; // больше фото — главнее
       return String(items[c].u.created_at || "").localeCompare(String(items[a].u.created_at || "")); // затем новее
@@ -277,7 +338,14 @@ function buildSnapshot(raw) {
   const bySlugPub = index(unitsPub);
   const bySlugRaw = index(unitsRaw);
   const buildingBySlug = index(pub);
-  return { raw, pub, unitsPub, unitsRaw, bySlugPub, bySlugRaw, buildingBySlug };
+  // Старые адреса домов (/building/<адрес> до разделения по ЖК, 02.10.2026) → первый дом с этим адресом,
+  // чтобы ссылки из выдачи Google и мессенджеров вели на страницу, а не на 404.
+  const legacyBuilding = new Map();
+  for (const b of pub) {
+    const old = slugify(b.name);
+    if (old !== b.slug && !buildingBySlug.has(old) && !legacyBuilding.has(old)) legacyBuilding.set(old, b.slug);
+  }
+  return { raw, pub, unitsPub, unitsRaw, bySlugPub, bySlugRaw, buildingBySlug, legacyBuilding };
 }
 
 function getSnapshotShared() {
@@ -345,6 +413,11 @@ export async function getAllUnits() {
 
 export async function findBuilding(slug) {
   return (await getSnapshot()).buildingBySlug.get(slug) || null;
+}
+
+// Новый slug дома для старого адреса (см. legacyBuilding) или null.
+export async function legacyBuildingSlug(slug) {
+  return (await getSnapshot()).legacyBuilding.get(slug) || null;
 }
 
 export async function findUnit(slug) {
