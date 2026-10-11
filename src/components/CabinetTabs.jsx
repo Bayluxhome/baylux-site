@@ -1,14 +1,29 @@
 "use client";
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useLang } from "@/components/LangContext";
 import MyListings from "@/components/MyListings";
 import ManagedPanel from "@/components/ManagedPanel";
+import PropertyListFilters from "@/components/PropertyListFilters";
+import { EMPTY_FILTERS, matchListing, sanitizeFilters, filtersFromSearch, writeFiltersToUrl } from "@/lib/listingFilter";
 
 // Вкладки раздела «Мои объекты»: свои объявления и объекты в управлении.
 // Подборки и заявки — отдельные разделы кабинета (боковое меню).
+// Фильтры (12.10.2026) — тот же общий компонент, что при выборе объектов для подборки.
+// Работают внутри активной вкладки; при переключении вкладки сохраняются. Состояние — в URL (?q=&deal=&type=).
 export default function CabinetTabs({ listings, managed, adminView }) {
   const { t } = useLang();
   const [tab, setTab] = useState("mine");
+  const [flt, setFlt] = useState(EMPTY_FILTERS);
+  useEffect(() => {
+    setFlt(filtersFromSearch(window.location.search));
+    if (new URLSearchParams(window.location.search).get("tab") === "managed") setTab("managed");
+  }, []);
+  const applyFlt = (f) => { const s = sanitizeFilters(f); setFlt(s); writeFiltersToUrl(s); };
+
+  const active = tab === "mine" ? listings : managed;
+  const types = useMemo(() => [...new Set(active.map((x) => x.type).filter(Boolean))], [active]);
+  const managedShown = useMemo(() => managed.filter((x) => matchListing(x, flt)), [managed, flt]);
+  const [mineCount, setMineCount] = useState(null);
 
   const TABS = [
     ["mine", t("cab_tab_mine"), listings.length],
@@ -35,7 +50,14 @@ export default function CabinetTabs({ listings, managed, adminView }) {
           </button>
         ))}
       </div>
-      {tab === "mine" ? <MyListings items={listings} /> : <ManagedPanel items={managed} adminView={adminView} />}
+      {active.length > 0 && (
+        <PropertyListFilters value={flt} onChange={applyFlt} types={types} count={tab === "mine" ? (mineCount ?? undefined) : managedShown.length} />
+      )}
+      {tab === "mine"
+        ? <MyListings items={listings} filters={flt} onReset={() => applyFlt(EMPTY_FILTERS)} onCount={setMineCount} />
+        : (managed.length > 0 && managedShown.length === 0
+          ? <p className="cab-empty">{t("flt_nothing")} <button type="button" className="btn btn-ghost" onClick={() => applyFlt(EMPTY_FILTERS)}>{t("flt_reset")}</button></p>
+          : <ManagedPanel items={managedShown} adminView={adminView} />)}
     </div>
   );
 }

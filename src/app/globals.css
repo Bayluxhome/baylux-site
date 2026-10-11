@@ -797,6 +797,17 @@ a.realtor-card:hover{box-shadow:0 8px 24px rgba(1,39,80,.08);transform:translate
 .cl-row:last-child{border-bottom:none}
 
 /* Подборки для клиентов (№07): экран выбора объектов — список с чекбоксами в стиле «Мои объявления» */
+/* Общие фильтры списков объектов в кабинете (PropertyListFilters) */
+.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
+.plf{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:12px}
+.plf label{display:block;min-width:0}
+.plf input,.plf select{padding:9px 11px;border-radius:8px;border:1px solid var(--line);font-family:inherit;font-size:14px;background:#fff;color:var(--ink);max-width:100%}
+.plf input:focus,.plf select:focus{outline:2px solid var(--gold);outline-offset:1px}
+.plf-q{flex:1 1 240px}
+.plf-q input{width:100%}
+.plf-reset{padding:8px 14px}
+.plf-count{font-size:13px;color:var(--ink-soft)}
+@media(max-width:560px){.plf label:not(.plf-q){flex:1 1 45%}.plf select{width:100%}}
 .pick-bar{position:sticky;top:0;z-index:5;display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;padding:10px 12px;background:#fff;border:1px solid var(--line);border-radius:12px;margin-bottom:10px}
 .pick-all{display:flex;align-items:center;gap:8px;font-weight:600;color:var(--navy);cursor:pointer}
 .pick-all input,.pick-row input{width:18px;height:18px;accent-color:var(--navy);flex:none;cursor:pointer}

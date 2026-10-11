@@ -26,7 +26,7 @@ const pickRow = (u) => ({
   id: String(u.id), slug: u.slug, deal: u.deal, type: u.type, rooms: u.rooms, area: u.area,
   price: u.price, priceNum: u.priceNum, currency: u.currency, per: u.per,
   img: u.unit_image || (u.photos && u.photos[0]) || u.img || "",
-  address: u.building?.name || "", city: u.building?.district || "", created_at: u.created_at,
+  address: u.building?.name || "", city: u.building?.district || "", complex: u.complex || u.building?.complex || "", created_at: u.created_at,
 });
 
 // GET            — мои подборки

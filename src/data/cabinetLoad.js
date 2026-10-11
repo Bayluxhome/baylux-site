@@ -62,6 +62,8 @@ export async function loadCabinet(session, lang, { withDashboard = true } = {}) 
     const mgr = (r.responsible_email && mgrByEmail[String(r.responsible_email).toLowerCase()]) || (r.responsible_tg != null && mgrByTg[Number(r.responsible_tg)]) || null;
     return {
       id: r.id, archived, daysLeft,
+      // Поля для общих фильтров кабинета (lib/listingFilter): канонические сделка/тип + публичный адрес.
+      deal: r.deal || "", type: r.type || "", address: bn, city: r.district || "", complex: r.complex || "",
       title: `${t("deal_" + r.deal)} · ${typeLabel(lang, r.type)}`,
       sub: `${bn} · ${r.price}${r.area ? ` · ${r.area} м²` : ""}`,
       status: r.status,

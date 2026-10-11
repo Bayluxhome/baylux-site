@@ -4,6 +4,8 @@ import { useRouter } from "next/navigation";
 import { useLang } from "@/components/LangContext";
 import { typeLabel, cityLabel, translitAddress } from "@/lib/dict";
 import { fmtMoney } from "@/data/data";
+import PropertyListFilters from "@/components/PropertyListFilters";
+import { EMPTY_FILTERS, matchListing, sanitizeFilters, filtersFromSearch, writeFiltersToUrl } from "@/lib/listingFilter";
 
 // Экран выбора объектов для подборки — в стиле «Мои объявления»: чекбоксы, «Выбрать все»,
 // поиск, фильтры, кнопка «Добавить выбранные (N)». Список приходит с сервера уже отфильтрованным
@@ -15,9 +17,10 @@ export default function CollectionPicker({ id }) {
   const [coll, setColl] = useState(null);
   const [units, setUnits] = useState([]);
   const [sel, setSel] = useState(() => new Set());
-  const [q, setQ] = useState("");
-  const [deal, setDeal] = useState("");
-  const [type, setType] = useState("");
+  // Фильтры — общий компонент и общие правила с «Моими объектами» (lib/listingFilter).
+  const [flt, setFlt] = useState(EMPTY_FILTERS);
+  useEffect(() => { setFlt(filtersFromSearch(window.location.search)); }, []);
+  const applyFlt = (f) => { const s = sanitizeFilters(f); setFlt(s); writeFiltersToUrl(s); };
   const [msg, setMsg] = useState("");
 
   async function load() {
@@ -33,13 +36,7 @@ export default function CollectionPicker({ id }) {
   const types = useMemo(() => [...new Set(units.map((u) => u.type).filter(Boolean))], [units]);
   // Фильтры применяются к списку с сервера; «Выбрать все» действует на ВЕСЬ отфильтрованный
   // список (пагинации нет — список свой, не общий каталог), счётчик всегда точный.
-  const filtered = useMemo(() => {
-    const s = q.trim().toLowerCase();
-    return units.filter((u) => !u.added
-      && (!deal || u.deal === deal)
-      && (!type || u.type === type)
-      && (!s || `${u.address} ${u.city} ${u.type} ${u.price}`.toLowerCase().includes(s)));
-  }, [units, q, deal, type]);
+  const filtered = useMemo(() => units.filter((u) => !u.added && matchListing(u, flt)), [units, flt]);
   const added = useMemo(() => units.filter((u) => u.added), [units]);
   const allSel = filtered.length > 0 && filtered.every((u) => sel.has(u.id));
 
@@ -79,17 +76,7 @@ export default function CollectionPicker({ id }) {
           <p className="cab-empty">{t("col_pick_none")}</p>
         ) : (
           <>
-            <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginBottom: 12 }}>
-              <input style={{ ...inp, flex: "1 1 220px" }} placeholder={t("col_pick_search")} value={q} onChange={(e) => setQ(e.target.value)} />
-              <select style={inp} value={deal} onChange={(e) => setDeal(e.target.value)}>
-                <option value="">{t("f_anyDeal")}</option>
-                <option value="sale">{t("deal_sale")}</option><option value="rent">{t("deal_rent")}</option><option value="daily">{t("deal_daily")}</option>
-              </select>
-              <select style={inp} value={type} onChange={(e) => setType(e.target.value)}>
-                <option value="">{t("f_anyType")}</option>
-                {types.map((ty) => <option key={ty} value={ty}>{typeLabel(lang, ty)}</option>)}
-              </select>
-            </div>
+            <PropertyListFilters value={flt} onChange={applyFlt} types={types} count={filtered.length} />
 
             <div className="pick-bar">
               <label className="pick-all"><input type="checkbox" checked={allSel} onChange={toggleAll} disabled={!filtered.length} /> {t("col_pick_all")} ({filtered.length})</label>
@@ -100,7 +87,7 @@ export default function CollectionPicker({ id }) {
             {msg && <p className="af-err" style={{ marginTop: 8 }}>{msg}</p>}
 
             {filtered.length === 0 ? (
-              <p className="cab-empty">{t("cat_empty")}</p>
+              <p className="cab-empty">{t("flt_nothing")} <button type="button" className="btn btn-ghost" onClick={() => applyFlt(EMPTY_FILTERS)}>{t("flt_reset")}</button></p>
             ) : (
               <div className="pick-list">
                 {filtered.map((u) => {

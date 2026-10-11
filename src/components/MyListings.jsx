@@ -1,9 +1,13 @@
 "use client";
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useLang } from "@/components/LangContext";
 import OwnerContactBlock from "@/components/OwnerContactBlock";
+import { EMPTY_FILTERS, matchListing } from "@/lib/listingFilter";
 
-export default function MyListings({ items }) {
+// filters — общие фильтры раздела (CabinetTabs/PropertyListFilters). Список фильтруется по ним,
+// «Выбрать все» и массовое удаление действуют ТОЛЬКО на видимые (отфильтрованные) объекты:
+// при смене фильтра скрытые галочки снимаются, чтобы не удалить невидимое.
+export default function MyListings({ items, filters = EMPTY_FILTERS, onReset, onCount }) {
   const { t } = useLang();
   const STATUS = { pending: t("my_pending"), approved: t("my_approved"), rejected: t("my_rejected") };
   const [list, setList] = useState(items);
@@ -11,9 +15,16 @@ export default function MyListings({ items }) {
   const [sel, setSel] = useState(() => new Set());
   const [bulkBusy, setBulkBusy] = useState(false);
 
+  const shown = useMemo(() => list.filter((x) => matchListing(x, filters)), [list, filters]);
+  useEffect(() => { if (onCount) onCount(shown.length); }, [shown.length]); // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => {
+    const vis = new Set(shown.map((x) => x.id));
+    setSel((s) => { const n = new Set([...s].filter((id) => vis.has(id))); return n.size === s.size ? s : n; });
+  }, [shown]);
+
   const toggle = (id) => setSel((s) => { const n = new Set(s); if (n.has(id)) n.delete(id); else n.add(id); return n; });
-  const allSelected = list.length > 0 && sel.size === list.length;
-  const toggleAll = () => setSel(allSelected ? new Set() : new Set(list.map((x) => x.id)));
+  const allSelected = shown.length > 0 && shown.every((x) => sel.has(x.id));
+  const toggleAll = () => setSel(allSelected ? new Set() : new Set(shown.map((x) => x.id)));
 
   async function del(id) {
     if (!window.confirm(t("my_del_confirm"))) return;
@@ -28,7 +39,7 @@ export default function MyListings({ items }) {
   }
 
   async function delSelected() {
-    const ids = list.filter((x) => sel.has(x.id)).map((x) => x.id);
+    const ids = shown.filter((x) => sel.has(x.id)).map((x) => x.id);
     if (!ids.length) return;
     if (!window.confirm(t("my_del_sel_confirm").replace("{n}", ids.length))) return;
     setBulkBusy(true);
@@ -56,11 +67,14 @@ export default function MyListings({ items }) {
   }
 
   if (!list.length) return <p style={{ color: "var(--ink-soft)" }}>{t("my_empty")}</p>;
+  if (!shown.length) return (
+    <p className="cab-empty">{t("flt_nothing")} {onReset && <button type="button" className="btn btn-ghost" onClick={onReset}>{t("flt_reset")}</button>}</p>
+  );
 
   return (
     <div>
       <div className="my-bulkbar">
-        <label className="my-selall"><input type="checkbox" className="my-check" checked={allSelected} onChange={toggleAll} />{t("my_sel_all")}</label>
+        <label className="my-selall"><input type="checkbox" className="my-check" checked={allSelected} onChange={toggleAll} />{t("my_sel_all")} ({shown.length})</label>
         {sel.size > 0 && (
           <>
             <span className="my-selcount">{t("my_sel_count").replace("{n}", sel.size)}</span>
@@ -69,7 +83,7 @@ export default function MyListings({ items }) {
         )}
       </div>
       <div className="my-list">
-        {list.map((r) => (
+        {shown.map((r) => (
           <div className={"my-item" + (sel.has(r.id) ? " sel" : "")} key={r.id}>
             <div className="my-left">
               <input type="checkbox" className="my-check" checked={sel.has(r.id)} onChange={() => toggle(r.id)} aria-label="select" />
