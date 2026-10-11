@@ -14,7 +14,7 @@ export const metadata = { title: "Личный кабинет", robots: { index:
 
 // Рабочий стол кабинета (задача №06, этап 1): показатели, «Требуют обновления», обращения,
 // аналитика — и сводка по клиентам с ближайшими действиями. Разделы — в боковом меню.
-export default async function MyPage() {
+export default async function MyPage({ searchParams }) {
   const lang = getLang();
   const t = (k) => tr(lang, k);
   const session = verifySession(cookies().get("bx_session")?.value);
@@ -24,6 +24,8 @@ export default async function MyPage() {
       <div className="wrap" style={{ padding: "48px 24px", maxWidth: 560 }}>
         <h1 style={{ color: "var(--navy)" }}>{t("cab_title")}</h1>
         <p style={{ color: "var(--ink-soft)", margin: "12px 0 22px", lineHeight: 1.6 }}>{t("cab_login_p")}</p>
+        {searchParams?.login === "google_off" && <div className="af-err" style={{ marginBottom: 14 }}>{t("gl_off")}</div>}
+        {searchParams?.login === "fail" && <div className="af-err" style={{ marginBottom: 14 }}>{t("el_err")}</div>}
         <LoginBlock />
         <p style={{ color: "var(--ink-soft)", fontSize: 13, marginTop: 22 }}>{t("cab_bot_a")} <b>@baylux_leads_bot</b> {t("cab_bot_b")}</p>
       </div>
