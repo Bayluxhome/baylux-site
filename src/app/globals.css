@@ -382,6 +382,8 @@ footer.site .fbar-contacts a{display:inline;padding:0}
 .btn-navy:hover{background:#0b3a6b;border-color:#0b3a6b;color:#fff}
 .btn-google{display:inline-flex;align-items:center;justify-content:center;gap:10px;width:100%;max-width:360px;background:#fff;color:#1f1f1f;border:1px solid #dadce0;padding:11px 18px;font-weight:600;font-size:15px}
 .btn-google:hover{background:#f7f8fa;border-color:#c6c9ce}
+.btn-tg-login{display:inline-flex;align-items:center;justify-content:center;gap:8px;width:100%;max-width:360px;background:#2AABEE;color:#fff;border:1px solid #2AABEE;font-weight:600}
+.btn-tg-login:hover{background:#229ED9;border-color:#229ED9;color:#fff}
 .nb{padding-block:22px 56px}
 .nb-hero{position:relative;background:linear-gradient(135deg,#f7fbff 0%,#eaf3fb 60%,#f5efe3 100%);border:1px solid var(--line);border-radius:22px;padding:34px 34px 30px;margin:12px 0 18px;overflow:hidden}
 .nb-hero::after{content:"";position:absolute;right:-60px;top:-60px;width:260px;height:260px;border-radius:50%;background:radial-gradient(circle,rgba(201,169,97,.25),transparent 70%)}

@@ -5,10 +5,7 @@ import BotLogin from "@/components/BotLogin";
 import EmailLogin from "@/components/EmailLogin";
 import { useLang } from "@/components/LangContext";
 
-// Вход в кабинет (11.10.2026): основной способ — Google в один клик, второй — ссылка на почту.
-// Вход через Telegram-бота убран из регистрации. Остался только свёрнутой ссылкой для тех,
-// кто уже заходил через Telegram: их объявления привязаны к Telegram-аккаунту, и без этого
-// они потеряли бы доступ к своему кабинету.
+// Вход в кабинет: Google в один клик, Telegram-бот и ссылка на почту (с 12.10.2026 все три равноправны).
 function GoogleIcon() {
   return (
     <svg width="18" height="18" viewBox="0 0 48 48" aria-hidden="true">
@@ -24,7 +21,6 @@ export default function LoginBlock() {
   const { t } = useLang();
   const [ok, setOk] = useState(false);
   const [mk, setMk] = useState(false);
-  const [showTg, setShowTg] = useState(false);
 
   const googleHref = () => {
     const next = typeof window !== "undefined" ? window.location.pathname + window.location.search + window.location.hash : "/my";
@@ -46,16 +42,11 @@ export default function LoginBlock() {
         <button type="button" className="btn btn-google" onClick={() => { window.location.href = googleHref(); }}>
           <GoogleIcon /> {t("gl_btn")}
         </button>
+        {/* Telegram оставлен полноценным способом входа (12.10.2026): у части риелторов объекты
+            привязаны к Telegram-аккаунту. Починен вход с телефона и запись в «Пользователи». */}
+        <div style={{ marginTop: 10 }}><BotLogin /></div>
         <div style={{ margin: "18px 0 0", color: "var(--ink-soft)", fontSize: 13 }}>{t("el_or")}</div>
         <EmailLogin marketing={mk} />
-
-        <div style={{ marginTop: 18, fontSize: 13 }}>
-          {!showTg ? (
-            <button type="button" onClick={() => setShowTg(true)} style={{ background: "none", border: 0, padding: 0, color: "var(--ink-soft)", textDecoration: "underline", cursor: "pointer", fontFamily: "inherit", fontSize: 13 }}>
-              {t("gl_tg_old")}
-            </button>
-          ) : <BotLogin />}
-        </div>
       </div>
       {!ok && <div className="af-hint" style={{ marginTop: 10 }}>{t("consent_required")}</div>}
     </div>
