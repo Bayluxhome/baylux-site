@@ -68,6 +68,22 @@ export default function AddListingForm({ initial, editId }) {
   // Управлять объектом (владелец/контакты/договор) может право managed ИЛИ ответственный за этот объект.
   const showManage = canMng || !!init.f?.canManage;
   const upd = (k, v) => setF((s) => ({ ...s, [k]: v }));
+  // Контакты из профиля (13.10.2026). Новое объявление: подставляем телефон и Telegram профиля,
+  // но только если человек ещё не трогал эти поля (поздний ответ не затирает ввод).
+  // Редактирование: остаются контакты самого объявления, профиль не подставляется сам.
+  const [prof, setProf] = useState(null); // null — загружается; {phone, tg}
+  const contactTouched = useRef(false);
+  useEffect(() => {
+    let alive = true;
+    fetch("/api/profile-contacts", { cache: "no-store" }).then((r) => r.json()).then((j) => {
+      if (!alive || !j.ok) { if (alive) setProf({ phone: "", tg: "" }); return; }
+      setProf({ phone: j.phone || "", tg: j.tg || "" });
+      if (!editId && !contactTouched.current) {
+        setF((s) => ({ ...s, contact: s.contact || j.phone || "", tg: s.tg || (j.tg ? "@" + j.tg : "") }));
+      }
+    }).catch(() => { if (alive) setProf({ phone: "", tg: "" }); });
+    return () => { alive = false; };
+  }, [editId]);
   const dragIdx = useRef(null);
   const dragIdx2 = useRef(null);
   const moveThumb = (from, to) => setExistingPhotos((p) => {
@@ -330,11 +346,19 @@ export default function AddListingForm({ initial, editId }) {
         </label>
       )}
       <label className="af-full">{t("af_phone")}
-        <input value={f.contact} onChange={(e) => upd("contact", e.target.value)} inputMode="tel" placeholder="+995 555 12 34 56" required />
+        <input value={f.contact} onChange={(e) => { contactTouched.current = true; upd("contact", e.target.value); }} type="tel" autoComplete="tel" inputMode="tel" placeholder={prof === null ? "…" : "+995 555 12 34 56"} required />
       </label>
       <label className="af-full">{t("af_tg")}
-        <input value={f.tg} onChange={(e) => upd("tg", e.target.value)} placeholder={t("af_tg_ph")} />
+        <input value={f.tg} onChange={(e) => { contactTouched.current = true; upd("tg", e.target.value); }} placeholder={t("af_tg_ph")} />
       </label>
+      {/* Контакты профиля: подставляются в новое объявление; кнопка — подставить заново. */}
+      {prof && (
+        <div className="af-full af-profile-hint">
+          {prof.phone
+            ? <button type="button" className="btn btn-ghost" style={{ padding: "6px 12px", fontSize: 13 }} onClick={() => { setF((s) => ({ ...s, contact: prof.phone, tg: prof.tg ? "@" + prof.tg : s.tg })); }}>↺ {t("pc_fill")}</button>
+            : <span>⚠️ {t("pc_no_phone")} <a href="/my/profile" target="_blank" rel="noopener" style={{ color: "var(--gold-dk)", fontWeight: 600 }}>{t("pc_go_profile")}</a></span>}
+        </div>
+      )}
       {existingPhotos.length > 0 && (
         <div className="af-full">
           <div className="af-lbl">{t("af_cur_photos")} <span style={{ color: "var(--ink-soft)", fontWeight: 400, fontSize: 13 }}>· {t("af_reorder")}</span></div>

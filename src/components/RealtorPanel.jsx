@@ -37,7 +37,8 @@ export default function RealtorPanel({ initial }) {
     try {
       const r = await fetch("/api/realtor", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ ...f, photo }) });
       const j = await r.json();
-      setState(j.ok ? "done" : "error");
+      // С 13.10.2026 профиль одобряется сразу; ранее отклонённый уходит на ручную модерацию.
+      setState(j.ok ? (j.status === "pending" ? "pending" : "done") : "error");
     } catch { setState("error"); }
   }
   async function remove() {
@@ -86,6 +87,7 @@ export default function RealtorPanel({ initial }) {
             {initial && <button type="button" className="btn btn-ghost" onClick={remove} style={{ padding: "10px 18px", color: "#b3261e", borderColor: "#e7b4af" }}>{t("rp_off")}</button>}
           </div>
           {state === "done" && <div style={{ color: "#1a7f37", fontSize: 14 }}>{t("rp_sent")}</div>}
+          {state === "pending" && <div style={{ color: "#b3801e", fontSize: 14 }}>{t("rp_title")}: {t("rp_st_wait")}</div>}
           {state === "error" && <div style={{ color: "#b3261e", fontSize: 13 }}>{t("rp_error")}</div>}
         </div>
       )}

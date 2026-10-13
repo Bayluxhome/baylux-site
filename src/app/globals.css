@@ -799,6 +799,15 @@ a.realtor-card:hover{box-shadow:0 8px 24px rgba(1,39,80,.08);transform:translate
 .cl-row:last-child{border-bottom:none}
 
 /* Подборки для клиентов (№07): экран выбора объектов — список с чекбоксами в стиле «Мои объявления» */
+/* Профиль → контакты для объявлений (ProfileContacts) */
+.pc-box{margin-top:6px;padding:18px 20px;background:#fff;border:1px solid var(--line);border-radius:14px;max-width:640px}
+.pc-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.pc-grid label{display:flex;flex-direction:column;gap:6px;font-size:14px;font-weight:600;color:var(--navy);min-width:0}
+.pc-grid input{padding:10px 12px;border-radius:8px;border:1px solid var(--line);font-family:inherit;font-size:15px;font-weight:400;width:100%}
+.pc-grid input:focus{outline:2px solid var(--gold);outline-offset:1px}
+.pc-grid input[aria-invalid="true"]{border-color:#b3261e}
+.af-profile-hint{font-size:13px;color:var(--ink-soft);display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+@media(max-width:560px){.pc-grid{grid-template-columns:1fr}}
 /* Общие фильтры списков объектов в кабинете (PropertyListFilters) */
 .sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
 .plf{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:12px}

@@ -2,6 +2,7 @@ import { cookies } from "next/headers";
 import { verifySession } from "@/lib/session";
 import LoginBlock from "@/components/LoginBlock";
 import RealtorPanel from "@/components/RealtorPanel";
+import ProfileContacts from "@/components/ProfileContacts";
 import DataRights from "@/components/DataRights";
 import { loadCabinet } from "@/data/cabinetLoad";
 import { getLang } from "@/lib/serverLang";
@@ -28,6 +29,7 @@ export default async function MyProfilePage() {
   return (
     <div>
       <div className="cabsh-head"><div><h1>{tr(lang, "cab_nav_profile")}</h1></div></div>
+      <ProfileContacts />
       <RealtorPanel initial={d.realtor} />
       <DataRights />
     </div>
