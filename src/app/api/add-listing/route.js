@@ -3,6 +3,7 @@ import { verifySession, can } from "@/lib/session";
 import { supa } from "@/lib/supabase";
 import { normDeal, normType, perFor } from "@/lib/classify";
 import { assessCoords } from "@/lib/geo";
+import { moderationVerdict, publishApproved, reasonsText } from "@/lib/autoModeration";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -96,9 +97,18 @@ export async function POST(req) {
     about: (b.about || "").toString(), photos: Array.isArray(b.photos) ? b.photos.slice(0, 10) : [], photo_hashes: Array.isArray(b.photo_hashes) ? b.photo_hashes.slice(0, 10) : [], facade_photo: (b.facade || "").toString() || null,
     tg_user_id: session.id ?? null, owner_email: session.email || null, tg_username: cleanTg(b.tg) || session.username || "", contact: phone, phone,
   };
+  // Автопубликация (20.10.2026): без подозрений на дубль/мусор — сразу на сайт; иначе — модератору.
+  // Заявка «взять в управление Baylux» всегда идёт через модератора (флаг ставит админ).
+  let verdict = { approve: false, reasons: [] };
+  if (!canMod) {
+    verdict = await moderationVerdict(row);
+    if (b.managed) verdict = { approve: false, reasons: [...verdict.reasons, "managed_request"] };
+    row.status = verdict.approve ? "approved" : "pending";
+  }
   const { data: ins, error } = await supa.from("listings").insert(row).select("id").single();
   if (error) return Response.json({ ok: false });
   if (session.id != null) await supa.from("users").upsert({ tg_user_id: session.id, phone, username: session.username || "" }, { onConflict: "tg_user_id" });
+  if (!canMod && verdict.approve) await publishApproved(ins.id);
 
   if (!canMod && ADMIN && TOKEN) {
     if (row.photos.length) await tg("sendMediaGroup", { chat_id: ADMIN, media: row.photos.map((u) => ({ type: "photo", media: u })) });
@@ -125,10 +135,15 @@ export async function POST(req) {
       authorLine = `\n👤 Автор: ${esc(session.email)}${authorPhone ? ` · ${esc(authorPhone)}` : ""}`;
     }
     const mgmtReq = b.managed ? `\n🏠 <b>ЗАЯВКА: взять в управление Baylux</b> (при одобрении выставьте managed)` : "";
-    const summary = `🆕 <b>Новое объявление (с сайта)</b>${mgmtReq}\n${DEAL_RU[deal]} · ${row.type}\n🏙 ${esc(city)}\n🏠 ${esc(row.building_name)}\n💰 ${row.price}\n📐 ${row.area} м² · 🛏 ${row.rooms} комн. · 🏢 ${esc(row.floor)}\n📷 ${row.photos.length} фото${geoLine}${authorLine}\n📞 ${phone}\n\n${esc(row.about)}`;
-    const kb = modButtons(ins.id);
+    const head = verdict.approve
+      ? `🆕 <b>Новое объявление (с сайта) — ✅ опубликовано автоматически</b>\nПодозрений нет. Если что-то не так — «Отклонить».`
+      : `🆕 <b>Новое объявление (с сайта) — на модерацию</b>${verdict.reasons.length ? `\n⚠️ Причина: ${esc(reasonsText(verdict.reasons.filter((r) => r !== "managed_request")) || "заявка на управление")}` : ""}`;
+    const summary = `${head}${mgmtReq}\n${DEAL_RU[deal]} · ${row.type}\n🏙 ${esc(city)}\n🏠 ${esc(row.building_name)}\n💰 ${row.price}\n📐 ${row.area} м² · 🛏 ${row.rooms} комн. · 🏢 ${esc(row.floor)}\n📷 ${row.photos.length} фото${geoLine}${authorLine}\n📞 ${phone}\n\n${esc(row.about)}`;
+    const kb = verdict.approve
+      ? { inline_keyboard: [[{ text: "❌ Снять с публикации", callback_data: `rj:${ins.id}` }], [{ text: "📍 Исправить гео", callback_data: `eg:${ins.id}` }, { text: "✏️ Редактировать текст", callback_data: `et:${ins.id}` }]] }
+      : modButtons(ins.id);
     if (authorRows.length) kb.inline_keyboard = [...kb.inline_keyboard, ...authorRows];
     await tg("sendMessage", { chat_id: ADMIN, text: summary, parse_mode: "HTML", disable_web_page_preview: true, reply_markup: kb });
   }
-  return Response.json({ ok: true });
+  return Response.json({ ok: true, status: row.status });
 }

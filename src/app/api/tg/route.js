@@ -8,21 +8,15 @@ import { SITE_URL, channelForCity } from "@/config";
 import { revalidateListings, revalidateRealtors } from "@/lib/cache";
 import { geocodeInCity } from "@/lib/geocode";
 import { normType } from "@/lib/classify";
+import { CH_BATUMI, CH_TBILISI, pickChannel, postToChannel } from "@/lib/tgChannel";
+import { moderationVerdict, publishApproved, reasonsText } from "@/lib/autoModeration";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 const TOKEN = process.env.TELEGRAM_BOT_TOKEN;
 const ADMIN = process.env.TELEGRAM_CHAT_ID; // чат CEO для модерации
-const CHANNEL = process.env.TELEGRAM_CHANNEL || ""; // основной канал (Батуми/побережье)
-const CH_BATUMI = CHANNEL;                                  // запад/побережье
-const CH_TBILISI = process.env.TELEGRAM_CHANNEL_TBILISI || ""; // восток
-// Канал — по заявленному городу (общая логика config.channelForCity), не по координатам:
-// координаты могут быть неверными (геокодер путал города) — публикация уходила не в тот канал.
-function pickChannel(row) {
-  if (!CH_TBILISI) return CH_BATUMI; // второго канала нет — всё в основной
-  return channelForCity(row.district)?.key === "tbilisi" ? CH_TBILISI : CH_BATUMI;
-}
+// Каналы и публикация в них — общий модуль lib/tgChannel (им же пользуется автопубликация).
 const API = `https://api.telegram.org/bot${TOKEN}`;
 // Секрет вебхука — производный от токена бота. Без токена секрета нет вовсе (fail-closed):
 // раньше подставлялось "baylux", и вебхук можно было дёргать снаружи от имени Telegram.
@@ -368,11 +362,19 @@ async function finalizeListing(chat, uid, data, author) {
   };
   if (descCol) row[descCol] = data.about || "";
   row["name_" + lang] = row.building_name;
+  // Автопубликация (20.10.2026): без подозрений на дубль/мусор — сразу на сайт, иначе — модератору.
+  const verdict = await moderationVerdict(row);
+  row.status = verdict.approve ? "approved" : "pending";
   const { data: ins, error } = await supa.from("listings").insert(row).select("id").single();
   if (uid) await supa.from("users").upsert({ tg_user_id: uid, phone: data.phone || null, username: data.tg_username || "", lang }, { onConflict: "tg_user_id" });
   await clearDraft(uid);
   if (error) return send(chat, B(lang, "save_error"));
-  await send(chat, B(lang, "done_seller"));
+  if (verdict.approve) {
+    await publishApproved(ins.id);
+    await send(chat, B(lang, "published")(row.type, row.building_name));
+  } else {
+    await send(chat, B(lang, "done_seller"));
+  }
   // Модерация — всегда на русском (для CEO)
   if (row.photos.length) await tg("sendMediaGroup", { chat_id: ADMIN, media: row.photos.slice(0, 10).map((u) => ({ type: "photo", media: u })) });
   if (data.lat) await tg("sendLocation", { chat_id: ADMIN, latitude: data.lat, longitude: data.lng });
@@ -394,8 +396,11 @@ async function finalizeListing(chat, uid, data, author) {
   } else if (au.id != null) {
     authorLine = `\n👤 Автор: ${esc(auName)} (Telegram id ${esc(au.id)})`;
   }
-  const summary = `🆕 <b>Новое объявление</b>${langLine}\n${DEAL_RU[row.deal]} · ${row.type}\n🏙 ${esc(city)}${complexLine}\n🏠 ${esc(row.building_name)}\n💰 ${row.price}\n📐 ${row.area} м² · 🛏 ${row.rooms} комн. · 🏢 ${esc(row.floor)}${extra ? "\n" + extra : ""}\n📷 ${row.photos.length} фото${geoLine}${amenLine}${ncLine}\n📞 ${row.contact}${data.verified ? " ✅ подтверждён" : ""}${tgLine}${authorLine}\n\n${esc(row.about)}`;
-  const kb = modButtons("pending", ins.id);
+  const head = verdict.approve
+    ? `🆕 <b>Новое объявление — ✅ опубликовано автоматически</b>`
+    : `🆕 <b>Новое объявление — на модерацию</b>\n⚠️ Причина: ${esc(reasonsText(verdict.reasons))}`;
+  const summary = `${head}${langLine}\n${DEAL_RU[row.deal]} · ${row.type}\n🏙 ${esc(city)}${complexLine}\n🏠 ${esc(row.building_name)}\n💰 ${row.price}\n📐 ${row.area} м² · 🛏 ${row.rooms} комн. · 🏢 ${esc(row.floor)}${extra ? "\n" + extra : ""}\n📷 ${row.photos.length} фото${geoLine}${amenLine}${ncLine}\n📞 ${row.contact}${data.verified ? " ✅ подтверждён" : ""}${tgLine}${authorLine}\n\n${esc(row.about)}`;
+  const kb = modButtons(verdict.approve ? "approved" : "pending", ins.id);
   if (authorRows.length) kb.inline_keyboard = [...kb.inline_keyboard, ...authorRows];
   await tg("sendMessage", { chat_id: ADMIN, text: summary, parse_mode: "HTML", disable_web_page_preview: true, reply_markup: kb });
 }
@@ -563,41 +568,6 @@ async function onMessage(msg) {
   }
 }
 
-function unitLink(row) {
-  const uslug = slugify(`${row.building_name || "obj"}-${row.type || ""}-${row.price || ""}`);
-  return `${SITE}/property/${uslug}`;
-}
-async function postToChannel(row, channel) {
-  if (!channel) return [];
-  const per = row.per ? " " + row.per : "";
-  const bits = [`📐 ${row.area || 0} м²`];
-  if (row.rooms) bits.push(`🛏 ${row.rooms} комн.`);
-  if (row.floor && row.floor !== "—") bits.push(`🏢 этаж ${esc(row.floor)}`);
-  const about = (row.about || "").trim();
-  const aboutShort = about.length > 380 ? about.slice(0, 380).trim() + "…" : about;
-  const tag = (s) => "#" + String(s || "").replace(/[^\p{L}\p{N}]/gu, "");
-  const tags = [tag(row.district), tag(DEAL_RU[row.deal])].filter((t) => t.length > 1).join(" ");
-  const cap =
-    `🆕 <b>${DEAL_RU[row.deal] || row.deal} · ${esc(row.type)}</b>\n` +
-    `📍 ${esc(row.building_name)}\n` +
-    `💰 <b>${esc(row.price)}${per}</b>\n` +
-    `${bits.join(" · ")}\n` +
-    `📞 ${esc(row.contact || "по запросу")}\n` +
-    `✈️ @${esc(row.tg_username || "bayluxhome")}\n` +
-    (aboutShort ? `\n${esc(aboutShort)}\n` : "") +
-    `\n🔗 <a href="${unitLink(row)}">Открыть на сайте Baylux</a>` +
-    (tags ? `\n\n${tags}` : "");
-  const photos = Array.isArray(row.photos) ? row.photos.slice(0, 10) : [];
-  try {
-    if (photos.length) {
-      const media = photos.map((u, i) => (i === 0 ? { type: "photo", media: u, caption: cap, parse_mode: "HTML" } : { type: "photo", media: u }));
-      const res = await tg("sendMediaGroup", { chat_id: channel, media });
-      return (res?.result || []).map((m) => m.message_id);
-    }
-    const res = await tg("sendMessage", { chat_id: channel, text: cap, parse_mode: "HTML" });
-    return res?.result?.message_id ? [res.result.message_id] : [];
-  } catch (e) { console.error("channel post error:", e?.message); return []; }
-}
 
 async function onCallback(cb) {
   const [action, id] = (cb.data || "").split(":");

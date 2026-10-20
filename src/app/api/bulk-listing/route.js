@@ -7,10 +7,12 @@ import { cleanAddress, cleanDesc } from "@/data/sheet";
 import { geocodeInCity } from "@/lib/geocode";
 import { translitAddress } from "@/lib/dict";
 import { normDeal, normType, perFor } from "@/lib/classify";
+import { moderationVerdict, publishApproved, reasonsText } from "@/lib/autoModeration";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
-export const maxDuration = 60; // запас времени для геокодинга больших пачек (до 100+ объектов)
+// Запас времени: геокодинг больших пачек + автопубликация (перевод и пост в канал по каждому объекту).
+export const maxDuration = 300;
 
 const TOKEN = process.env.TELEGRAM_BOT_TOKEN;
 const ADMIN = process.env.TELEGRAM_CHAT_ID;
@@ -165,7 +167,7 @@ export async function POST(req) {
     if (!geoOk) geoFails.push(refId);
 
     const row = {
-      status: "pending", batch_id: batchId, geo_ok: geoOk, // пачки (спарсенное извне) — ВСЕГДА на модерацию, даже от админа
+      status: "pending", batch_id: batchId, geo_ok: geoOk, // статус ниже решает автопроверка (moderationVerdict)
       lang, ["desc_" + lang]: about, ["name_" + lang]: buildingName,
       building_name: buildingName,
       kind: /новострой/i.test(r.type || "") || (r.complex || "").toString().trim() ? "complex" : "house",
@@ -193,11 +195,20 @@ export async function POST(req) {
       // Ссылка на исходный пост — только http(s), чтобы в служебный блок не попал мусор.
       source_url: /^https?:\/\//i.test(String(r.source_url || "")) ? String(r.source_url).trim().slice(0, 500) : null,
     };
+    // Автопубликация (20.10.2026): строка без подозрений (дубль по фото/полям, нет фото, мусорная цена)
+    // публикуется сразу; с подозрением — остаётся на модерации, как раньше было для всей пачки.
+    const verdict = await moderationVerdict(row);
+    row.status = verdict.approve ? "approved" : "pending";
     const { data: ins, error } = await supa.from("listings").insert(row).select("id").single();
     if (error) { errors.push({ id: refId, reason: "БД" }); continue; }
     // Храним весь row — он нужен для подробной карточки модерации каждого объекта.
-    inserted.push({ dbId: ins.id, refId, deal, type: row.type, city, price: row.price, geoOk, row });
+    inserted.push({ dbId: ins.id, refId, deal, type: row.type, city, price: row.price, geoOk, row, auto: verdict.approve, reasons: verdict.reasons });
   }
+
+  // Опубликованные автоматически — перевод, пост в канал, сброс кэша (как при одобрении в боте).
+  for (const x of inserted) if (x.auto) { try { await publishApproved(x.dbId); } catch (e) { console.error("auto publish:", e?.message); } }
+  const autoCount = inserted.filter((x) => x.auto).length;
+  const pendingList = inserted.filter((x) => !x.auto);
 
   // Модерация. Небольшую пачку (≤ PER_OBJECT_LIMIT) шлём по объектам — отдельной
   // карточкой с фото и кнопками ✅/❌/📍 (callback ap/rj/eg), чтобы одобрять по одному.
@@ -219,21 +230,23 @@ export async function POST(req) {
 
     // Сначала — итоговая сводка с кнопкой «Одобрить/Отклонить всю пачку». Приходит ПЕРВОЙ,
     // чтобы даже при большой пачке у CEO сразу была кнопка одобрения, до карточек по одному.
-    const lines = inserted.slice(0, 40).map((x) =>
-      `${x.geoOk ? "•" : "⚠️"} #${esc(x.refId)} ${DEAL_RU[x.deal]} · ${esc(x.type)} · ${esc(x.city)} · ${esc(x.price)}`).join("\n");
-    const more = inserted.length > 40 ? `\n…и ещё ${inserted.length - 40}` : "";
+    // В сводке — только то, что ждёт модерации (с причиной); опубликованные автоматически — числом.
+    const lines = pendingList.slice(0, 40).map((x) =>
+      `${x.geoOk ? "•" : "⚠️"} #${esc(x.refId)} ${DEAL_RU[x.deal]} · ${esc(x.type)} · ${esc(x.city)} · ${esc(x.price)} — ${esc(reasonsText(x.reasons))}`).join("\n");
+    const more = pendingList.length > 40 ? `\n…и ещё ${pendingList.length - 40}` : "";
     const warn = geoFails.length ? `\n⚠️ Неточное гео (центр города): ${geoFails.length} шт. — проверьте на карте в /admin.` : "";
     const skipped = errors.length ? `\n⏭ Пропущено строк: ${errors.length} (${errors.slice(0, 8).map((e) => `#${esc(e.id)}:${e.reason}`).join(", ")}).` : "";
     const note = inserted.length > PER_OBJECT_LIMIT ? `\nℹ️ Объектов больше ${PER_OBJECT_LIMIT} — карточки по одному не слались; разбирайте в админке или одобрите всю пачку.` : "";
     const summaryText =
-      `📦 <b>Массовая загрузка — на модерации</b>${authorLine}\n` +
-      `📋 Объектов в пачке: <b>${inserted.length}</b>${warn}${skipped}${note}\n\n${lines}${more}\n\n` +
+      `📦 <b>Массовая загрузка</b>${authorLine}\n` +
+      `📋 Объектов в пачке: <b>${inserted.length}</b> · ✅ опубликовано автоматически: <b>${autoCount}</b> · 🕓 на модерации: <b>${pendingList.length}</b>${warn}${skipped}${note}\n\n` +
+      (pendingList.length ? `На модерации (причина):\n${lines}${more}\n\n` : "Подозрений нет — всё опубликовано.\n\n") +
       `🔗 <a href="${SITE}/admin">Разобрать в админке</a>`;
     await tg("sendMessage", { chat_id: ADMIN, text: summaryText, parse_mode: "HTML", disable_web_page_preview: true, reply_markup: withAuthor(batchButtons(batchId)) });
 
     // Затем — подробные карточки по одному (если объектов ≤ PER_OBJECT_LIMIT).
-    if (inserted.length <= PER_OBJECT_LIMIT) {
-      for (const x of inserted) {
+    if (pendingList.length <= PER_OBJECT_LIMIT) {
+      for (const x of pendingList) {
         const row = x.row;
         // У медиагруппы кнопок не бывает — фото отдельно, кнопки на тексте после неё.
         if (row.photos.length) {
