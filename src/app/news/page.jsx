@@ -9,7 +9,7 @@ export async function generateMetadata() {
   const lang = getLang();
   return {
     title: "Новости Baylux — недвижимость в Батуми и Грузии",
-    description: "Новости агентства Baylux: новые проекты и новостройки, обновления сервиса, открытие офисов и выход на новые рынки в Грузии.",
+    description: "Новости Baylux: новые проекты и новостройки, обновления сервиса, открытие офисов и выход на новые рынки в Грузии.",
     alternates: altFor(lang, "/news"),
   };
 }

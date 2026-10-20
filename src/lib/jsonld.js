@@ -84,7 +84,9 @@ export function orgJsonLd(lang) {
   const t = (k) => tr(lang, k);
   return {
     "@context": "https://schema.org",
-    "@type": "RealEstateAgent",
+    // 20.10.2026: Baylux — агрегатор (площадка объявлений), а не агентство → Organization,
+    // а не RealEstateAgent. Поисковики не будут подавать сайт как «агентство недвижимости».
+    "@type": "Organization",
     "@id": ORG_ID,
     name: "Baylux",
     alternateName: ["Baylux Home", "bayluxhome"],
@@ -198,5 +200,5 @@ export function propertyJsonLd(u, b, lang) {
 
 // Краткая ссылка на организацию внутри @graph страницы (полное описание — в layout).
 function orgRef() {
-  return { "@type": "RealEstateAgent", "@id": ORG_ID, name: "Baylux", url: SITE_URL };
+  return { "@type": "Organization", "@id": ORG_ID, name: "Baylux", url: SITE_URL };
 }
