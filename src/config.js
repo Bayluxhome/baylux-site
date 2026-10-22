@@ -9,6 +9,8 @@ export const SITE_URL = (process.env.NEXT_PUBLIC_SITE_URL || "https://bayluxhome
 // ВНИМАНИЕ: числовой Property ID (например 92593641) сюда НЕ подходит — он для API, не для тега.
 export const GA_ID = process.env.NEXT_PUBLIC_GA_ID || "";
 export const CLARITY_ID = process.env.NEXT_PUBLIC_CLARITY_ID || "";
+// Meta (Facebook) Pixel — для рекламы в Meta (22.10.2026). ID публичный, его видно в коде любой страницы.
+export const META_PIXEL_ID = process.env.NEXT_PUBLIC_META_PIXEL_ID || "1882083989620789";
 
 export const TG_BOT = "baylux_leads_bot"; // имя бота для входа через Telegram
 export const TG_CONTACT = "bayluxhome"; // основной Telegram-контакт (владелец/агентство), без @ — фолбэк для объявлений без личного ника автора

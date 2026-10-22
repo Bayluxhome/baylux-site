@@ -5,6 +5,7 @@ import LeadModal from "@/components/LeadModal";
 import CookieConsent from "@/components/CookieConsent";
 import AnalyticsConsent from "@/components/AnalyticsConsent";
 import GoogleAnalytics from "@/components/GoogleAnalytics";
+import MetaPixel from "@/components/MetaPixel";
 import VisitTracker from "@/components/VisitTracker";
 import CurrencyManager from "@/components/CurrencyManager";
 import { FilterProvider } from "@/components/FilterContext";
@@ -89,6 +90,7 @@ export default async function RootLayout({ children }) {
             <CookieConsent />
             <AnalyticsConsent />
             <GoogleAnalytics />
+            <MetaPixel />
             <VisitTracker />
           </FilterProvider>
         </LangProvider>
