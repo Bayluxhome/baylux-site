@@ -1,5 +1,6 @@
 "use client";
 import { useLang } from "@/components/LangContext";
+import { trackMeta } from "@/components/MetaPixel";
 import { SITE_URL as SITE } from "@/config";
 
 // Анонимный ID сессии браузера (без персональных данных). Живёт в рамках вкладки/сессии.
@@ -53,6 +54,7 @@ export default function TelegramContactButton({
   const href = `https://t.me/${username}?text=${encodeURIComponent(msg)}`;
 
   function track() {
+    trackMeta("Contact", { content_category: "telegram" }); // Meta Pixel (только при согласии на маркетинг)
     // keepalive — чтобы запрос дошёл, даже когда вкладка переключается в Telegram.
     // Никакого await/preventDefault: открытие Telegram происходит по href в том же клике.
     try {

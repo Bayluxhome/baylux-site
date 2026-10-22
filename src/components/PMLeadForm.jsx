@@ -1,6 +1,7 @@
 "use client";
 import { useState } from "react";
 import { useLang } from "@/components/LangContext";
+import { trackMeta } from "@/components/MetaPixel";
 
 export default function PMLeadForm() {
   const { t } = useLang();
@@ -35,7 +36,7 @@ export default function PMLeadForm() {
       ok = !!(await r.json().catch(() => ({}))).ok;
     } catch (_) {}
     setLoading(false);
-    if (ok) setSent(true); else alert(t("lead_err"));
+    if (ok) { trackMeta("Lead", { content_category: "management", content_name: "property-management" }); setSent(true); } else alert(t("lead_err"));
   }
 
   const inp = { width: "100%", padding: "11px 13px", borderRadius: 10, border: "1.5px solid var(--line)", fontSize: 15, fontFamily: "inherit", color: "var(--navy)", background: "#fff" };

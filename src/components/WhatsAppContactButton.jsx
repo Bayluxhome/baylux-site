@@ -1,5 +1,6 @@
 "use client";
 import { useLang } from "@/components/LangContext";
+import { trackMeta } from "@/components/MetaPixel";
 
 // Кнопка «Связаться в WhatsApp» с трекингом клика в CRM.
 // ВАЖНО: ссылку не формируем и не меняем — href приходит готовым (waLink/waHref),
@@ -66,6 +67,7 @@ export default function WhatsAppContactButton({
     ? `https://wa.me/${String(phone).replace(/\D/g, "")}?text=${encodeURIComponent(buildPropertyMessage(t, { propertyTitle, price, propertyId, propertyUrl }))}`
     : "#");
   function track() {
+    trackMeta("Contact", { content_category: "whatsapp" }); // Meta Pixel (только при согласии на маркетинг)
     // keepalive — чтобы запрос дошёл, даже когда вкладка уходит в WhatsApp.
     // Никакого await и preventDefault: переход по href происходит в том же клике.
     try {

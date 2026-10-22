@@ -1,6 +1,7 @@
 "use client";
 import { useState, useEffect } from "react";
 import { useLang } from "@/components/LangContext";
+import { trackMeta } from "@/components/MetaPixel";
 
 // Форма заявки. «Отправлено» показываем ТОЛЬКО когда сервер подтвердил запись в базе.
 // Сбой сети/сервера → понятная ошибка и кнопка «Повторить»; введённое не теряется.
@@ -35,6 +36,7 @@ export default function LeadModal() {
         body: JSON.stringify({ ...form, type: ctx.type, typeKey: ctx.typeKey || "other", object: ctx.object, listingId: ctx.listingId || "", source: ctx.source || "", collectionToken: ctx.collectionToken || "", complexId: ctx.complexId || "" }),
       });
       const j = await r.json().catch(() => ({}));
+      if (j.ok) trackMeta("Lead", { content_category: ctx.typeKey || "other", content_name: ctx.source || "lead_modal" });
       setState(j.ok ? "sent" : "error");
     } catch {
       setState("error");

@@ -30,6 +30,13 @@ function loadPixel(id) {
   window.fbq("init", id);
 }
 
+// События для рекламы: Lead — отправленная заявка, Contact — нажатие WhatsApp/Telegram.
+// Срабатывают только если пиксель загружен, т.е. посетитель дал согласие на маркетинговые cookies.
+// В параметры не передаём ни имя, ни телефон — только тип заявки/источник.
+export function trackMeta(event, params = {}) {
+  try { if (typeof window !== "undefined" && typeof window.fbq === "function") window.fbq("track", event, params); } catch { /* не мешаем отправке */ }
+}
+
 export default function MetaPixel() {
   const pathname = usePathname();
   const [on, setOn] = useState(false);

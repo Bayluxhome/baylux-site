@@ -5,6 +5,7 @@
 import { useRef, useState } from "react";
 import Link from "next/link";
 import { useLang } from "@/components/LangContext";
+import { trackMeta } from "@/components/MetaPixel";
 
 const PHONE_RE = /^\+?\d{9,15}$/;
 
@@ -48,6 +49,7 @@ export default function ContactForm() {
       });
       ok = !!(await r.json().catch(() => ({}))).ok;
     } catch (_) {}
+    if (ok) trackMeta("Lead", { content_category: "contact_form", content_name: "contacts_page" });
     setState(ok ? "ok" : "fail");
     if (ok) setTimeout(() => okRef.current?.focus(), 0);
   }
