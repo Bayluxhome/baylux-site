@@ -341,11 +341,13 @@ function buildSnapshot(raw) {
   // Старые адреса домов (/building/<адрес> до разделения по ЖК, 02.10.2026) → первый дом с этим адресом,
   // чтобы ссылки из выдачи Google и мессенджеров вели на страницу, а не на 404.
   const legacyBuilding = new Map();
+  const addrToBuilding = new Map(); // slug адреса → дом (для снятых объявлений, см. buildingForDeadUnit)
   for (const b of pub) {
     const old = slugify(b.name);
     if (old !== b.slug && !buildingBySlug.has(old) && !legacyBuilding.has(old)) legacyBuilding.set(old, b.slug);
+    if (!addrToBuilding.has(old)) addrToBuilding.set(old, b.slug);
   }
-  return { raw, pub, unitsPub, unitsRaw, bySlugPub, bySlugRaw, buildingBySlug, legacyBuilding };
+  return { raw, pub, unitsPub, unitsRaw, bySlugPub, bySlugRaw, buildingBySlug, legacyBuilding, addrToBuilding };
 }
 
 function getSnapshotShared() {
@@ -413,6 +415,19 @@ export async function getAllUnits() {
 
 export async function findBuilding(slug) {
   return (await getSnapshot()).buildingBySlug.get(slug) || null;
+}
+
+// Снятое/удалённое объявление (22.10.2026): slug объявления = «адрес-тип-цена», поэтому по его
+// началу находим дом с тем же адресом, если в нём ещё есть объекты. Страница объекта тогда
+// делает постоянный редирект на дом вместо 404 — ссылки из Google и мессенджеров не «умирают».
+export async function buildingForDeadUnit(slug) {
+  const { addrToBuilding } = await getSnapshot();
+  const parts = String(slug || "").split("-");
+  for (let k = parts.length - 1; k >= 1; k--) {
+    const hit = addrToBuilding.get(parts.slice(0, k).join("-"));
+    if (hit) return hit;
+  }
+  return null;
 }
 
 // Новый slug дома для старого адреса (см. legacyBuilding) или null.

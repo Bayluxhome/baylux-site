@@ -4,6 +4,7 @@ import { stripPrivate } from "@/lib/privacy";
 import LeadButton from "@/components/LeadButton";
 import { getLang } from "@/lib/serverLang";
 import { t as tr } from "@/lib/dict";
+import { withLang } from "@/lib/i18nPath";
 
 // Шаблон SEO-лендинга под кластер запросов: H1 + интро + витрина + FAQ (с разметкой) + CTA.
 // prefix — префикс ключей словаря (kb/ap/pb/nb), units — уже отфильтрованные объекты.
@@ -28,8 +29,8 @@ export default function SeoLanding({ prefix, slug, units, catalogHref, crumbLk, 
     "@context": "https://schema.org",
     "@type": "BreadcrumbList",
     itemListElement: [
-      { "@type": "ListItem", position: 1, name: "Baylux", item: "https://bayluxhome.com" },
-      { "@type": "ListItem", position: 2, name: p("h1"), item: `https://bayluxhome.com/${slug}` },
+      { "@type": "ListItem", position: 1, name: "Baylux", item: `https://bayluxhome.com/${lang}` },
+      { "@type": "ListItem", position: 2, name: p("h1"), item: `https://bayluxhome.com/${lang}/${slug}` },
     ],
   };
 
@@ -39,14 +40,14 @@ export default function SeoLanding({ prefix, slug, units, catalogHref, crumbLk, 
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJson) }} />
 
       <div className="crumbs">
-        <Link href="/">{t("crumb_home")}</Link> · <Link href={catalogHref}>{t(crumbLk)}</Link> · <span>{p("list_h")}</span>
+        <Link href={withLang(lang, "/")}>{t("crumb_home")}</Link> · <Link href={withLang(lang, catalogHref)}>{t(crumbLk)}</Link> · <span>{p("list_h")}</span>
       </div>
 
       <h1 style={{ color: "var(--navy)", marginTop: 8, maxWidth: 820 }}>{p("h1")}</h1>
       <p style={{ color: "var(--ink-soft)", fontSize: 16, maxWidth: 820, lineHeight: 1.6, margin: "10px 0 22px" }}>{p("intro")}</p>
       {extraHref && (
         <p style={{ margin: "0 0 22px", fontSize: 15 }}>
-          <Link href={extraHref} style={{ color: "var(--gold-dk)", fontWeight: 600 }}>{t(extraLk)} →</Link>
+          <Link href={withLang(lang, extraHref)} style={{ color: "var(--gold-dk)", fontWeight: 600 }}>{t(extraLk)} →</Link>
         </p>
       )}
 
@@ -61,7 +62,7 @@ export default function SeoLanding({ prefix, slug, units, catalogHref, crumbLk, 
           </div>
           {units.length > shown.length && (
             <div style={{ marginTop: 22, textAlign: "center" }}>
-              <Link className="btn btn-ghost" href={catalogHref}>{t("ld_all")}</Link>
+              <Link className="btn btn-ghost" href={withLang(lang, catalogHref)}>{t("ld_all")}</Link>
             </div>
           )}
         </>

@@ -33,6 +33,7 @@ export default function Footer() {
           <div>
             <h4>{t("foot_realty")}</h4>
             {/* Общие категории по всей Грузии — без городского фильтра (город в cookie не хранится, каталог берёт его только из URL) */}
+            <A href="/nedvizhimost-batumi">{t("nbt_h1")}</A>
             <A href="/catalog?deal=sale">{t("nav_sale")}</A>
             <A href="/catalog?deal=rent">{t("nav_rent")}</A>
             <A href="/novostroyki">{t("nav_new")}</A>

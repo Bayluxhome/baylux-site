@@ -799,6 +799,18 @@ a.realtor-card:hover{box-shadow:0 8px 24px rgba(1,39,80,.08);transform:translate
 .cl-row:last-child{border-bottom:none}
 
 /* Подборки для клиентов (№07): экран выбора объектов — список с чекбоксами в стиле «Мои объявления» */
+/* Посадочная «Недвижимость в Батуми» */
+.nbt-stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;max-width:960px}
+.nbt-stat{background:#fff;border:1px solid var(--line);border-radius:12px;padding:12px 14px}
+.nbt-stat b{display:block;font-size:22px;color:var(--navy)}
+.nbt-stat span{font-size:13px;color:var(--ink-soft)}
+.nbt-sections{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:10px;max-width:960px}
+.nbt-sec{display:flex;align-items:center;gap:10px;padding:14px 16px;border:1px solid var(--line);border-radius:12px;background:#fff;color:var(--navy);font-weight:600}
+.nbt-sec span{flex:1}.nbt-sec b{color:var(--gold-dk)}.nbt-sec i{font-style:normal;color:var(--ink-soft)}
+.nbt-sec:hover{border-color:var(--gold)}
+.nbt-buildings{display:flex;flex-wrap:wrap;gap:8px;max-width:960px}
+.nbt-buildings a{padding:8px 12px;border:1px solid var(--line);border-radius:20px;background:#fff;color:var(--navy);font-size:14px}
+.nbt-buildings a span{color:var(--ink-soft)}
 /* Профиль → контакты для объявлений (ProfileContacts) */
 .pc-box{margin-top:6px;padding:18px 20px;background:#fff;border:1px solid var(--line);border-radius:14px;max-width:640px}
 .pc-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}

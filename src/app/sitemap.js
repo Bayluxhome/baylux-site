@@ -22,6 +22,7 @@ export default async function sitemap() {
     ...entry("/catalog?deal=sale", now, 0.9),
     ...entry("/catalog?deal=rent", now, 0.9),
     ...entry("/catalog?deal=daily", now, 0.8),
+    ...entry("/nedvizhimost-batumi", now, 1),
     ...entry("/arenda-batumi", now, 0.9),
     ...entry("/kupit-kvartiru-batumi", now, 0.9),
     ...entry("/apartamenty-batumi", now, 0.9),

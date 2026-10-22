@@ -1,10 +1,10 @@
 import Link from "next/link";
-import { notFound } from "next/navigation";
+import { notFound, permanentRedirect } from "next/navigation";
 import MapView from "@/components/MapView";
 import Gallery from "@/components/Gallery";
 import AdminEdit from "@/components/AdminEdit";
 import { DEAL_LABEL, fmtMoney, isCoast } from "@/data/data";
-import { findUnit } from "@/data/source";
+import { findUnit, buildingForDeadUnit } from "@/data/source";
 import { getRealtorForSlug } from "@/data/realtors";
 import LeadButton from "@/components/LeadButton";
 import TelegramContactButton from "@/components/TelegramContactButton";
@@ -53,7 +53,12 @@ export default async function PropertyPage({ params, searchParams }) {
   // ?c=<token> — переход со страницы подборки: заявка с этой карточки уйдёт её риелтору (№07).
   const collectionToken = /^[A-Za-z0-9_-]{8,32}$/.test(String(searchParams?.c || "")) ? String(searchParams.c) : "";
   const u = await findUnit(params.slug);
-  if (!u) notFound();
+  if (!u) {
+    // Объявление снято — ведём на дом с тем же адресом (если там есть объекты), иначе 404.
+    const bslug = await buildingForDeadUnit(params.slug);
+    if (bslug) permanentRedirect(withLang(getLang(), `/building/${bslug}`));
+    notFound();
+  }
   const b = u.building;
   // Автор объявления, если он — риелтор Baylux. Ищем по slug: сам объект `u` уже очищен
   // от служебных полей (owner_email), поэтому сопоставить по нему нельзя.
@@ -102,7 +107,7 @@ export default async function PropertyPage({ params, searchParams }) {
         </div>
       ) : (
         <div className="crumbs">
-          <Link href="/">{t("crumb_home")}</Link> · <Link href="/catalog">{t("crumb_catalog")}</Link> ·{" "}
+          <Link href={withLang(lang, "/")}>{t("crumb_home")}</Link> · <Link href={withLang(lang, "/catalog")}>{t("crumb_catalog")}</Link> ·{" "}
           <Link href={withLang(lang, `/building/${b.slug}`)}>{bname}</Link> · <span>{ty}, {u.area} {sqm}</span>
         </div>
       )}

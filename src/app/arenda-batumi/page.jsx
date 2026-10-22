@@ -46,8 +46,8 @@ export default async function ArendaBatumiPage() {
     "@context": "https://schema.org",
     "@type": "BreadcrumbList",
     itemListElement: [
-      { "@type": "ListItem", position: 1, name: "Baylux", item: "https://bayluxhome.com" },
-      { "@type": "ListItem", position: 2, name: t("ar_h1"), item: "https://bayluxhome.com/arenda-batumi" },
+      { "@type": "ListItem", position: 1, name: "Baylux", item: `https://bayluxhome.com/${lang}` },
+      { "@type": "ListItem", position: 2, name: t("ar_h1"), item: `https://bayluxhome.com/${lang}/arenda-batumi` },
     ],
   };
 
@@ -57,7 +57,7 @@ export default async function ArendaBatumiPage() {
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJson) }} />
 
       <div className="crumbs">
-        <Link href="/">{t("crumb_home")}</Link> · <Link href="/catalog?deal=rent">{t("nav_rent")}</Link> · <span>{t("ar_list_h")}</span>
+        <Link href={withLang(lang, "/")}>{t("crumb_home")}</Link> · <Link href={withLang(lang, "/catalog?deal=rent")}>{t("nav_rent")}</Link> · <span>{t("ar_list_h")}</span>
       </div>
 
       <h1 style={{ color: "var(--navy)", marginTop: 8, maxWidth: 820 }}>{t("ar_h1")}</h1>
@@ -72,7 +72,7 @@ export default async function ArendaBatumiPage() {
       </ul>
 
       <p style={{ margin: "8px 0 22px", fontSize: 15 }}>
-        <Link href="/catalog?deal=daily" style={{ color: "var(--gold-dk)", fontWeight: 600 }}>{t("ar_daily_q")} →</Link>
+        <Link href={withLang(lang, "/posutochno-batumi")} style={{ color: "var(--gold-dk)", fontWeight: 600 }}>{t("ar_daily_q")} →</Link>
       </p>
 
       <h2 style={{ color: "var(--navy)", margin: "10px 0 14px" }}>{t("ar_list_h")}</h2>
@@ -86,7 +86,7 @@ export default async function ArendaBatumiPage() {
           </div>
           {units.length > shown.length && (
             <div style={{ marginTop: 22, textAlign: "center" }}>
-              <Link className="btn btn-ghost" href="/catalog?deal=rent&city=Батуми">{t("ld_all")}</Link>
+              <Link className="btn btn-ghost" href={withLang(lang, "/catalog?deal=rent&city=" + encodeURIComponent("Батуми"))}>{t("ld_all")}</Link>
             </div>
           )}
         </>

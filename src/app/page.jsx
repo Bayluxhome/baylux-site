@@ -8,6 +8,7 @@ import NewsStrip from "@/components/NewsStrip";
 import { getBuildingsList, getAllUnits } from "@/data/source";
 import { getLang } from "@/lib/serverLang";
 import { t as tr } from "@/lib/dict";
+import { withLang } from "@/lib/i18nPath";
 
 export const revalidate = 300;
 
@@ -37,6 +38,7 @@ export default async function HomePage() {
 
   // Внутренняя перелинковка на SEO-лендинги (ключевые анкоры) — помогает индексации и релевантности.
   const popular = [
+    ["/nedvizhimost-batumi", t("nbt_h1")],
     ["/kupit-kvartiru-batumi", t("pop_buy_btm")],
     ["/arenda-batumi", t("pop_rent_btm")],
     ["/posutochno-batumi", t("pop_daily_btm")],
@@ -59,7 +61,7 @@ export default async function HomePage() {
             <h2>{t("home_map_h")}</h2>
             <p>{t("home_map_p")}</p>
           </div>
-          <Link className="btn btn-ghost" href="/catalog">{t("home_map_btn")}</Link>
+          <Link className="btn btn-ghost" href={withLang(lang, "/catalog")}>{t("home_map_btn")}</Link>
         </div>
         <HomeExplore buildings={BUILDINGS} />
       </section>
@@ -72,10 +74,10 @@ export default async function HomePage() {
       <section className="services wrap" id="services">
         <div className="sec-head"><div><h2>{t("who_h")}</h2><p>{t("who_p")}</p></div></div>
         <div className="who-grid">
-          <Link href="/catalog" className="who"><img src="/icons/audience-buy.png" alt="" width={60} height={60} loading="lazy" /><h3>{t("who_buy_h")}</h3><p>{t("who_buy_p")}</p><span>{t("who_buy_btn")}</span></Link>
-          <Link href="/add" className="who"><img src="/icons/audience-sell.png" alt="" width={60} height={60} loading="lazy" /><h3>{t("who_sell_h")}</h3><p>{t("who_sell_p")}</p><span>{t("who_sell_btn")}</span></Link>
-          <Link href="/contacts" className="who"><img src="/icons/audience-manage.png" alt="" width={60} height={60} loading="lazy" /><h3>{t("who_mng_h")}</h3><p>{t("who_mng_p")}</p><span>{t("who_mng_btn")}</span></Link>
-          <Link href="/realtors" className="who"><img src="/icons/audience-realtor.png" alt="" width={60} height={60} loading="lazy" /><h3>{t("who_rlt_h")}</h3><p>{t("who_rlt_p")}</p><span>{t("who_rlt_btn")}</span></Link>
+          <Link href={withLang(lang, "/catalog")} className="who"><img src="/icons/audience-buy.png" alt="" width={60} height={60} loading="lazy" /><h3>{t("who_buy_h")}</h3><p>{t("who_buy_p")}</p><span>{t("who_buy_btn")}</span></Link>
+          <Link href={withLang(lang, "/add")} className="who"><img src="/icons/audience-sell.png" alt="" width={60} height={60} loading="lazy" /><h3>{t("who_sell_h")}</h3><p>{t("who_sell_p")}</p><span>{t("who_sell_btn")}</span></Link>
+          <Link href={withLang(lang, "/contacts")} className="who"><img src="/icons/audience-manage.png" alt="" width={60} height={60} loading="lazy" /><h3>{t("who_mng_h")}</h3><p>{t("who_mng_p")}</p><span>{t("who_mng_btn")}</span></Link>
+          <Link href={withLang(lang, "/realtors")} className="who"><img src="/icons/audience-realtor.png" alt="" width={60} height={60} loading="lazy" /><h3>{t("who_rlt_h")}</h3><p>{t("who_rlt_p")}</p><span>{t("who_rlt_btn")}</span></Link>
         </div>
       </section>
 
@@ -101,7 +103,7 @@ export default async function HomePage() {
         <h2 style={{ color: "var(--navy)", fontSize: 20, marginBottom: 12 }}>{t("pop_h")}</h2>
         <div style={{ display: "flex", flexWrap: "wrap", gap: 10 }}>
           {popular.map(([href, label]) => (
-            <Link key={href} href={href} style={{ display: "inline-block", padding: "8px 14px", border: "1px solid var(--line)", borderRadius: 20, color: "var(--navy)", fontSize: 14, fontWeight: 600, background: "#fff" }}>{label}</Link>
+            <Link key={href} href={withLang(lang, href)} style={{ display: "inline-block", padding: "8px 14px", border: "1px solid var(--line)", borderRadius: 20, color: "var(--navy)", fontSize: 14, fontWeight: 600, background: "#fff" }}>{label}</Link>
           ))}
         </div>
       </section>
