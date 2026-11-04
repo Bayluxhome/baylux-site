@@ -405,6 +405,26 @@ async function finalizeListing(chat, uid, data, author) {
   await tg("sendMessage", { chat_id: ADMIN, text: summary, parse_mode: "HTML", disable_web_page_preview: true, reply_markup: kb });
 }
 
+// ============ ГРУППА «Baylux Показы» ============
+// Сообщения этой группы не идут в мастер/меню бота (иначе бот отвечает «Выберите действие»).
+// Сохраняем только ответы команды (reply) на карточки бота — их забирает агент (см. api/team).
+// Группа модерации обрабатывается как раньше (там правки геоточки/текста модератором).
+const TEAM_CHAT = Number(process.env.TELEGRAM_TEAM_CHAT_ID || -5290106439);
+async function onGroupMessage(msg) {
+  const rt = msg.reply_to_message;
+  if (!rt || !rt.from?.is_bot) return;
+  const text = (msg.text || msg.caption || "").trim();
+  if (!text) return;
+  const { data: card } = await supa.from("team_cards").select("id").eq("chat_id", TEAM_CHAT).eq("message_id", rt.message_id).maybeSingle();
+  const name = [msg.from?.first_name, msg.from?.last_name].filter(Boolean).join(" ");
+  await supa.from("team_replies").upsert({
+    chat_id: TEAM_CHAT, message_id: msg.message_id, card_id: card?.id || null, reply_to_message_id: rt.message_id,
+    from_id: msg.from?.id || null, from_name: name || null, from_username: msg.from?.username || null, text: text.slice(0, 4000),
+  }, { onConflict: "chat_id,message_id", ignoreDuplicates: true });
+  // Короткое подтверждение реакцией, чтобы команда видела, что ответ принят.
+  await tg("setMessageReaction", { chat_id: TEAM_CHAT, message_id: msg.message_id, reaction: [{ type: "emoji", emoji: "👍" }] }).catch(() => null);
+}
+
 async function onMessage(msg) {
   const chat = msg.chat.id;
   const uid = msg.from.id;
@@ -701,7 +721,8 @@ export async function POST(req) {
   let update;
   try { update = await req.json(); } catch { return Response.json({ ok: true }); }
   try {
-    if (update.message) await onMessage(update.message);
+    if (update.message && Number(update.message.chat?.id) === TEAM_CHAT) await onGroupMessage(update.message);
+    else if (update.message) await onMessage(update.message);
     else if (update.callback_query) await onCallback(update.callback_query);
   } catch (e) { console.error("tg error:", e?.message); }
   // Модерация и правки через бота меняют выдачу — сбрасываем кэш (трафик бота мал, дёшево).
