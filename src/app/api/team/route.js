@@ -6,6 +6,7 @@
 import { cookies } from "next/headers";
 import { verifySession, isAdmin } from "@/lib/session";
 import { supa } from "@/lib/supabase";
+import { publishApproved } from "@/lib/autoModeration";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -57,6 +58,15 @@ export async function POST(req) {
     if (!ids.length) return Response.json({ ok: false, error: "ids" }, { status: 400 });
     const { error } = await supa.from("team_replies").update({ processed_at: new Date().toISOString() }).in("id", ids);
     return Response.json({ ok: !error });
+  }
+
+  // Перевыложить одобренное объявление в TG-канал, если поста ещё нет (tg_post_id пуст).
+  if (b.action === "channel") {
+    const id = String(b.id || "").trim();
+    if (!id) return Response.json({ ok: false, error: "id" }, { status: 400 });
+    await publishApproved(id);
+    const { data } = await supa.from("listings").select("tg_post_id, tg_channel").eq("id", id).maybeSingle();
+    return Response.json({ ok: !!data?.tg_post_id, tg_post_id: data?.tg_post_id || null, tg_channel: data?.tg_channel || null });
   }
 
   return Response.json({ ok: false, error: "action" }, { status: 400 });

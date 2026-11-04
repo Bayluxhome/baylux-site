@@ -108,7 +108,8 @@ export async function POST(req) {
   const { data: ins, error } = await supa.from("listings").insert(row).select("id").single();
   if (error) return Response.json({ ok: false });
   if (session.id != null) await supa.from("users").upsert({ tg_user_id: session.id, phone, username: session.username || "" }, { onConflict: "tg_user_id" });
-  if (!canMod && verdict.approve) await publishApproved(ins.id);
+  // Одобренное (авто или сразу админом) — перевод + пост в канал. Раньше админские объявления в канал не уходили.
+  if (row.status === "approved") await publishApproved(ins.id);
 
   if (!canMod && ADMIN && TOKEN) {
     if (row.photos.length) await tg("sendMediaGroup", { chat_id: ADMIN, media: row.photos.map((u) => ({ type: "photo", media: u })) });
