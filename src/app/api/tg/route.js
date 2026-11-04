@@ -411,14 +411,17 @@ async function finalizeListing(chat, uid, data, author) {
 // Группа модерации обрабатывается как раньше (там правки геоточки/текста модератором).
 const TEAM_CHAT = Number(process.env.TELEGRAM_TEAM_CHAT_ID || -5290106439);
 async function onGroupMessage(msg) {
+  // Сохраняем ВСЕ текстовые сообщения людей в группе (у бота выключен Group Privacy).
+  // Если это reply на карточку бота — привязываем к карточке.
+  if (msg.from?.is_bot) return;
   const rt = msg.reply_to_message;
-  if (!rt || !rt.from?.is_bot) return;
   const text = (msg.text || msg.caption || "").trim();
   if (!text) return;
-  const { data: card } = await supa.from("team_cards").select("id").eq("chat_id", TEAM_CHAT).eq("message_id", rt.message_id).maybeSingle();
+  let card = null;
+  if (rt?.from?.is_bot) ({ data: card } = await supa.from("team_cards").select("id").eq("chat_id", TEAM_CHAT).eq("message_id", rt.message_id).maybeSingle());
   const name = [msg.from?.first_name, msg.from?.last_name].filter(Boolean).join(" ");
   await supa.from("team_replies").upsert({
-    chat_id: TEAM_CHAT, message_id: msg.message_id, card_id: card?.id || null, reply_to_message_id: rt.message_id,
+    chat_id: TEAM_CHAT, message_id: msg.message_id, card_id: card?.id || null, reply_to_message_id: rt?.message_id || null,
     from_id: msg.from?.id || null, from_name: name || null, from_username: msg.from?.username || null, text: text.slice(0, 4000),
   }, { onConflict: "chat_id,message_id", ignoreDuplicates: true });
   // Короткое подтверждение реакцией, чтобы команда видела, что ответ принят.
@@ -447,6 +450,9 @@ async function onMessage(msg) {
   if (/🌐/.test(text) || text === "/site") { const ul = await getUserLang(uid); return send(chat, B(ul, "site_msg"), mainMenu(ul)); }
 
   const d = await getDraft(uid);
+  // В группах (модерация) бот отвечает только по активному шагу модератора (геоточка/текст),
+  // а не меню на каждое сообщение — иначе при выключенном Group Privacy он заспамит группу.
+  if (!d.step && msg.chat?.type !== "private") return;
   if (!d.step) { const ul = await getUserLang(uid); return showMenu(chat, ul, "menu_choose"); }
   const data = d.data || {};
   const lang = data.lang || "ru";
