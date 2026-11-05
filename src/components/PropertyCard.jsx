@@ -70,7 +70,8 @@ export default function PropertyCard({ unit, qs = "", onMap = false }) {
   // для студий/коммерции — сам тип, для прочего (дом и т.п.) — «Тип, N комн.».
   const FLAT_TYPES = new Set(["Квартира", "Новостройка", "Апартаменты", "Апартамент"]);
   const TYPE_ONLY = new Set(["Студия", "Коммерция", "Офис", "Помещение", "Участок", "Земля"]);
-  const isStudio = unit.type === "Студия" || unit.rooms === 0 || unit.rooms === "0";
+  // 0 комнат = «не указано» (парсер не нашёл число комнат), студия — только по типу объекта.
+  const isStudio = unit.type === "Студия";
   let firstSpec;
   if (isStudio) firstSpec = t("ht_studio");
   else if (TYPE_ONLY.has(unit.type)) firstSpec = ty;

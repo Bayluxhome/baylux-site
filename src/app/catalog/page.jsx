@@ -113,7 +113,7 @@ export default async function CatalogPage({ searchParams }) {
   if (cat) units = units.filter((u) => unitCat(u.type) === cat);
   if (legacyType) units = units.filter((u) => u.type === legacyType);
   if (city) units = units.filter((u) => u.building.district === city);
-  if (rooms) units = units.filter((u) => rooms === "4" ? u.rooms >= 4 : u.rooms === parseInt(rooms, 10));
+  if (rooms) units = units.filter((u) => rooms === "0" ? u.type === "Студия" : rooms === "4" ? u.rooms >= 4 : u.type !== "Студия" && u.rooms === parseInt(rooms, 10));
   if (pmin) units = units.filter((u) => priceVal(u) >= pmin);
   if (pmax) units = units.filter((u) => { const v = priceVal(u); return v > 0 && v <= pmax; });
   if (amin) units = units.filter((u) => (u.area || 0) >= amin);
