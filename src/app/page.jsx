@@ -32,7 +32,9 @@ export default async function HomePage() {
   const BUILDINGS = (await getBuildingsList()).map((b) => slimBuilding(b, 1));
   const allUnits = await getAllUnits();
   // Свежие объекты: дом без списка units — иначе к каждой карточке прицепляется весь дом.
-  const freshUnits = allUnits.slice(0, 60).map((u) => ({ ...slimUnit(u, 3), img: u.img, building: { ...slimBuilding(u.building), units: [] } }));
+  // 06.11: allUnits идёт в порядке домов (дом со свежим объявлением тянул за собой старые),
+  // поэтому «Свежие» сортируем по дате публикации объявления.
+  const freshUnits = [...allUnits].sort((a, b) => String(b.created_at || "").localeCompare(String(a.created_at || ""))).slice(0, 60).map((u) => ({ ...slimUnit(u, 3), img: u.img, building: { ...slimBuilding(u.building), units: [] } }));
   const lang = getLang();
   const t = (k) => tr(lang, k);
 
