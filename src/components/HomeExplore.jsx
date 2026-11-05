@@ -10,6 +10,9 @@ import { useFilter } from "./FilterContext";
 export default function HomeExplore({ buildings }) {
   const { f } = useFilter();
   const [sel, setSel] = useState(null);
+  // Главная: не больше 12 карточек сразу (раньше выводились все дома — до блока новостей было не долистать).
+  const STEP = 12;
+  const [limit, setLimit] = useState(STEP);
   const isNew = f.tab === "new";
   const deal = isNew ? "" : f.tab;
   const pmax = parseInt(f.pmax, 10) || 0;
@@ -45,7 +48,15 @@ export default function HomeExplore({ buildings }) {
             {selected.units.map((u) => <PropertyCard key={u.id || u.slug} unit={{ ...stripPrivate(u), building: selected, img: u.unit_image || selected.image }} />)}
           </>
         ) : filtered.length ? (
-          filtered.map((b) => <BuildingCard key={b.slug} building={b} />)
+          <>
+            {filtered.slice(0, limit).map((b) => <BuildingCard key={b.slug} building={b} />)}
+            {filtered.length > limit && (
+              <div style={{ display: "flex", gap: 8, flexWrap: "wrap", justifyContent: "center", paddingTop: 4 }}>
+                <button type="button" className="btn btn-ghost" onClick={() => setLimit((n) => n + STEP)}>Показать ещё {Math.min(STEP, filtered.length - limit)}</button>
+                <a className="btn btn-gold" href="/catalog">Все {filtered.length} объектов в каталоге</a>
+              </div>
+            )}
+          </>
         ) : (
           <p style={{ color: "var(--ink-soft)", padding: "20px 0" }}>Нет объектов под выбранный фильтр. Измените параметры выше.</p>
         )}
