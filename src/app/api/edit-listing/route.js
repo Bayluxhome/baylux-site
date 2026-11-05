@@ -88,7 +88,7 @@ export async function POST(req) {
     rooms: parseInt(b.rooms, 10) || 0, area: parseInt(b.area, 10) || 0, bathrooms: parseInt(b.bathrooms, 10) || null,
     floor: (b.floor || "—").toString(), year: parseInt(b.year, 10) || null,
     complex: (b.complex || "").toString().trim(), amenities, no_commission: !!b.noCommission,
-    ...(canMng && b.managed !== undefined ? { managed_by_baylux: !!b.managed } : {}),
+    ...(canMng && b.managed !== undefined ? { managed_by_baylux: deal !== "sale" && !!b.managed } : {}), // 06.11: продажа не бывает «под управлением»
     // Назначение владельца (аккаунт) — управляющий или ответственный за объект.
     ...(canManageThis && b.ownerEmail !== undefined ? { owner_email: b.ownerEmail || null, tg_user_id: b.ownerTg != null ? Number(b.ownerTg) : null } : {}),
     // Контакты реального владельца (имя, телефон, email) — управляющий или ответственный.

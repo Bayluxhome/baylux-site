@@ -92,7 +92,7 @@ export async function POST(req) {
     complex: (b.complex || "").toString().trim(), amenities, no_commission: !!b.noCommission,
     // ВАЖНО: «под управлением Baylux» может выставить только админ. Заявка владельца (b.managed)
     // не доверяется напрямую — она показывается модератору в боте, флаг ставит админ при одобрении.
-    managed_by_baylux: canMng ? !!b.managed : false,
+    managed_by_baylux: canMng && deal !== "sale" ? !!b.managed : false, // 06.11: управление — только аренда/посуточно
     price: priceStr, currency, price_num: priceNum, per: perFor(deal),
     about: (b.about || "").toString(), photos: Array.isArray(b.photos) ? b.photos.slice(0, 10) : [], photo_hashes: Array.isArray(b.photo_hashes) ? b.photo_hashes.slice(0, 10) : [], facade_photo: (b.facade || "").toString() || null,
     tg_user_id: session.id ?? null, owner_email: session.email || null, tg_username: cleanTg(b.tg) || session.username || "", contact: phone, phone,
