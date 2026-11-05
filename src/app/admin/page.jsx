@@ -26,7 +26,10 @@ export default async function AdminPage() {
   let usersCount = 0;
   if (supa) {
     // fetchAll — иначе Supabase отдаёт только первые 1000 строк, и половина базы невидима.
-    rows = await fetchAll("listings", "*", (q) => q.order("created_at", { ascending: false }));
+    // Только нужные колонки: «*» тянул описания, переводы и пр. по 3800 строкам — админка грузилась долго.
+    rows = await fetchAll("listings",
+      "id,deal,type,building_name,price,area,rooms,status,owner_email,tg_user_id,photos,photo_hashes,owner_name,owner_phone,owner_tg_username,source_ref,source_url,created_at",
+      (q) => q.order("created_at", { ascending: false }));
     const { count } = await supa.from("realtors").select("id", { count: "exact", head: true }).eq("status", "pending");
     realtorPending = count || 0;
     const { count: uc } = await supa.from("site_users").select("id", { count: "exact", head: true });
@@ -61,6 +64,7 @@ export default async function AdminPage() {
     title: `${r.deal} · ${r.type}`,
     sub: `${r.building_name} · ${r.price}${r.area ? ` · ${r.area} м²` : ""}`,
     status: r.status,
+    created: r.created_at || "",
     owner: r.owner_email || (r.tg_user_id ? `tg:${r.tg_user_id}` : ""),
     photo: (Array.isArray(r.photos) && r.photos[0]) || "/placeholder-baylux.jpg",
     slug: r.status === "approved" ? slugify(`${r.building_name}-${r.type || ""}-${r.price || ""}`) : null,

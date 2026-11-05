@@ -10,11 +10,18 @@ const FILTERS = [
   { key: "approved", label: "Одобренные" },
 ];
 
+// Дата публикации в часовом поясе Тбилиси + группировка по дням (Сегодня / Вчера / дата).
+const TZ = "Asia/Tbilisi";
+const dayKey = (iso) => { if (!iso) return ""; try { return new Date(iso).toLocaleDateString("ru-RU", { timeZone: TZ, year: "numeric", month: "2-digit", day: "2-digit" }); } catch { return ""; } };
+const timeStr = (iso) => { if (!iso) return ""; try { return new Date(iso).toLocaleTimeString("ru-RU", { timeZone: TZ, hour: "2-digit", minute: "2-digit" }); } catch { return ""; } };
+const PAGE = 100; // рендерим порциями — 3800 карточек разом тормозили страницу
+
 export default function AdminListings({ items, navBefore = null, navAfter = null }) {
   const [rows, setRows] = useState(items);
   const [busy, setBusy] = useState(null);
   const [filter, setFilter] = useState("all");
   const [open, setOpen] = useState(false);
+  const [shown, setShown] = useState(PAGE);
   const ddRef = useRef(null);
 
   // Закрытие выпадающего списка по клику вне него.
@@ -48,6 +55,11 @@ export default function AdminListings({ items, navBefore = null, navAfter = null
   // Фильтр применяется к полному списку rows (порядок created_at desc сохраняется), поэтому
   // корректно работает и при обновлении данных, и при изменении статуса через модерацию.
   const visible = filter === "all" ? rows : rows.filter((r) => r.status === filter);
+  const today = dayKey(new Date().toISOString());
+  const yesterday = dayKey(new Date(Date.now() - 864e5).toISOString());
+  const dayCount = visible.reduce((m, r) => { const k = dayKey(r.created); m[k] = (m[k] || 0) + 1; return m; }, {});
+  const dayLabel = (k) => (k === today ? "Сегодня" : k === yesterday ? "Вчера" : k || "Без даты");
+  const page = visible.slice(0, shown);
 
   return (
     <>
@@ -83,7 +95,7 @@ export default function AdminListings({ items, navBefore = null, navAfter = null
                   role="option"
                   aria-selected={filter === f.key}
                   className="bx-admf-opt"
-                  onClick={() => { setFilter(f.key); setOpen(false); }}
+                  onClick={() => { setFilter(f.key); setOpen(false); setShown(PAGE); }}
                   style={{
                     display: "block", width: "100%", textAlign: "left", padding: "10px 14px",
                     background: filter === f.key ? "var(--sand, #f5efe2)" : "#fff", border: "none",
@@ -101,18 +113,24 @@ export default function AdminListings({ items, navBefore = null, navAfter = null
         <style>{`.bx-admf-opt:hover{background:var(--sand,#f5efe2)!important;}`}</style>
       </div>
 
-      <h2 style={{ color: "var(--navy)", fontSize: 18, marginBottom: 12 }}>Все объявления</h2>
+      <h2 style={{ color: "var(--navy)", fontSize: 18, marginBottom: 12 }}>{curLabel} · {visible.length} <span style={{ fontWeight: 400, fontSize: 14, color: "var(--ink-soft)" }}>· сегодня {dayCount[today] || 0}, вчера {dayCount[yesterday] || 0}</span></h2>
 
       {visible.length ? (
         <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-          {visible.map((r) => (
-            <div key={r.id} style={{ display: "flex", gap: 12, alignItems: "center", border: "1px solid var(--line)", borderRadius: 10, padding: 10, flexWrap: "wrap" }}>
-              <img src={r.photo} alt="" style={{ width: 64, height: 48, objectFit: "cover", borderRadius: 6, flex: "none" }} />
+          {page.map((r, i) => (
+            <div key={r.id} style={{ display: "contents" }}>
+            {(i === 0 || dayKey(page[i - 1].created) !== dayKey(r.created)) && (
+              <div style={{ marginTop: i ? 14 : 0, fontWeight: 700, color: "var(--navy)", fontSize: 14 }}>
+                {dayLabel(dayKey(r.created))} · {dayCount[dayKey(r.created)] || 0}
+              </div>
+            )}
+            <div style={{ display: "flex", gap: 12, alignItems: "center", border: "1px solid var(--line)", borderRadius: 10, padding: 10, flexWrap: "wrap" }}>
+              <img src={r.photo} alt="" loading="lazy" style={{ width: 64, height: 48, objectFit: "cover", borderRadius: 6, flex: "none" }} />
               <div style={{ flex: 1, minWidth: 180 }}>
                 <div style={{ fontWeight: 600, color: "var(--navy)", fontSize: 14 }}>{r.title}</div>
                 <div style={{ color: "var(--ink-soft)", fontSize: 13 }}>{r.sub}</div>
                 <div style={{ fontSize: 12, color: r.status === "approved" ? "#1a7f37" : r.status === "pending" ? "#b3801e" : "#b3261e" }}>
-                  {r.status} · id {r.id}{r.owner ? ` · ${r.owner}` : ""}
+                  {r.created ? `${dayLabel(dayKey(r.created))}, ${timeStr(r.created)} · ` : ""}{r.status} · id {r.id}{r.owner ? ` · ${r.owner}` : ""}
                 </div>
                 {r.dupes && r.dupes.length > 0 && (
                   <div style={{ fontSize: 12, color: "#b3261e", fontWeight: 600, marginTop: 2 }}>
@@ -140,7 +158,13 @@ export default function AdminListings({ items, navBefore = null, navAfter = null
                 </button>
               </div>
             </div>
+            </div>
           ))}
+          {visible.length > shown && (
+            <button type="button" className="btn btn-ghost" onClick={() => setShown((n) => n + PAGE)} style={{ alignSelf: "center", padding: "9px 18px" }}>
+              Показать ещё {Math.min(PAGE, visible.length - shown)} (из {visible.length - shown})
+            </button>
+          )}
         </div>
       ) : (
         <p style={{ color: "var(--ink-soft)" }}>Объявлений нет.</p>
