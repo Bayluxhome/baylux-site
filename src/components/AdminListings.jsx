@@ -14,6 +14,13 @@ const FILTERS = [
 const TZ = "Asia/Tbilisi";
 const dayKey = (iso) => { if (!iso) return ""; try { return new Date(iso).toLocaleDateString("ru-RU", { timeZone: TZ, year: "numeric", month: "2-digit", day: "2-digit" }); } catch { return ""; } };
 const timeStr = (iso) => { if (!iso) return ""; try { return new Date(iso).toLocaleTimeString("ru-RU", { timeZone: TZ, hour: "2-digit", minute: "2-digit" }); } catch { return ""; } };
+const SRC = {
+  parser: { label: "Парсер", bg: "#EAF1FB", fg: "#1F5C99", line: "#C9DAF0" },
+  partner: { label: "Партнёр", bg: "#F6EEDC", fg: "#8A6418", line: "#E6D3A8" },
+  team: { label: "Baylux вручную", bg: "#F1ECF8", fg: "#5B3E96", line: "#D9CCEE" },
+  self: { label: "Сам выложил", bg: "#E6F4EC", fg: "#1A7F37", line: "#B9DFC7" },
+};
+const SRC_FILTERS = [["all", "Все источники"], ["self", "Сами выложили"], ["parser", "Парсер"], ["partner", "Партнёры"], ["team", "Baylux вручную"]];
 const PAGE = 100; // рендерим порциями — 3800 карточек разом тормозили страницу
 
 export default function AdminListings({ items, navBefore = null, navAfter = null }) {
@@ -22,6 +29,7 @@ export default function AdminListings({ items, navBefore = null, navAfter = null
   const [filter, setFilter] = useState("all");
   const [open, setOpen] = useState(false);
   const [shown, setShown] = useState(PAGE);
+  const [src, setSrc] = useState("all");
   const ddRef = useRef(null);
 
   // Закрытие выпадающего списка по клику вне него.
@@ -54,7 +62,8 @@ export default function AdminListings({ items, navBefore = null, navAfter = null
   const curLabel = (FILTERS.find((f) => f.key === filter) || FILTERS[0]).label;
   // Фильтр применяется к полному списку rows (порядок created_at desc сохраняется), поэтому
   // корректно работает и при обновлении данных, и при изменении статуса через модерацию.
-  const visible = filter === "all" ? rows : rows.filter((r) => r.status === filter);
+  const visible = (filter === "all" ? rows : rows.filter((r) => r.status === filter)).filter((r) => src === "all" || r.source === src);
+  const srcCount = rows.reduce((m, r) => { m[r.source] = (m[r.source] || 0) + 1; return m; }, {});
   const today = dayKey(new Date().toISOString());
   const yesterday = dayKey(new Date(Date.now() - 864e5).toISOString());
   const dayCount = visible.reduce((m, r) => { const k = dayKey(r.created); m[k] = (m[k] || 0) + 1; return m; }, {});
@@ -110,6 +119,17 @@ export default function AdminListings({ items, navBefore = null, navAfter = null
           )}
         </div>
         {navAfter}
+        <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
+          {SRC_FILTERS.map(([k, l]) => (
+            <button key={k} type="button" onClick={() => { setSrc(k); setShown(PAGE); }}
+              style={{ padding: "7px 12px", borderRadius: 999, fontSize: 13, cursor: "pointer",
+                border: `1px solid ${k === "all" ? "var(--line)" : SRC[k].line}`,
+                background: src === k ? (k === "all" ? "var(--navy)" : SRC[k].fg) : (k === "all" ? "#fff" : SRC[k].bg),
+                color: src === k ? "#fff" : (k === "all" ? "var(--navy)" : SRC[k].fg), fontWeight: 600 }}>
+              {l}{k !== "all" ? ` · ${srcCount[k] || 0}` : ""}
+            </button>
+          ))}
+        </div>
         <style>{`.bx-admf-opt:hover{background:var(--sand,#f5efe2)!important;}`}</style>
       </div>
 
@@ -124,10 +144,15 @@ export default function AdminListings({ items, navBefore = null, navAfter = null
                 {dayLabel(dayKey(r.created))} · {dayCount[dayKey(r.created)] || 0}
               </div>
             )}
-            <div style={{ display: "flex", gap: 12, alignItems: "center", border: "1px solid var(--line)", borderRadius: 10, padding: 10, flexWrap: "wrap" }}>
+            <div style={{ display: "flex", gap: 12, alignItems: "center", border: `1px solid ${(SRC[r.source] || SRC.parser).line}`, borderLeft: `5px solid ${(SRC[r.source] || SRC.parser).fg}`, background: r.source === "self" ? SRC.self.bg : "#fff", borderRadius: 10, padding: 10, flexWrap: "wrap" }}>
               <img src={r.photo} alt="" loading="lazy" style={{ width: 64, height: 48, objectFit: "cover", borderRadius: 6, flex: "none" }} />
               <div style={{ flex: 1, minWidth: 180 }}>
-                <div style={{ fontWeight: 600, color: "var(--navy)", fontSize: 14 }}>{r.title}</div>
+                <div style={{ fontWeight: 600, color: "var(--navy)", fontSize: 14, display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap" }}>
+                  <span style={{ fontSize: 11, fontWeight: 700, padding: "2px 8px", borderRadius: 999, background: (SRC[r.source] || SRC.parser).bg, color: (SRC[r.source] || SRC.parser).fg, border: `1px solid ${(SRC[r.source] || SRC.parser).line}`, textTransform: "uppercase", letterSpacing: ".04em" }}>
+                    {(SRC[r.source] || SRC.parser).label}{r.channel ? ` · @${r.channel}` : ""}
+                  </span>
+                  {r.title}
+                </div>
                 <div style={{ color: "var(--ink-soft)", fontSize: 13 }}>{r.sub}</div>
                 <div style={{ fontSize: 12, color: r.status === "approved" ? "#1a7f37" : r.status === "pending" ? "#b3801e" : "#b3261e" }}>
                   {r.created ? `${dayLabel(dayKey(r.created))}, ${timeStr(r.created)} · ` : ""}{r.status} · id {r.id}{r.owner ? ` · ${r.owner}` : ""}

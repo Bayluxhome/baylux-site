@@ -28,7 +28,7 @@ export default async function AdminPage() {
     // fetchAll — иначе Supabase отдаёт только первые 1000 строк, и половина базы невидима.
     // Только нужные колонки: «*» тянул описания, переводы и пр. по 3800 строкам — админка грузилась долго.
     rows = await fetchAll("listings",
-      "id,deal,type,building_name,price,area,rooms,status,owner_email,tg_user_id,photos,photo_hashes,owner_name,owner_phone,owner_tg_username,source_ref,source_url,created_at",
+      "id,deal,type,building_name,price,area,rooms,status,owner_email,tg_user_id,photos,photo_hashes,owner_name,owner_phone,owner_tg_username,source_ref,source_url,batch_id,created_at",
       (q) => q.order("created_at", { ascending: false }));
     const { count } = await supa.from("realtors").select("id", { count: "exact", head: true }).eq("status", "pending");
     realtorPending = count || 0;
@@ -65,6 +65,11 @@ export default async function AdminPage() {
     sub: `${r.building_name} · ${r.price}${r.area ? ` · ${r.area} м²` : ""}`,
     status: r.status,
     created: r.created_at || "",
+    // Источник: парсер (пачка из upload_to_site или есть ссылка на исходный пост), партнёр (пачка не от аккаунта Baylux), сам выложил.
+    source: (r.batch_id || r.source_url)
+      ? (r.owner_email && !/^bayluxhome@/i.test(r.owner_email) ? "partner" : "parser")
+      : (r.owner_email && /^bayluxhome@/i.test(r.owner_email) ? "team" : "self"),
+    channel: (String(r.source_url || "").match(/t\.me\/(?:s\/)?([A-Za-z0-9_]+)/) || [])[1] || "",
     owner: r.owner_email || (r.tg_user_id ? `tg:${r.tg_user_id}` : ""),
     photo: (Array.isArray(r.photos) && r.photos[0]) || "/placeholder-baylux.jpg",
     slug: r.status === "approved" ? slugify(`${r.building_name}-${r.type || ""}-${r.price || ""}`) : null,
