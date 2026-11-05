@@ -23,12 +23,16 @@ const SRC = {
 const SRC_FILTERS = [["all", "Все источники"], ["self", "Сами выложили"], ["parser", "Парсер"], ["partner", "Партнёры"], ["team", "Baylux вручную"]];
 const PAGE = 100; // рендерим порциями — 3800 карточек разом тормозили страницу
 
-export default function AdminListings({ items, navBefore = null, navAfter = null }) {
-  const [rows, setRows] = useState(items);
+export default function AdminListings({ initial, navBefore = null, navAfter = null }) {
+  // 06.11: список приходит с сервера постранично (/api/admin/listings), фильтры — серверные.
+  const [rows, setRows] = useState(initial.items || []);
+  const [total, setTotal] = useState(initial.total || 0);
+  const [dayCounts, setDayCounts] = useState(initial.dayCounts || {});
+  const [loading, setLoading] = useState(false);
+  const srcCount = initial.srcCount || {};
   const [busy, setBusy] = useState(null);
   const [filter, setFilter] = useState("all");
   const [open, setOpen] = useState(false);
-  const [shown, setShown] = useState(PAGE);
   const [src, setSrc] = useState("all");
   const ddRef = useRef(null);
 
@@ -62,13 +66,24 @@ export default function AdminListings({ items, navBefore = null, navAfter = null
   const curLabel = (FILTERS.find((f) => f.key === filter) || FILTERS[0]).label;
   // Фильтр применяется к полному списку rows (порядок created_at desc сохраняется), поэтому
   // корректно работает и при обновлении данных, и при изменении статуса через модерацию.
-  const visible = (filter === "all" ? rows : rows.filter((r) => r.status === filter)).filter((r) => src === "all" || r.source === src);
-  const srcCount = rows.reduce((m, r) => { m[r.source] = (m[r.source] || 0) + 1; return m; }, {});
+  async function load(st, so, offset) {
+    setLoading(true);
+    try {
+      const r = await fetch(`/api/admin/listings?status=${st}&source=${so}&offset=${offset}&limit=${PAGE}`);
+      const j = await r.json();
+      if (j.ok) {
+        setRows((prev) => (offset ? [...prev, ...j.items] : j.items));
+        setTotal(j.total); setDayCounts(j.dayCounts || {});
+      } else alert("Не удалось загрузить: " + (j.error || ""));
+    } catch { alert("Сбой сети"); }
+    setLoading(false);
+  }
+  const visible = rows;
   const today = dayKey(new Date().toISOString());
   const yesterday = dayKey(new Date(Date.now() - 864e5).toISOString());
-  const dayCount = visible.reduce((m, r) => { const k = dayKey(r.created); m[k] = (m[k] || 0) + 1; return m; }, {});
+  const dayCount = dayCounts;
   const dayLabel = (k) => (k === today ? "Сегодня" : k === yesterday ? "Вчера" : k || "Без даты");
-  const page = visible.slice(0, shown);
+  const page = visible;
 
   return (
     <>
@@ -104,7 +119,7 @@ export default function AdminListings({ items, navBefore = null, navAfter = null
                   role="option"
                   aria-selected={filter === f.key}
                   className="bx-admf-opt"
-                  onClick={() => { setFilter(f.key); setOpen(false); setShown(PAGE); }}
+                  onClick={() => { setFilter(f.key); setOpen(false); load(f.key, src, 0); }}
                   style={{
                     display: "block", width: "100%", textAlign: "left", padding: "10px 14px",
                     background: filter === f.key ? "var(--sand, #f5efe2)" : "#fff", border: "none",
@@ -121,7 +136,7 @@ export default function AdminListings({ items, navBefore = null, navAfter = null
         {navAfter}
         <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
           {SRC_FILTERS.map(([k, l]) => (
-            <button key={k} type="button" onClick={() => { setSrc(k); setShown(PAGE); }}
+            <button key={k} type="button" onClick={() => { setSrc(k); load(filter, k, 0); }}
               style={{ padding: "7px 12px", borderRadius: 999, fontSize: 13, cursor: "pointer",
                 border: `1px solid ${k === "all" ? "var(--line)" : SRC[k].line}`,
                 background: src === k ? (k === "all" ? "var(--navy)" : SRC[k].fg) : (k === "all" ? "#fff" : SRC[k].bg),
@@ -133,7 +148,7 @@ export default function AdminListings({ items, navBefore = null, navAfter = null
         <style>{`.bx-admf-opt:hover{background:var(--sand,#f5efe2)!important;}`}</style>
       </div>
 
-      <h2 style={{ color: "var(--navy)", fontSize: 18, marginBottom: 12 }}>{curLabel} · {visible.length} <span style={{ fontWeight: 400, fontSize: 14, color: "var(--ink-soft)" }}>· сегодня {dayCount[today] || 0}, вчера {dayCount[yesterday] || 0}</span></h2>
+      <h2 style={{ color: "var(--navy)", fontSize: 18, marginBottom: 12 }}>{curLabel} · {total}{loading ? " · загрузка…" : ""} <span style={{ fontWeight: 400, fontSize: 14, color: "var(--ink-soft)" }}>· сегодня {dayCount[today] || 0}, вчера {dayCount[yesterday] || 0}</span></h2>
 
       {visible.length ? (
         <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
@@ -185,9 +200,9 @@ export default function AdminListings({ items, navBefore = null, navAfter = null
             </div>
             </div>
           ))}
-          {visible.length > shown && (
-            <button type="button" className="btn btn-ghost" onClick={() => setShown((n) => n + PAGE)} style={{ alignSelf: "center", padding: "9px 18px" }}>
-              Показать ещё {Math.min(PAGE, visible.length - shown)} (из {visible.length - shown})
+          {total > rows.length && (
+            <button type="button" className="btn btn-ghost" disabled={loading} onClick={() => load(filter, src, rows.length)} style={{ alignSelf: "center", padding: "9px 18px" }}>
+              {loading ? "Загрузка…" : `Показать ещё ${Math.min(PAGE, total - rows.length)} (из ${total - rows.length})`}
             </button>
           )}
         </div>

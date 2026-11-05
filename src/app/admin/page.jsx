@@ -1,7 +1,7 @@
 import { cookies } from "next/headers";
 import { verifySession, isAdmin, isSuperAdmin, can } from "@/lib/session";
-import { supa, fetchAll } from "@/lib/supabase";
-import { slugify } from "@/data/sheet";
+import { supa } from "@/lib/supabase";
+import { loadAdminListings } from "@/lib/adminListings";
 import AdminListings from "@/components/AdminListings";
 
 export const dynamic = "force-dynamic";
@@ -21,70 +21,19 @@ export default async function AdminPage() {
     );
   }
 
-  let rows = [];
   let realtorPending = 0;
   let usersCount = 0;
+  // Контакты собственника видит только сотрудник с правом модерации объявлений.
+  const canSeeOwner = can(session, "moderate");
+  // 06.11: в браузер уходит только первая страница (100 шт.); счётчики/дубли считает сервер.
+  const data = await loadAdminListings({ offset: 0, limit: 100, canSeeOwner });
   if (supa) {
-    // fetchAll — иначе Supabase отдаёт только первые 1000 строк, и половина базы невидима.
-    // Только нужные колонки: «*» тянул описания, переводы и пр. по 3800 строкам — админка грузилась долго.
-    rows = await fetchAll("listings",
-      "id,deal,type,building_name,price,area,rooms,status,owner_email,tg_user_id,photos,photo_hashes,owner_name,owner_phone,owner_tg_username,source_ref,source_url,batch_id,created_at",
-      (q) => q.order("created_at", { ascending: false }));
     const { count } = await supa.from("realtors").select("id", { count: "exact", head: true }).eq("status", "pending");
     realtorPending = count || 0;
     const { count: uc } = await supa.from("site_users").select("id", { count: "exact", head: true });
     usersCount = uc || 0;
   }
-
-  // Поиск дублей: по совпадению фото-хэшей ИЛИ по адрес+площадь+комнаты+цена.
-  const hashOwners = new Map();
-  const fbOwners = new Map();
-  const fbKey = (r) => {
-    const bn = String(r.building_name || "").toLowerCase().trim();
-    if (!bn || !(r.area > 0)) return null;
-    return [bn, r.area, r.rooms || 0, String(r.price || "")].join("|");
-  };
-  rows.forEach((r) => {
-    (Array.isArray(r.photo_hashes) ? r.photo_hashes : []).forEach((h) => {
-      if (!h) return; if (!hashOwners.has(h)) hashOwners.set(h, []); hashOwners.get(h).push(r.id);
-    });
-    const k = fbKey(r); if (k) { if (!fbOwners.has(k)) fbOwners.set(k, []); fbOwners.get(k).push(r.id); }
-  });
-  const dupesOf = (r) => {
-    const set = new Set();
-    (Array.isArray(r.photo_hashes) ? r.photo_hashes : []).forEach((h) => (hashOwners.get(h) || []).forEach((id) => { if (id !== r.id) set.add(id); }));
-    const k = fbKey(r); if (k) (fbOwners.get(k) || []).forEach((id) => { if (id !== r.id) set.add(id); });
-    return [...set];
-  };
-
-  // Контакты собственника видит только сотрудник с правом модерации объявлений.
-  const canSeeOwner = can(session, "moderate");
-  const items = rows.map((r) => ({
-    id: r.id,
-    title: `${r.deal} · ${r.type}`,
-    sub: `${r.building_name} · ${r.price}${r.area ? ` · ${r.area} м²` : ""}`,
-    status: r.status,
-    created: r.created_at || "",
-    // Источник: парсер (пачка из upload_to_site или есть ссылка на исходный пост), партнёр (пачка не от аккаунта Baylux), сам выложил.
-    source: (r.batch_id || r.source_url)
-      ? (r.owner_email && !/^bayluxhome@/i.test(r.owner_email) ? "partner" : "parser")
-      : (r.owner_email && /^bayluxhome@/i.test(r.owner_email) ? "team" : "self"),
-    channel: (String(r.source_url || "").match(/t\.me\/(?:s\/)?([A-Za-z0-9_]+)/) || [])[1] || "",
-    owner: r.owner_email || (r.tg_user_id ? `tg:${r.tg_user_id}` : ""),
-    photo: (Array.isArray(r.photos) && r.photos[0]) || "/placeholder-baylux.jpg",
-    slug: r.status === "approved" ? slugify(`${r.building_name}-${r.type || ""}-${r.price || ""}`) : null,
-    dupes: dupesOf(r),
-    // Служебные контакты собственника/риелтора (из файла парсинга или внесённые вручную).
-    // Публично не выводятся. Отдаём только тем, у кого есть право модерации, — иначе
-    // данные попали бы в HTML страницы и были бы доступны через исходный код.
-    ownerName: canSeeOwner ? (r.owner_name || "") : "",
-    ownerPhone: canSeeOwner ? (r.owner_phone || "") : "",
-    ownerTg: canSeeOwner ? (r.owner_tg_username || "") : "",
-    sourceRef: canSeeOwner ? (r.source_ref || "") : "",
-    sourceUrl: canSeeOwner ? (r.source_url || "") : "",
-  }));
-
-  const counts = rows.reduce((a, r) => { a[r.status] = (a[r.status] || 0) + 1; return a; }, {});
+  const counts = data.counts;
 
   // Кнопки разделов панели. navBefore — до фильтра статуса (…«Импорт сводки»),
   // navAfter — после него («Сотрудники» для супер-админа). Фильтр вставляется между ними.
@@ -109,12 +58,12 @@ export default async function AdminPage() {
     <div className="wrap" style={{ paddingBlock: "30px 50px" }}>
       <h1 style={{ color: "var(--navy)" }}>Админ-панель</h1>
       <p style={{ color: "var(--ink-soft)", margin: "6px 0 20px" }}>
-        Всего {rows.length} · одобрено {counts.approved || 0} · на модерации {counts.pending || 0} · снято {counts.rejected || 0}
+        Всего {data.totalAll} · одобрено {counts.approved || 0} · на модерации {counts.pending || 0} · снято {counts.rejected || 0}
       </p>
       {can(session, "moderate") ? (
         // Кнопки панели передаём в AdminListings, чтобы фильтр по статусу встал в один ряд
         // с ними (справа от «Импорт сводки») и при этом управлял тем же списком.
-        <AdminListings items={items} navBefore={navBefore} navAfter={navAfter} />
+        <AdminListings initial={data} navBefore={navBefore} navAfter={navAfter} />
       ) : (
         <>
           <div style={{ display: "flex", gap: 12, marginBottom: 22, flexWrap: "wrap" }}>{navBefore}{navAfter}</div>
