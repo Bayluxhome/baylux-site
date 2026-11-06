@@ -2,6 +2,7 @@
 import { useState, useEffect } from "react";
 import { useLang } from "@/components/LangContext";
 import { trackMeta } from "@/components/MetaPixel";
+import Link from "next/link";
 
 // Форма заявки. «Отправлено» показываем ТОЛЬКО когда сервер подтвердил запись в базе.
 // Сбой сети/сервера → понятная ошибка и кнопка «Повторить»; введённое не теряется.
@@ -11,12 +12,14 @@ export default function LeadModal() {
   const [ctx, setCtx] = useState({ type: "", object: "", title: "" });
   const [state, setState] = useState("form"); // form | sending | sent | error
   const [form, setForm] = useState({ name: "", phone: "", comment: "" });
+  const [consent, setConsent] = useState(false);
 
   useEffect(() => {
     const h = (e) => {
       setCtx(e.detail || {});
       setState("form");
       setForm({ name: "", phone: "", comment: "" });
+      setConsent(false);
       setOpen(true);
     };
     window.addEventListener("baylux:lead", h);
@@ -27,13 +30,13 @@ export default function LeadModal() {
 
   async function submit(e) {
     if (e) e.preventDefault();
-    if (!form.phone.trim() || state === "sending") return;
+    if (!form.phone.trim() || !consent || state === "sending") return;
     setState("sending");
     try {
       const r = await fetch("/api/lead", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ...form, type: ctx.type, typeKey: ctx.typeKey || "other", object: ctx.object, listingId: ctx.listingId || "", source: ctx.source || "", collectionToken: ctx.collectionToken || "", complexId: ctx.complexId || "" }),
+        body: JSON.stringify({ ...form, consent: true, type: ctx.type, typeKey: ctx.typeKey || "other", object: ctx.object, listingId: ctx.listingId || "", source: ctx.source || "", collectionToken: ctx.collectionToken || "", complexId: ctx.complexId || "" }),
       });
       const j = await r.json().catch(() => ({}));
       if (j.ok) trackMeta("Lead", { content_category: ctx.typeKey || "other", content_name: ctx.source || "lead_modal" });
@@ -67,10 +70,13 @@ export default function LeadModal() {
             {state === "error" && (
               <p className="lead-note" style={{ color: "#9a2b2b", fontWeight: 600 }}>{t("lead_err")}</p>
             )}
-            <button className="btn btn-gold" type="submit" disabled={state === "sending"}>
+            <label className="lead-note" style={{ display: "flex", gap: 8, alignItems: "flex-start", textAlign: "left", cursor: "pointer" }}>
+              <input type="checkbox" required checked={consent} onChange={(e) => setConsent(e.target.checked)} style={{ marginTop: 3 }} />
+              <span>{t("cf_consent")} <Link href="/privacy" target="_blank">{t("cf_consent_link")}</Link>.</span>
+            </label>
+            <button className="btn btn-gold" type="submit" disabled={state === "sending" || !consent}>
               {state === "sending" ? t("lead_sending") : state === "error" ? t("lead_retry") : t("lead_submit")}
             </button>
-            <p className="lead-note">{t("lead_consent")}</p>
           </form>
         )}
       </div>

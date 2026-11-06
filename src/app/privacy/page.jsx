@@ -17,6 +17,8 @@ export default function PrivacyPage() {
         <li>{t("pv_what1")}</li>
         <li>{t("pv_what2")}</li>
         <li>{t("pv_what3")}</li>
+        <li>{t("pv_what4")}</li>
+        <li>{t("pv_what5")}</li>
       </ul>
 
       <h2>{t("pv_h_why")}</h2>
@@ -31,11 +33,24 @@ export default function PrivacyPage() {
       <h2>{t("pv_cb_h")}</h2>
       <p>{t("pv_cb")}</p>
 
+      <h2>{t("pv_ai_h")}</h2>
+      <p>{t("pv_ai")}</p>
+
+      <h2>{t("pv_mkt_h")}</h2>
+      <p>{t("pv_mkt")}</p>
+
+      <h2>{t("pv_ret_h")}</h2>
+      <p>{t("pv_ret")}</p>
+
+      <h2>{t("pv_sec_h")}</h2>
+      <p>{t("pv_sec")}</p>
+
       <h2>{t("pv_consent_h")}</h2>
       <p>{t("pv_consent")}</p>
 
       <h2>{t("pv_h_rights")}</h2>
       <p>{t("pv_rights")}</p>
+      <p>{t("pv_rights2")}</p>
 
       {/* Юридическая идентификация оператора ПД: из футера убрана (там бренд), здесь — обязательна */}
       <h2>{t("pv_operator_h")}</h2>

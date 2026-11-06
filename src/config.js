@@ -62,8 +62,8 @@ export const COMPANY = {
 };
 
 // Версия и дата юр-документов (Privacy/Terms/Cookies/Rules)
-export const DOC_VERSION = "1.0";
-export const DOC_UPDATED = "01.06.2026";
+export const DOC_VERSION = "1.1";
+export const DOC_UPDATED = "06.11.2026";
 
 // Главные администраторы сайта (по email сессии или Telegram-id).
 // Имеют доступ к /admin: новости, удаление любых объявлений.
