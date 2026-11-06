@@ -53,11 +53,26 @@ export async function POST(req) {
   if (b.action === "card") {
     const text = String(b.text || "").trim().slice(0, 3800);
     if (!text) return Response.json({ ok: false, error: "empty" }, { status: 400 });
-    const r = await fetch(`https://api.telegram.org/bot${TOKEN}/sendMessage`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ chat_id: TEAM_CHAT, text: text + "\n\n↩️ Ответьте на это сообщение (reply) — агент передаст клиенту.", disable_web_page_preview: true }),
-    }).then((x) => x.json()).catch(() => null);
+    const footer = "\n\n↩️ Ответьте на это сообщение (reply) — агент передаст клиенту.";
+    let r;
+    // Вложение: b.file = { name, b64, kind: "photo" | "document" } — картинка/файл в группу с подписью (до 1024 символов).
+    if (b.file && b.file.b64) {
+      const kind = b.file.kind === "document" ? "document" : "photo";
+      const buf = Buffer.from(String(b.file.b64).replace(/^data:[^,]+,/, ""), "base64");
+      if (buf.length > 9 * 1024 * 1024) return Response.json({ ok: false, error: "file_too_big" }, { status: 400 });
+      const fd = new FormData();
+      fd.append("chat_id", String(TEAM_CHAT));
+      fd.append("caption", (text + footer).slice(0, 1024));
+      fd.append(kind, new Blob([buf]), String(b.file.name || (kind === "photo" ? "image.png" : "file.bin")).slice(0, 100));
+      r = await fetch(`https://api.telegram.org/bot${TOKEN}/${kind === "photo" ? "sendPhoto" : "sendDocument"}`, { method: "POST", body: fd })
+        .then((x) => x.json()).catch(() => null);
+    } else {
+      r = await fetch(`https://api.telegram.org/bot${TOKEN}/sendMessage`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ chat_id: TEAM_CHAT, text: text + footer, disable_web_page_preview: true }),
+      }).then((x) => x.json()).catch(() => null);
+    }
     if (!r?.ok) return Response.json({ ok: false, error: r?.description || "tg_failed" }, { status: 502 });
     const { data } = await supa.from("team_cards")
       .insert({ chat_id: TEAM_CHAT, message_id: r.result.message_id, ref: b.ref ? String(b.ref).slice(0, 200) : null, text })
