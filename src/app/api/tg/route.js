@@ -415,7 +415,16 @@ async function onGroupMessage(msg) {
   // Если это reply на карточку бота — привязываем к карточке.
   if (msg.from?.is_bot) return;
   const rt = msg.reply_to_message;
-  const text = (msg.text || msg.caption || "").trim();
+  // 06.11: голосовые/аудио/видео/фото/файлы тоже сохраняем (раньше терялись) — с file_id,
+  // агент скачивает их через GET /api/team?file=<file_id> и расшифровывает сам.
+  const media = msg.voice ? ["🎤 голосовое", msg.voice] : msg.audio ? ["🎵 аудио", msg.audio] : msg.video_note ? ["⭕ видеосообщение", msg.video_note]
+    : msg.video ? ["🎬 видео", msg.video] : msg.document ? ["📎 файл " + (msg.document.file_name || ""), msg.document]
+    : msg.photo?.length ? ["🖼 фото", msg.photo[msg.photo.length - 1]] : null;
+  let text = (msg.text || msg.caption || "").trim();
+  if (media) {
+    const dur = media[1].duration ? ` ${Math.floor(media[1].duration / 60)}:${String(media[1].duration % 60).padStart(2, "0")}` : "";
+    text = `[${media[0]}${dur}] file:${media[1].file_id}${text ? "\n" + text : ""}`;
+  }
   if (!text) return;
   let card = null;
   if (rt?.from?.is_bot) ({ data: card } = await supa.from("team_cards").select("id").eq("chat_id", TEAM_CHAT).eq("message_id", rt.message_id).maybeSingle());
@@ -426,6 +435,28 @@ async function onGroupMessage(msg) {
   }, { onConflict: "chat_id,message_id", ignoreDuplicates: true });
   // Короткое подтверждение реакцией, чтобы команда видела, что ответ принят.
   await tg("setMessageReaction", { chat_id: TEAM_CHAT, message_id: msg.message_id, reaction: [{ type: "emoji", emoji: "👍" }] }).catch(() => null);
+  await pingAgent(name || msg.from?.username || "команда", text).catch((e) => console.error("agent ping:", e?.message));
+}
+
+// 06.11: мгновенный «сигнал» агенту — запускаем задачу Claude Code через API (routine fire).
+// Не чаще раза в 2 минуты: если за 2 минуты до этого уже было сообщение — сессия уже запущена и прочитает всё сама.
+const AGENT_FIRE_URL = process.env.AGENT_FIRE_URL;     // https://api.anthropic.com/v1/claude_code/routines/trig_…/fire
+const AGENT_FIRE_TOKEN = process.env.AGENT_FIRE_TOKEN; // токен API-триггера этой задачи (sk-ant-oat01-…)
+async function pingAgent(who, text) {
+  if (!AGENT_FIRE_URL || !AGENT_FIRE_TOKEN) return;
+  const since = new Date(Date.now() - 120 * 1000).toISOString();
+  const { count } = await supa.from("team_replies").select("id", { count: "exact", head: true }).eq("chat_id", TEAM_CHAT).gte("created_at", since);
+  if ((count || 0) > 1) return; // в эти 2 минуты агента уже позвали
+  const ctrl = new AbortController();
+  const t = setTimeout(() => ctrl.abort(), 5000);
+  try {
+    const r = await fetch(AGENT_FIRE_URL, {
+      method: "POST", signal: ctrl.signal,
+      headers: { Authorization: `Bearer ${AGENT_FIRE_TOKEN}`, "anthropic-version": "2026-10-21", "Content-Type": "application/json" },
+      body: JSON.stringify({ text: `Новое сообщение в группе «Baylux Показы» от ${who}: ${String(text).slice(0, 1500)}` }),
+    });
+    if (!r.ok) console.error("agent ping status:", r.status, (await r.text()).slice(0, 200));
+  } finally { clearTimeout(t); }
 }
 
 async function onMessage(msg) {

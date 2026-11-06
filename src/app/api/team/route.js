@@ -19,8 +19,20 @@ function guard() {
   return isAdmin(s);
 }
 
-export async function GET() {
+export async function GET(req) {
   if (!guard()) return Response.json({ ok: false, error: "forbidden" }, { status: 403 });
+  // 06.11: скачать голосовое/файл из группы по file_id (для расшифровки агентом): GET /api/team?file=<file_id>
+  const fileId = req ? new URL(req.url).searchParams.get("file") : null;
+  if (fileId) {
+    if (!TOKEN) return Response.json({ ok: false, error: "not_configured" }, { status: 500 });
+    const g = await fetch(`https://api.telegram.org/bot${TOKEN}/getFile?file_id=${encodeURIComponent(fileId)}`).then((r) => r.json()).catch(() => null);
+    const fp = g?.result?.file_path;
+    if (!fp) return Response.json({ ok: false, error: "file" }, { status: 404 });
+    const f = await fetch(`https://api.telegram.org/file/bot${TOKEN}/${fp}`);
+    if (!f.ok) return Response.json({ ok: false, error: "download" }, { status: 502 });
+    const name = fp.split("/").pop() || "file";
+    return new Response(f.body, { headers: { "Content-Type": f.headers.get("content-type") || "application/octet-stream", "Content-Disposition": `attachment; filename="${name}"` } });
+  }
   if (!supa) return Response.json({ ok: false, error: "not_configured" }, { status: 500 });
   const { data, error } = await supa
     .from("team_replies")
