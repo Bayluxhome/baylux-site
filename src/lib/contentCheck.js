@@ -5,7 +5,7 @@
 // иначе Google Vision (GOOGLE_VISION_API_KEY / GOOGLE_TRANSLATE_API_KEY).
 const KEY = process.env.GOOGLE_VISION_API_KEY || process.env.GOOGLE_TRANSLATE_API_KEY;
 const LZ_KEY = process.env.LAOZHANG_API_KEY;
-const LZ_MODEL = process.env.LAOZHANG_MODERATION_MODEL || "gemini-2.5-flash";
+const LZ_MODEL = process.env.LAOZHANG_MODERATION_MODEL || "gemini-2.5-flash-lite"; // 06.11: ~3 с на проверку
 let lastError = "";
 export const contentCheckInfo = () => ({ provider: LZ_KEY ? "laozhang:" + LZ_MODEL : KEY ? "google-vision" : "none", lastError });
 const BAD = ["LIKELY", "VERY_LIKELY"];
@@ -44,7 +44,7 @@ async function laozhangVerdict(list, model = LZ_MODEL) {
   const imgs = (await Promise.all(list.map((u) => toB64(u).catch(() => null)))).filter(Boolean);
   if (!imgs.length) { lastError = "photos not downloaded"; return ["ai_error"]; }
   const ctrl = new AbortController();
-  const tm = setTimeout(() => ctrl.abort(), 25000);
+  const tm = setTimeout(() => ctrl.abort(), 8000);
   try {
     const r = await fetch("https://api.laozhang.ai/v1/chat/completions", {
       method: "POST", signal: ctrl.signal,
@@ -76,7 +76,13 @@ async function laozhangVerdict(list, model = LZ_MODEL) {
 export async function photoVerdict(photos, opts = {}) {
   const list = (Array.isArray(photos) ? photos : []).filter(Boolean).slice(0, 10);
   if (!list.length) return [];
-  if (LZ_KEY) return laozhangVerdict(list, opts.model || LZ_MODEL);
+  if (LZ_KEY) {
+    // LaoZhang иногда отвечает 500 «upstream error» — один повтор, затем резервная модель.
+    let res = await laozhangVerdict(list, opts.model || LZ_MODEL);
+    if (res.includes("ai_error") && !opts.model) res = await laozhangVerdict(list, LZ_MODEL);
+    if (res.includes("ai_error") && !opts.model) res = await laozhangVerdict(list, "gpt-4o-mini");
+    return res;
+  }
   if (!KEY) { lastError = "no key"; return ["ai_error"]; }
   try {
     const imgs = await Promise.all(list.map((u) => toB64(u).catch(() => null)));
