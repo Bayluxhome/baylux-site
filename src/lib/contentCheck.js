@@ -29,7 +29,7 @@ async function toB64(url) {
   const ctrl = new AbortController();
   const tm = setTimeout(() => ctrl.abort(), 8000);
   try {
-    const r = await fetch(url, { signal: ctrl.signal });
+    const r = await fetch(url, { signal: ctrl.signal, headers: { "User-Agent": "BayluxModeration/1.0 (+https://bayluxhome.com)" } });
     if (!r.ok) return null;
     return Buffer.from(await r.arrayBuffer()).toString("base64");
   } finally { clearTimeout(tm); }
@@ -40,16 +40,16 @@ const LZ_PROMPT = `You moderate photos for a real estate listings website. For E
 - "property": true if it is a photo/render/floor plan of real estate (apartment or house interior, building, facade, yard, view from a window, construction site, plot of land).
 Answer ONLY with JSON: {"images":[{"i":1,"nsfw":false,"property":true}]}`;
 
-async function laozhangVerdict(list) {
+async function laozhangVerdict(list, model = LZ_MODEL) {
   const imgs = (await Promise.all(list.map((u) => toB64(u).catch(() => null)))).filter(Boolean);
   if (!imgs.length) { lastError = "photos not downloaded"; return ["ai_error"]; }
   const ctrl = new AbortController();
-  const tm = setTimeout(() => ctrl.abort(), 20000);
+  const tm = setTimeout(() => ctrl.abort(), 25000);
   try {
     const r = await fetch("https://api.laozhang.ai/v1/chat/completions", {
       method: "POST", signal: ctrl.signal,
       headers: { "Content-Type": "application/json", Authorization: `Bearer ${LZ_KEY}` },
-      body: JSON.stringify({ model: LZ_MODEL, temperature: 0, messages: [{ role: "user", content: [
+      body: JSON.stringify({ model, temperature: 0, messages: [{ role: "user", content: [
         { type: "text", text: LZ_PROMPT },
         ...imgs.map((b) => ({ type: "image_url", image_url: { url: `data:image/jpeg;base64,${b}` } })),
       ] }] }),
@@ -73,10 +73,10 @@ async function laozhangVerdict(list) {
 }
 
 // Возвращает массив причин: [] — всё чисто; "nsfw" | "not_property" | "ai_error".
-export async function photoVerdict(photos) {
+export async function photoVerdict(photos, opts = {}) {
   const list = (Array.isArray(photos) ? photos : []).filter(Boolean).slice(0, 10);
   if (!list.length) return [];
-  if (LZ_KEY) return laozhangVerdict(list);
+  if (LZ_KEY) return laozhangVerdict(list, opts.model || LZ_MODEL);
   if (!KEY) { lastError = "no key"; return ["ai_error"]; }
   try {
     const imgs = await Promise.all(list.map((u) => toB64(u).catch(() => null)));

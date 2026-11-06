@@ -12,6 +12,8 @@ export async function GET(req) {
   if (!can(session, "moderate")) return Response.json({ ok: false }, { status: 403 });
   const url = new URL(req.url).searchParams.get("url");
   if (!url || !/^https:\/\//.test(url)) return Response.json({ ok: false, error: "url" }, { status: 400 });
-  const reasons = await photoVerdict([url]);
-  return Response.json({ ok: true, reasons, ...contentCheckInfo() });
+  const model = new URL(req.url).searchParams.get("model") || undefined;
+  const t0 = Date.now();
+  const reasons = await photoVerdict([url], { model });
+  return Response.json({ ok: true, reasons, ms: Date.now() - t0, model: model || null, ...contentCheckInfo() });
 }
