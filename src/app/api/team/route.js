@@ -53,7 +53,7 @@ export async function POST(req) {
   if (b.action === "card") {
     const text = String(b.text || "").trim().slice(0, 3800);
     if (!text) return Response.json({ ok: false, error: "empty" }, { status: 400 });
-    const footer = "\n\n↩️ Ответьте на это сообщение (reply) — агент передаст клиенту.";
+    const footer = "\n\n↩️ Ответьте на это сообщение (reply) или поставьте реакцию 👍, агент передаст клиенту.";
     let r;
     // Вложение: b.file = { name, b64, kind: "photo" | "document" } — картинка/файл в группу с подписью (до 1024 символов).
     if (b.file && b.file.b64) {
