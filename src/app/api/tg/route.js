@@ -438,6 +438,23 @@ async function onGroupMessage(msg) {
   await pingAgent(name || msg.from?.username || "команда", text).catch((e) => console.error("agent ping:", e?.message));
 }
 
+// 06.11: реакции команды (👍 👎 ✅ ❤ …) на сообщения в группе — тоже ответ. Сохраняем как team_reply,
+// агент читает «[реакция 👍]» как согласие с карточкой. Нужно: бот — админ группы, в webhook allowed_updates есть message_reaction.
+async function onGroupReaction(mr) {
+  if (mr.user?.is_bot || !mr.user) return; // анонимные админы (actor_chat) пропускаем
+  const emojis = (mr.new_reaction || []).map((r) => r.emoji || (r.type === "custom_emoji" ? "★" : r.type === "paid" ? "⭐" : "")).filter(Boolean);
+  if (!emojis.length) return; // реакцию сняли — игнор
+  const { data: card } = await supa.from("team_cards").select("id, text").eq("chat_id", TEAM_CHAT).eq("message_id", mr.message_id).maybeSingle();
+  const name = [mr.user.first_name, mr.user.last_name].filter(Boolean).join(" ");
+  const text = `[реакция ${emojis.join(" ")}] на ${card ? "карточку №" + card.id : "сообщение " + mr.message_id}`;
+  await supa.from("team_replies").upsert({
+    chat_id: TEAM_CHAT, message_id: -(mr.message_id * 100000 + (mr.user.id % 100000)), card_id: card?.id || null,
+    reply_to_message_id: mr.message_id, from_id: mr.user.id, from_name: name || null, from_username: mr.user.username || null,
+    text, processed_at: null,
+  }, { onConflict: "chat_id,message_id" });
+  await pingAgent(name || mr.user.username || "команда", text).catch(() => null);
+}
+
 // 06.11: мгновенный «сигнал» агенту — запускаем задачу Claude Code через API (routine fire).
 // Не чаще раза в 2 минуты: если за 2 минуты до этого уже было сообщение — сессия уже запущена и прочитает всё сама.
 const AGENT_FIRE_URL = process.env.AGENT_FIRE_URL;     // https://api.anthropic.com/v1/claude_code/routines/trig_…/fire
@@ -739,7 +756,7 @@ export async function GET(req) {
     const { verifySession, isSuperAdmin } = await import("@/lib/session");
     if (!isSuperAdmin(verifySession(cookies().get("bx_session")?.value))) return new Response("forbidden", { status: 403 });
     if (!SECRET) return Response.json({ ok: false, error: "TELEGRAM_BOT_TOKEN not set" });
-    const r = await tg("setWebhook", { url: `${SITE}/api/tg`, secret_token: SECRET, allowed_updates: ["message", "callback_query"] });
+    const r = await tg("setWebhook", { url: `${SITE}/api/tg`, secret_token: SECRET, allowed_updates: ["message", "callback_query", "message_reaction"] });
     await tg("setMyCommands", { commands: [
       { command: "start", description: "🏠 Меню / Menu / მენიუ" },
       { command: "add", description: "➕ Добавить / Add / დამატება" },
@@ -761,6 +778,7 @@ export async function POST(req) {
     if (update.message && Number(update.message.chat?.id) === TEAM_CHAT) await onGroupMessage(update.message);
     else if (update.message) await onMessage(update.message);
     else if (update.callback_query) await onCallback(update.callback_query);
+    else if (update.message_reaction && Number(update.message_reaction.chat?.id) === TEAM_CHAT) await onGroupReaction(update.message_reaction);
   } catch (e) { console.error("tg error:", e?.message); }
   // Модерация и правки через бота меняют выдачу — сбрасываем кэш (трафик бота мал, дёшево).
   revalidateListings();
