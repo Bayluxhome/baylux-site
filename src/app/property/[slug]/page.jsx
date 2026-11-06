@@ -10,6 +10,7 @@ import LeadButton from "@/components/LeadButton";
 import TelegramContactButton from "@/components/TelegramContactButton";
 import WhatsAppContactButton from "@/components/WhatsAppContactButton";
 import ViewCounter from "@/components/ViewCounter";
+import ReportListing from "@/components/ReportListing";
 import { PHONE, WA_PHONE, TG_CONTACT, SITE_URL } from "@/config";
 import { getLang } from "@/lib/serverLang";
 import { altFor, withLang } from "@/lib/i18nPath";
@@ -205,6 +206,7 @@ export default async function PropertyPage({ params, searchParams }) {
                 </div>
               </div>
             )}
+            <ReportListing id={u.id} />
           </div>
         </aside>
       </div>

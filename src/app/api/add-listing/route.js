@@ -7,6 +7,7 @@ import { moderationVerdict, publishApproved, reasonsText } from "@/lib/autoModer
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
+export const maxDuration = 30; // 06.11: автопроверка фото (Google Vision) занимает несколько секунд
 
 const TOKEN = process.env.TELEGRAM_BOT_TOKEN;
 const ADMIN = process.env.TELEGRAM_CHAT_ID;
@@ -59,6 +60,20 @@ export async function POST(req) {
   let b;
   try { b = await req.json(); } catch { return Response.json({ ok: false }); }
 
+  // 06.11: лимит объявлений в сутки (защита от спама). Новичок (<3 одобренных) — 5/сутки, остальные — 30/сутки.
+  if (!canMod && (session.id != null || session.email)) {
+    try {
+      const by = (q) => (session.id != null ? q.eq("tg_user_id", session.id) : q.eq("owner_email", session.email));
+      const since = new Date(Date.now() - 24 * 3600 * 1000).toISOString();
+      const [{ count: today }, { count: approved }] = await Promise.all([
+        by(supa.from("listings").select("id", { count: "exact", head: true }).gte("created_at", since)),
+        by(supa.from("listings").select("id", { count: "exact", head: true }).eq("status", "approved")),
+      ]);
+      const limit = (approved || 0) >= 3 ? 30 : 5;
+      if ((today || 0) >= limit) return Response.json({ ok: false, error: "limit" }, { status: 429 });
+    } catch (e) { console.error("daily limit:", e?.message); }
+  }
+
   // Только грузинские номера (+995) — синхронно с ботом
   const phone = gePhone(b.contact);
   if (!phone) return Response.json({ ok: false, error: "phone" }, { status: 400 });
@@ -90,6 +105,7 @@ export async function POST(req) {
     bathrooms: parseInt(b.bathrooms, 10) || null,
     floor: (b.floor || "—").toString(), year: parseInt(b.year, 10) || null,
     complex: (b.complex || "").toString().trim(), amenities, no_commission: !!b.noCommission,
+    seller_type: b.sellerType === "owner" || b.sellerType === "agent" ? b.sellerType : null, // 06.11: собственник / агент
     // ВАЖНО: «под управлением Baylux» может выставить только админ. Заявка владельца (b.managed)
     // не доверяется напрямую — она показывается модератору в боте, флаг ставит админ при одобрении.
     managed_by_baylux: canMng && deal !== "sale" ? !!b.managed : false, // 06.11: управление — только аренда/посуточно
@@ -139,7 +155,8 @@ export async function POST(req) {
     const head = verdict.approve
       ? `🆕 <b>Новое объявление (с сайта) — ✅ опубликовано автоматически</b>\nПодозрений нет. Если что-то не так — «Отклонить».`
       : `🆕 <b>Новое объявление (с сайта) — на модерацию</b>${verdict.reasons.length ? `\n⚠️ Причина: ${esc(reasonsText(verdict.reasons.filter((r) => r !== "managed_request")) || "заявка на управление")}` : ""}`;
-    const summary = `${head}${mgmtReq}\n${DEAL_RU[deal]} · ${row.type}\n🏙 ${esc(city)}\n🏠 ${esc(row.building_name)}\n💰 ${row.price}\n📐 ${row.area} м² · 🛏 ${row.rooms} комн. · 🏢 ${esc(row.floor)}\n📷 ${row.photos.length} фото${geoLine}${authorLine}\n📞 ${phone}\n\n${esc(row.about)}`;
+    const sellerLine = row.seller_type === "owner" ? "\n🟢 <b>СОБСТВЕННИК</b>" : row.seller_type === "agent" ? "\n🔵 Агент / риелтор" : "";
+    const summary = `${head}${mgmtReq}${sellerLine}\n${DEAL_RU[deal]} · ${row.type}\n🏙 ${esc(city)}\n🏠 ${esc(row.building_name)}\n💰 ${row.price}\n📐 ${row.area} м² · 🛏 ${row.rooms} комн. · 🏢 ${esc(row.floor)}\n📷 ${row.photos.length} фото${geoLine}${authorLine}\n📞 ${phone}\n\n${esc(row.about)}`;
     const kb = verdict.approve
       ? { inline_keyboard: [[{ text: "❌ Снять с публикации", callback_data: `rj:${ins.id}` }], [{ text: "📍 Исправить гео", callback_data: `eg:${ins.id}` }, { text: "✏️ Редактировать текст", callback_data: `et:${ins.id}` }]] }
       : modButtons(ins.id);

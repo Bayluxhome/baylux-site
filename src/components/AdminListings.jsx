@@ -166,6 +166,8 @@ export default function AdminListings({ initial, navBefore = null, navAfter = nu
                   <span style={{ fontSize: 11, fontWeight: 700, padding: "2px 8px", borderRadius: 999, background: (SRC[r.source] || SRC.parser).bg, color: (SRC[r.source] || SRC.parser).fg, border: `1px solid ${(SRC[r.source] || SRC.parser).line}`, textTransform: "uppercase", letterSpacing: ".04em" }}>
                     {(SRC[r.source] || SRC.parser).label}{r.channel ? ` · @${r.channel}` : ""}
                   </span>
+                  {r.seller === "owner" && <span style={{ fontSize: 11, fontWeight: 700, padding: "2px 8px", borderRadius: 999, background: "#dcfce7", color: "#166534", border: "1px solid #86efac" }}>СОБСТВЕННИК</span>}
+                  {r.seller === "agent" && <span style={{ fontSize: 11, fontWeight: 700, padding: "2px 8px", borderRadius: 999, background: "#e0e7ff", color: "#3730a3", border: "1px solid #a5b4fc" }}>АГЕНТ</span>}
                   {r.title}
                 </div>
                 <div style={{ color: "var(--ink-soft)", fontSize: 13 }}>{r.sub}</div>

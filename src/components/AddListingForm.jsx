@@ -46,7 +46,7 @@ function compress(file) {
 export default function AddListingForm({ initial, editId }) {
   const { t, lang } = useLang();
   const init = initial || {};
-  const [f, setF] = useState({ country: "Грузия", city: "Батуми", deal: "sale", type: "Квартира", complex: "", address: "", price: "", currency: "USD", area: "", rooms: "", bathrooms: "", floor: "", year: "", about: "", contact: "", tg: "", noCommission: false, ...(init.f || {}) });
+  const [f, setF] = useState({ country: "Грузия", city: "Батуми", deal: "sale", type: "Квартира", complex: "", address: "", price: "", currency: "USD", area: "", rooms: "", bathrooms: "", floor: "", year: "", about: "", contact: "", tg: "", noCommission: false, sellerType: "", ...(init.f || {}) });
   const [amenities, setAmenities] = useState(init.amenities || []);
   const [existingPhotos, setExistingPhotos] = useState(init.photos || []);
   const [files, setFiles] = useState([]);
@@ -57,6 +57,8 @@ export default function AddListingForm({ initial, editId }) {
   const [state, setState] = useState("");
   const [isAdm, setIsAdm] = useState(false);
   const [canMng, setCanMng] = useState(false);
+  // ?seller=owner|agent — предвыбор со страницы для собственников (реклама)
+  useEffect(() => { try { const v = new URLSearchParams(window.location.search).get("seller"); if (v === "owner" || v === "agent") setF((p) => (p.sellerType ? p : { ...p, sellerType: v })); } catch {} }, []);
   useEffect(() => { fetch("/api/me").then((r) => r.json()).then((j) => { setIsAdm(!!j.admin); setCanMng(!!(j.perms && j.perms.managed)); }).catch(() => {}); }, []);
   const [ownerList, setOwnerList] = useState([]);
   const [ownerSel, setOwnerSel] = useState("");
@@ -153,6 +155,7 @@ export default function AddListingForm({ initial, editId }) {
 
   async function submit(e) {
     e.preventDefault();
+    if (!editId && !f.sellerType) { alert(t("af_alert_seller")); return; }
     if (!f.address.trim()) { alert(t("af_alert_addr")); return; }
     const phone = gePhone(f.contact);
     if (!phone) { alert(t("af_alert_phone")); return; }
@@ -192,6 +195,7 @@ export default function AddListingForm({ initial, editId }) {
       }
       const r = await fetch(editId ? "/api/edit-listing" : "/api/add-listing", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) });
       const j = await r.json();
+      if (!j.ok && j.error === "limit") { alert(t("af_alert_limit")); setState(""); return; }
       setState(j.ok ? "done" : "error");
     } catch (err) { setState("error"); }
   }
@@ -215,6 +219,16 @@ export default function AddListingForm({ initial, editId }) {
 
   return (
     <form className="addform" onSubmit={submit}>
+      {!editId && (
+        <div className="af-full">
+          <div className="af-lbl">{t("af_seller")} *</div>
+          <div className="amen-row">
+            {["owner", "agent"].map((v) => (
+              <button type="button" key={v} className={"amen-tag" + (f.sellerType === v ? " on" : "")} onClick={() => upd("sellerType", v)}>{t("af_seller_" + v)}</button>
+            ))}
+          </div>
+        </div>
+      )}
       <label>{t("af_country")}
         <select value={f.country} onChange={(e) => upd("country", e.target.value)}><option>Грузия</option></select>
       </label>

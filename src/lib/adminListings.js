@@ -5,7 +5,7 @@ import { supa, fetchAll } from "@/lib/supabase";
 import { slugify } from "@/data/sheet";
 
 const LIGHT = "id,status,created_at,building_name,area,rooms,price,photo_hashes,batch_id,source_url,owner_email";
-const FULL = "id,deal,type,building_name,price,area,rooms,status,owner_email,tg_user_id,photos,owner_name,owner_phone,owner_tg_username,source_ref,source_url,batch_id,created_at";
+const FULL = "id,deal,type,building_name,price,area,rooms,status,owner_email,tg_user_id,photos,owner_name,owner_phone,owner_tg_username,source_ref,source_url,batch_id,created_at,seller_type";
 const TZ = "Asia/Tbilisi";
 export const dayKey = (iso) => { if (!iso) return ""; try { return new Date(iso).toLocaleDateString("ru-RU", { timeZone: TZ, year: "numeric", month: "2-digit", day: "2-digit" }); } catch { return ""; } };
 
@@ -66,6 +66,7 @@ export async function loadAdminListings({ offset = 0, limit = 100, status = "all
       owner: r.owner_email || (r.tg_user_id ? `tg:${r.tg_user_id}` : ""),
       photo: (Array.isArray(r.photos) && r.photos[0]) || "/placeholder-baylux.jpg",
       slug: r.status === "approved" ? slugify(`${r.building_name}-${r.type || ""}-${r.price || ""}`) : null,
+      seller: r.seller_type || "", // owner / agent (06.11)
       dupes: dupesOf(lr),
       // Служебные контакты — только тем, у кого есть право модерации.
       ownerName: canSeeOwner ? (r.owner_name || "") : "",

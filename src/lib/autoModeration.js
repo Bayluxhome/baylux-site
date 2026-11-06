@@ -11,12 +11,18 @@ import { priceTooLow } from "@/lib/classify";
 import { translateDescriptions, translateNames } from "@/lib/translate";
 import { pickChannel, postToChannel, CH_BATUMI, CH_TBILISI } from "@/lib/tgChannel";
 import { revalidateListings } from "@/lib/cache";
+import { photoVerdict, textVerdict } from "@/lib/contentCheck";
 
 export const REASON_RU = {
   dup_photo: "совпадают фото с другим объявлением",
   dup_fields: "тот же адрес, площадь, комнаты и цена",
   no_photos: "нет фото",
   price: "подозрительно низкая цена",
+  nsfw: "⛔ на фото возможна обнажёнка/насилие",
+  not_property: "фото не похожи на недвижимость",
+  bad_text: "в тексте мат/ссылки/интим",
+  ai_error: "автопроверка фото не сработала — проверьте вручную",
+  repeat: "у автора уже 2+ отклонённых объявления",
 };
 
 // row — строка listings ДО вставки (или после, тогда excludeId = её id).
@@ -47,6 +53,17 @@ export async function moderationVerdict(row, excludeId = null) {
       console.error("dup check:", e?.message);
       reasons.push("dup_photo");
     }
+  }
+  // 06.11: проверка содержимого (фото — Google Vision, текст — стоп-слова) и «рецидивисты».
+  reasons.push(...textVerdict(row.about, row.building_name, row.complex));
+  if (photos.length) reasons.push(...(await photoVerdict(photos)));
+  if (supa && (row.tg_user_id != null || row.owner_email)) {
+    try {
+      let q = supa.from("listings").select("id", { count: "exact", head: true }).eq("status", "rejected");
+      q = row.tg_user_id != null ? q.eq("tg_user_id", row.tg_user_id) : q.eq("owner_email", row.owner_email);
+      const { count } = await q;
+      if ((count || 0) >= 2) reasons.push("repeat");
+    } catch (e) { console.error("repeat check:", e?.message); }
   }
   return { approve: reasons.length === 0, reasons };
 }
