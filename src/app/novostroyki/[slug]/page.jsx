@@ -129,6 +129,11 @@ export default async function ComplexPage({ params }) {
               <h1>{c.name}</h1>
               <div className="cdistrict" style={{ marginTop: 8, fontSize: 15 }}>📍 {place}{c.address ? ` · ${c.address}` : ""}</div>
               {tagKeys.length > 0 && <div className="nb-tags" style={{ marginTop: 10 }}>{tagKeys.map((k) => <span key={k}>{TAG_ICON[k]} {t("nb_tag_" + k)}</span>)}</div>}
+              {listings.length > 0 && (
+                <a href="#nb-listings" className="btn btn-gold" style={{ display: "inline-block", marginTop: 12, padding: "10px 18px", fontWeight: 700 }}>
+                  🏠 {lang === "en" ? "Apartments in this complex" : lang === "ka" ? "ბინები ამ კომპლექსში" : "Квартиры в этом ЖК"}: {lSale.length > 0 ? `${lang === "en" ? "sale" : lang === "ka" ? "იყიდება" : "продажа"} ${lSale.length}` : ""}{lSale.length > 0 && lRent.length > 0 ? " · " : ""}{lRent.length > 0 ? `${lang === "en" ? "rent" : lang === "ka" ? "ქირა" : "аренда"} ${lRent.length}` : ""} ↓
+                </a>
+              )}
             </div>
             {c.price_from && <div style={{ textAlign: "right" }}><div className="pp-price">{t("nb_price_from").replace("{n}", fmtNum(c.price_from))}</div></div>}
           </div>
@@ -164,7 +169,7 @@ export default async function ComplexPage({ params }) {
           )}
 
           {listings.length > 0 && (
-            <section>
+            <section id="nb-listings" style={{ scrollMarginTop: 90 }}>
               <h3>{lang === "en" ? "Listings in this complex" : lang === "ka" ? "განცხადებები ამ კომპლექსში" : "Объявления в этом комплексе"} · {listings.length}</h3>
               {lSale.length > 0 && <>
                 <h4 style={{ margin: "8px 0" }}>{lang === "en" ? "For sale" : lang === "ka" ? "იყიდება" : "Продажа"} · {lSale.length}</h4>
