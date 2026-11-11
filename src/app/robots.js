@@ -15,7 +15,7 @@ const filterRules = FILTER_PARAMS.flatMap((p) => [`/*?${p}=`, `/*&${p}=`]);
 // Служебные разделы: кабинет, админка, добавление, избранное, подборки (они и так noindex).
 // Языки перечислены явно: шаблон «/*/my» зацепил бы и /ru/property/my-… (звёздочка ловит слэши).
 const PRIVATE = ["/api/", "/demo/"].concat(
-  ["ru", "en", "ka"].flatMap((l) => ["/my", "/admin", "/add", "/favorites", "/c/"].map((p) => `/${l}${p}`)),
+  ["ru", "en", "ka"].flatMap((l) => ["/my", "/admin", "/add", "/favorites", "/c/", "/agent-relay"].map((p) => `/${l}${p}`)),
 );
 
 // SEO-сканеры и сборщики датасетов: трафика не приносят, а CPU тратят.
