@@ -5,6 +5,8 @@ import Gallery from "@/components/Gallery";
 import MapView from "@/components/MapView";
 import LeadButton from "@/components/LeadButton";
 import ComplexExpert from "@/components/ComplexExpert";
+import PropertyCard from "@/components/PropertyCard";
+import { getAllUnits } from "@/data/source";
 import { fmtDone, fmtNum } from "@/components/ComplexCard";
 import { getComplexBySlug, complexTags } from "@/lib/complexes";
 import { serializeJsonLd, ORG_ID } from "@/lib/jsonld";
@@ -49,6 +51,24 @@ export default async function ComplexPage({ params }) {
     const { data } = await supa.from("realtors").select("id, name, photo").eq("id", c.expert_id).eq("status", "approved").maybeSingle();
     expert = data || null;
   }
+
+  // 11.11 Дмитрий: на странице ЖК показываем объявления (продажа/аренда/посуточно) в этом комплексе.
+  // Совпадение по полю «ЖК» объявления или по названию ЖК в адресе/названии дома.
+  const STOP = new Set(["жк", "residence", "residences", "резиденс", "complex", "комплекс"]);
+  const norm = (s) => String(s || "").toLowerCase().replace(/[«»"'`.,()\-–—_/]/g, " ").split(/\s+/).filter((w) => w && !STOP.has(w)).join(" ");
+  const cKey = norm(c.name);
+  let listings = [];
+  if (cKey.length >= 4) {
+    try {
+      const all = await getAllUnits();
+      listings = all
+        .filter((u) => { const uc = norm(u.complex); const bn = norm(u.building && u.building.name); return (uc && (uc === cKey || uc.includes(cKey) || (uc.length >= 4 && cKey.includes(uc)))) || (bn && bn.includes(cKey)); })
+        .slice(0, 60)
+        .map((u) => ({ ...u, building: u.building ? { ...u.building, units: [] } : u.building }));
+    } catch (e) { console.error("complex listings:", e && e.message); }
+  }
+  const lSale = listings.filter((u) => u.deal === "sale");
+  const lRent = listings.filter((u) => u.deal !== "sale");
 
   const tags = complexTags(c);
   const tagKeys = ["sea", "installment", "investment", "renovated", "premium", "eco", tags.completed ? "completed" : "building"].filter((k) => tags[k]);
@@ -140,6 +160,20 @@ export default async function ComplexPage({ params }) {
                   );
                 })}
               </div>
+            </section>
+          )}
+
+          {listings.length > 0 && (
+            <section>
+              <h3>{lang === "en" ? "Listings in this complex" : lang === "ka" ? "განცხადებები ამ კომპლექსში" : "Объявления в этом комплексе"} · {listings.length}</h3>
+              {lSale.length > 0 && <>
+                <h4 style={{ margin: "8px 0" }}>{lang === "en" ? "For sale" : lang === "ka" ? "იყიდება" : "Продажа"} · {lSale.length}</h4>
+                <div className="cards bld-cards">{lSale.map((u) => <PropertyCard key={u.id} unit={u} />)}</div>
+              </>}
+              {lRent.length > 0 && <>
+                <h4 style={{ margin: "16px 0 8px" }}>{lang === "en" ? "For rent" : lang === "ka" ? "ქირავდება" : "Аренда"} · {lRent.length}</h4>
+                <div className="cards bld-cards">{lRent.map((u) => <PropertyCard key={u.id} unit={u} />)}</div>
+              </>}
             </section>
           )}
 
