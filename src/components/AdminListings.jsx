@@ -15,12 +15,14 @@ const TZ = "Asia/Tbilisi";
 const dayKey = (iso) => { if (!iso) return ""; try { return new Date(iso).toLocaleDateString("ru-RU", { timeZone: TZ, year: "numeric", month: "2-digit", day: "2-digit" }); } catch { return ""; } };
 const timeStr = (iso) => { if (!iso) return ""; try { return new Date(iso).toLocaleTimeString("ru-RU", { timeZone: TZ, hour: "2-digit", minute: "2-digit" }); } catch { return ""; } };
 const SRC = {
-  parser: { label: "Парсер", bg: "#EAF1FB", fg: "#1F5C99", line: "#C9DAF0" },
+  parser: { label: "Парсинг", bg: "#EAF1FB", fg: "#1F5C99", line: "#C9DAF0" },
   partner: { label: "Партнёр", bg: "#F6EEDC", fg: "#8A6418", line: "#E6D3A8" },
-  team: { label: "Baylux вручную", bg: "#F1ECF8", fg: "#5B3E96", line: "#D9CCEE" },
+  team: { label: "Мы вручную (Baylux)", bg: "#F1ECF8", fg: "#5B3E96", line: "#D9CCEE" },
+  self_owner: { label: "Собственник сам выложил", bg: "#E6F4EC", fg: "#1A7F37", line: "#B9DFC7" },
+  self_agent: { label: "Агент сам выложил", bg: "#FDEDE4", fg: "#B4441B", line: "#F4C7AE" },
   self: { label: "Сам выложил", bg: "#E6F4EC", fg: "#1A7F37", line: "#B9DFC7" },
 };
-const SRC_FILTERS = [["all", "Все источники"], ["self", "Сами выложили"], ["parser", "Парсер"], ["partner", "Партнёры"], ["team", "Baylux вручную"]];
+const SRC_FILTERS = [["all", "Все источники"], ["self_owner", "Собственник сам"], ["self_agent", "Агент сам"], ["team", "Мы вручную"], ["parser", "Парсинг"], ["partner", "Партнёры"]];
 const PAGE = 100; // рендерим порциями — 3800 карточек разом тормозили страницу
 
 export default function AdminListings({ initial, navBefore = null, navAfter = null }) {
@@ -159,7 +161,7 @@ export default function AdminListings({ initial, navBefore = null, navAfter = nu
                 {dayLabel(dayKey(r.created))} · {dayCount[dayKey(r.created)] || 0}
               </div>
             )}
-            <div style={{ display: "flex", gap: 12, alignItems: "center", border: `1px solid ${(SRC[r.source] || SRC.parser).line}`, borderLeft: `5px solid ${(SRC[r.source] || SRC.parser).fg}`, background: r.source === "self" ? SRC.self.bg : "#fff", borderRadius: 10, padding: 10, flexWrap: "wrap" }}>
+            <div style={{ display: "flex", gap: 12, alignItems: "center", border: `1px solid ${(SRC[r.source] || SRC.parser).line}`, borderLeft: `5px solid ${(SRC[r.source] || SRC.parser).fg}`, background: r.source === "self_owner" || r.source === "self_agent" ? SRC[r.source].bg : "#fff", borderRadius: 10, padding: 10, flexWrap: "wrap" }}>
               <img src={r.photo} alt="" loading="lazy" style={{ width: 64, height: 48, objectFit: "cover", borderRadius: 6, flex: "none" }} />
               <div style={{ flex: 1, minWidth: 180 }}>
                 <div style={{ fontWeight: 600, color: "var(--navy)", fontSize: 14, display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap" }}>

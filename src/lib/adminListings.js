@@ -4,7 +4,7 @@
 import { supa, fetchAll } from "@/lib/supabase";
 import { slugify } from "@/data/sheet";
 
-const LIGHT = "id,status,created_at,building_name,area,rooms,price,photo_hashes,batch_id,source_url,owner_email";
+const LIGHT = "id,status,created_at,building_name,area,rooms,price,photo_hashes,batch_id,source_url,owner_email,seller_type";
 const FULL = "id,deal,type,building_name,price,area,rooms,status,owner_email,tg_user_id,photos,owner_name,owner_phone,owner_tg_username,source_ref,source_url,batch_id,created_at,seller_type";
 const TZ = "Asia/Tbilisi";
 export const dayKey = (iso) => { if (!iso) return ""; try { return new Date(iso).toLocaleDateString("ru-RU", { timeZone: TZ, year: "numeric", month: "2-digit", day: "2-digit" }); } catch { return ""; } };
@@ -12,7 +12,9 @@ export const dayKey = (iso) => { if (!iso) return ""; try { return new Date(iso)
 export function sourceOf(r) {
   const baylux = r.owner_email && /^bayluxhome@/i.test(r.owner_email);
   if (r.batch_id || r.source_url) return r.owner_email && !baylux ? "partner" : "parser";
-  return baylux ? "team" : "self";
+  // 11.11 Дмитрий: «сам выложил» делим на собственника и агента (по seller_type; не указан = собственник).
+  if (baylux) return "team";
+  return r.seller_type === "agent" ? "self_agent" : "self_owner";
 }
 
 export async function loadAdminListings({ offset = 0, limit = 100, status = "all", source = "all", canSeeOwner = false } = {}) {
