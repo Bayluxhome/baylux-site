@@ -8,6 +8,7 @@ import { geocodeInCity } from "@/lib/geocode";
 import { translitAddress } from "@/lib/dict";
 import { normDeal, normType, perFor } from "@/lib/classify";
 import { moderationVerdict, publishApproved, reasonsText } from "@/lib/autoModeration";
+import { refineListing, aiFlagsText } from "@/lib/haikuListing";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -17,6 +18,12 @@ export const maxDuration = 300;
 const TOKEN = process.env.TELEGRAM_BOT_TOKEN;
 const ADMIN = process.env.TELEGRAM_CHAT_ID;
 const SITE = "https://bayluxhome.com";
+// T-20261118-04: Haiku-доредакция строк перед вставкой. BULK_HAIKU=off|shadow|on (по умолчанию off).
+// shadow — правки и флаги только в журнал Vercel и строкой в карточку модерации, данные не меняются;
+// on — правки применяются, флаги ИИ отправляют объект на модерацию («спорное»).
+// Только для небольших пачек (парсер шлёт по 1), чтобы не упереться в таймаут функции.
+const HAIKU_MODE = ["shadow", "on"].includes(process.env.BULK_HAIKU) ? process.env.BULK_HAIKU : "off";
+const HAIKU_MAX_ROWS = 20;
 const DEAL_RU = { sale: "Продажа", rent: "Аренда", daily: "Посуточно" };
 const esc = (s) => String(s == null ? "" : s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
 
@@ -140,8 +147,22 @@ export async function POST(req) {
     chunk.forEach((k, j) => geoMap.set(k, res[j]));
   }
 
-  for (const r of rows) {
+  for (let r of rows) {
     const refId = r.id != null ? String(r.id) : "?";
+    let ai = null;
+    if (HAIKU_MODE !== "off" && rows.length <= HAIKU_MAX_ROWS) {
+      try {
+        ai = await refineListing(r);
+        console.log("bulk haiku", HAIKU_MODE, refId, JSON.stringify({ ok: ai.ok, fixes: Object.keys(ai.fixes || {}), flags: ai.flags, note: ai.note, error: ai.error }));
+        if (ai.ok && HAIKU_MODE === "on") {
+          const f = ai.fixes;
+          r = { ...r,
+            ...(f.about ? { about: f.about } : {}), ...(f.address ? { address: f.address } : {}),
+            ...(f.rooms ? { rooms: f.rooms } : {}), ...(f.area ? { area: f.area } : {}), ...(f.floor ? { floor: f.floor } : {}),
+            ...(f.price_num ? { price: String(f.price_num) } : {}), ...(f.currency ? { currency: f.currency } : {}) };
+        }
+      } catch (e) { console.error("bulk haiku:", e?.message); ai = null; }
+    }
     const address = cleanAddress(r.address); // нормализуем адрес сразу при импорте
     if (!address) { errors.push({ id: refId, reason: "адрес" }); continue; }
     if (!(parseInt(String(r.price || "").replace(/[^\d]/g, ""), 10) || 0)) { errors.push({ id: refId, reason: "цена" }); continue; }
@@ -198,11 +219,12 @@ export async function POST(req) {
     // Автопубликация (20.10.2026): строка без подозрений (дубль по фото/полям, нет фото, мусорная цена)
     // публикуется сразу; с подозрением — остаётся на модерации, как раньше было для всей пачки.
     const verdict = await moderationVerdict(row);
+    if (HAIKU_MODE === "on" && ai?.ok && ai.flags.length) { verdict.reasons.push(...ai.flags.map((f) => "ИИ: " + aiFlagsText([f]))); verdict.approve = false; }
     row.status = verdict.approve ? "approved" : "pending";
     const { data: ins, error } = await supa.from("listings").insert(row).select("id").single();
     if (error) { errors.push({ id: refId, reason: "БД" }); continue; }
     // Храним весь row — он нужен для подробной карточки модерации каждого объекта.
-    inserted.push({ dbId: ins.id, refId, deal, type: row.type, city, price: row.price, geoOk, row, auto: verdict.approve, reasons: verdict.reasons });
+    inserted.push({ dbId: ins.id, refId, deal, type: row.type, city, price: row.price, geoOk, row, auto: verdict.approve, reasons: verdict.reasons, ai });
   }
 
   // Опубликованные автоматически — перевод, пост в канал, сброс кэша (как при одобрении в боте).
@@ -270,7 +292,8 @@ export async function POST(req) {
             dupNote = `\n⚠️ Возможный дубль — совпадают фото (объект ${ref})`;
           }
         }
-        const geoLine = x.geoOk ? "" : `\n⚠️ гео неточное (центр города)`;
+        const geoLine = (x.geoOk ? "" : `\n⚠️ гео неточное (центр города)`) +
+          (x.ai ? `\n🤖 Haiku${HAIKU_MODE === "shadow" ? " (тень)" : ""}: ${x.ai.ok ? `правки: ${Object.keys(x.ai.fixes).join(", ") || "нет"}; флаги: ${esc(aiFlagsText(x.ai.flags)) || "нет"}` : "ошибка"}` : "");
         const card =
           `🆕 <b>Объект Bayluxhome #${esc(x.refId)}</b>\n` +
           `${DEAL_RU[row.deal]} · ${esc(row.type)}\n` +
