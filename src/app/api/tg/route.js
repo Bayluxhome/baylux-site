@@ -10,6 +10,10 @@ import { geocodeInCity } from "@/lib/geocode";
 import { normType } from "@/lib/classify";
 import { CH_BATUMI, CH_TBILISI, pickChannel, postToChannel } from "@/lib/tgChannel";
 import { moderationVerdict, publishApproved, reasonsText } from "@/lib/autoModeration";
+import { getAllUnits } from "@/data/source";
+import { stripPrivate } from "@/lib/privacy";
+import { getUsdGel } from "@/lib/rate";
+import { parseStart, isStop, handleSubscribeStart, handleStop } from "@/lib/chat/subscribe";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -480,6 +484,21 @@ async function onMessage(msg) {
   const chat = msg.chat.id;
   const uid = msg.from.id;
   const text = (msg.text || "").trim();
+
+  // Подписка на подборки из чата Hanna (T-20261118-02): «/start s_<token>» и «/stop». Только личный чат.
+  const subToken = parseStart(text);
+  if ((subToken || isStop(text)) && msg.chat?.type === "private") {
+    const deps = {
+      db: supa, siteUrl: SITE, rate: await getUsdGel().catch(() => 2.7),
+      loadUnits: async () => (await getAllUnits()).map(stripPrivate),
+      send: (chat_id, html) => tg("sendMessage", { chat_id, text: html, parse_mode: "HTML", disable_web_page_preview: true }),
+    };
+    try {
+      if (subToken) await handleSubscribeStart(deps, msg, subToken);
+      else await handleStop(deps, msg);
+    } catch (e) { console.error("tg subscribe:", e?.message); }
+    return;
+  }
 
   if (text.startsWith("/start login_")) {
     const ltoken = text.slice("/start login_".length).trim();

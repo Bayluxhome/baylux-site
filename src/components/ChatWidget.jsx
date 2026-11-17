@@ -6,9 +6,9 @@ import { useEffect, useRef, useState } from "react";
 import { useLang } from "@/components/LangContext";
 
 const TXT = {
-  ru: { open: "Подобрать жильё", title: "Hanna · Baylux", hello: "Здравствуйте! Я Hanna, помогу подобрать квартиру из объявлений Baylux. Какой город и что ищете: аренду, посуточно или покупку?", ph: "Напишите сообщение…", send: "Отправить", close: "Закрыть", wait: "Печатает…" },
-  en: { open: "Find a home", title: "Hanna · Baylux", hello: "Hi! I'm Hanna. I can help you find a property from Baylux listings. Which city, and are you looking to rent, book daily or buy?", ph: "Type a message…", send: "Send", close: "Close", wait: "Typing…" },
-  ka: { open: "ბინის შერჩევა", title: "ჰანა · Baylux", hello: "გამარჯობა! მე ვარ ჰანა, დაგეხმარებით ბინის შერჩევაში Baylux-ის განცხადებებიდან. რომელი ქალაქი და რას ეძებთ: ქირა, დღიური თუ ყიდვა?", ph: "დაწერეთ შეტყობინება…", send: "გაგზავნა", close: "დახურვა", wait: "იწერება…" },
+  ru: { open: "Подобрать жильё", title: "Hanna · Baylux", hello: "Здравствуйте! Я Hanna, помогу подобрать квартиру из объявлений Baylux. Какой город и что ищете: аренду, посуточно или покупку?", ph: "Напишите сообщение…", send: "Отправить", close: "Закрыть", wait: "Печатает…", sub: "Получать подборки в Telegram", subNote: "Нажимая, вы соглашаетесь получать подборки от Baylux в Telegram. Отписаться — /stop" },
+  en: { open: "Find a home", title: "Hanna · Baylux", hello: "Hi! I'm Hanna. I can help you find a property from Baylux listings. Which city, and are you looking to rent, book daily or buy?", ph: "Type a message…", send: "Send", close: "Close", wait: "Typing…", sub: "Get selections in Telegram", subNote: "By tapping, you agree to receive selections from Baylux in Telegram. Unsubscribe — /stop" },
+  ka: { open: "ბინის შერჩევა", title: "ჰანა · Baylux", hello: "გამარჯობა! მე ვარ ჰანა, დაგეხმარებით ბინის შერჩევაში Baylux-ის განცხადებებიდან. რომელი ქალაქი და რას ეძებთ: ქირა, დღიური თუ ყიდვა?", ph: "დაწერეთ შეტყობინება…", send: "გაგზავნა", close: "დახურვა", wait: "იწერება…", sub: "შერჩევების მიღება Telegram-ში", subNote: "დაჭერით თანხმდებით, მიიღოთ Baylux-ის შერჩევები Telegram-ში. გამოწერის გაუქმება — /stop" },
 };
 
 // Ссылки в ответе делаем кликабельными; остальной текст — как текст (без HTML из ответа).
@@ -56,7 +56,9 @@ export default function ChatWidget({ enabled = false }) {
       });
       const j = await r.json().catch(() => ({}));
       if (j.conversationId) conv.current = j.conversationId;
-      setMsgs([...next, { role: "assistant", content: j.reply || "…" }]);
+      // subscribe — deep link на бота (кнопка подписки на подборки), только если сервер её выдал.
+      const sub = typeof j.subscribe === "string" && /^https:\/\/t\.me\/[A-Za-z0-9_]+\?start=s_[A-Za-z0-9_-]+$/.test(j.subscribe) ? j.subscribe : null;
+      setMsgs([...next, { role: "assistant", content: j.reply || "…", sub }]);
     } catch {
       setMsgs([...next, { role: "assistant", content: "…" }]);
     } finally { setBusy(false); }
@@ -84,6 +86,12 @@ export default function ChatWidget({ enabled = false }) {
           <div key={i} style={{ alignSelf: m.role === "user" ? "flex-end" : "flex-start", maxWidth: "85%", whiteSpace: "pre-wrap", fontSize: 14, lineHeight: 1.45, padding: "8px 11px", borderRadius: 12,
             background: m.role === "user" ? "var(--navy)" : "#fff", color: m.role === "user" ? "#fff" : "var(--ink)", border: m.role === "user" ? 0 : "1px solid var(--line)" }}>
             {m.role === "user" ? m.content : <Linkify text={m.content} />}
+            {m.sub && (
+              <div style={{ marginTop: 8 }}>
+                <a href={m.sub} target="_blank" rel="noopener" style={{ display: "inline-block", background: "var(--navy)", color: "#fff", border: "1.5px solid var(--gold)", borderRadius: 10, padding: "8px 12px", fontWeight: 600, fontSize: 13, textDecoration: "none" }}>✈️ {t.sub}</a>
+                <div style={{ marginTop: 6, fontSize: 11, lineHeight: 1.35, color: "var(--ink-soft)" }}>{t.subNote}</div>
+              </div>
+            )}
           </div>
         ))}
         {busy && <div style={{ fontSize: 13, color: "var(--ink-soft)" }}>{t.wait}</div>}

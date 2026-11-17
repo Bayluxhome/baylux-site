@@ -39,6 +39,9 @@ export default function PrivacyPage() {
       <h2>{t("pv_mkt_h")}</h2>
       <p>{t("pv_mkt")}</p>
 
+      <h2>{t("pv_tgsub_h")}</h2>
+      <p>{t("pv_tgsub")}</p>
+
       <h2>{t("pv_ret_h")}</h2>
       <p>{t("pv_ret")}</p>
 

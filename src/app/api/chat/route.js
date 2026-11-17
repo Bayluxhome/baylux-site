@@ -92,7 +92,7 @@ export async function POST(req) {
     const key = process.env.ANTHROPIC_API_KEY;
     if (!key) return Response.json({ ok: true, reply: STUB[lang], conversationId, stub: true });
 
-    const ctx = { shownIds: new Set(), allowAnyPublished: true, leadCreated: false };
+    const ctx = { shownIds: new Set(), allowAnyPublished: true, leadCreated: false, lang, subscribeUrl: null };
     const usedTools = [];
     let messages = history;
     let reply = "";
@@ -112,7 +112,7 @@ export async function POST(req) {
     }
     reply = noDash(reply) || ERR[lang];
     logTurn({ conversationId, ip, lang, userText, reply, tools: usedTools });
-    return Response.json({ ok: true, reply, conversationId, lead: ctx.leadCreated || undefined });
+    return Response.json({ ok: true, reply, conversationId, lead: ctx.leadCreated || undefined, subscribe: ctx.subscribeUrl || undefined });
   } catch (e) {
     console.error("chat:", e?.message);
     logTurn({ conversationId, ip, lang, userText, reply: "", tools: [], error: e?.message });

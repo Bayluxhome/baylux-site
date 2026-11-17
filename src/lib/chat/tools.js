@@ -2,6 +2,7 @@
 //   search_listings   — публичная выдача каталога (getAllUnits + stripPrivate), без контактов;
 //   create_collection — подборка в таблице collections (lib/collections.js), ссылка /c/<token>;
 //   create_lead       — заявка тем же путём, что /api/lead: запись в leads → deliverLead (Telegram).
+//   telegram_subscribe — подписка на подборки в Telegram (lib/chat/subscribe.js), кнопка с deep link в виджете.
 import { supa } from "@/lib/supabase";
 import { getAllUnits } from "@/data/source";
 import { stripPrivate } from "@/lib/privacy";
@@ -10,6 +11,7 @@ import { deliverLead, listingForLead } from "@/lib/leads";
 import { getUsdGel } from "@/lib/rate";
 import { SITE_URL } from "@/config";
 import { searchUnits } from "./search";
+import { createSubscription } from "./subscribe";
 
 const DEDUP_MIN = 10;
 
@@ -45,6 +47,7 @@ export async function runCollection(input, ctx) {
   };
   const { data, error } = await supa.from("collections").insert(row).select("token").single();
   if (error || !data) return { ok: false, error: "db" };
+  ctx.collectionToken = data.token; // для подписки в Telegram (telegram_subscribe)
   return { ok: true, url: `${SITE_URL}/c/${data.token}`, count: items.length };
 }
 
@@ -95,6 +98,7 @@ export async function runTool(name, input, ctx) {
     if (name === "search_listings") return await runSearch(input || {}, ctx);
     if (name === "create_collection") return await runCollection(input || {}, ctx);
     if (name === "create_lead") return await runLead(input || {}, ctx);
+    if (name === "telegram_subscribe") return await createSubscription(supa, input || {}, ctx);
     return { ok: false, error: "unknown_tool" };
   } catch (e) {
     console.error("chat tool", name, e?.message);

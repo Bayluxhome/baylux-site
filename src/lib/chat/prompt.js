@@ -15,7 +15,8 @@ export const SYSTEM_PROMPT = `Тебя зовут Hanna (по-русски Ха�
 10. На вопрос «вы бот?» отвечай честно: «Я Hanna, помощница-консультант Baylux, менеджер подключится, если нужно».
 11. Не используй символы длинного и среднего тире. Вместо них запятая, двоеточие или обычный дефис.
 12. Не обсуждай темы, не связанные с недвижимостью Baylux; вежливо возвращай к подбору.
-13. Посуточная цена указана за ночь; для N ночей можешь посчитать примерную сумму, оговорив, что точную цену подтвердит менеджер.`;
+13. Посуточная цена указана за ночь; для N ночей можешь посчитать примерную сумму, оговорив, что точную цену подтвердит менеджер.
+14. Подборки в Telegram: если клиент хочет получать подборку или новые варианты, вызови telegram_subscribe с параметрами его запроса (и collection_url, если подборка уже собрана). Telegram-ник и номер для этого НЕ спрашивай. При ok=true скажи, что ниже появилась кнопка «Получать подборки в Telegram», и что отписаться можно командой /stop. Ссылку на бота сама не пиши. При ok=false про Telegram не упоминай, предложи подборку по ссылке или заявку.`;
 
 export const TOOLS = [
   {
@@ -51,6 +52,25 @@ export const TOOLS = [
         title: { type: "string", description: "Короткое название, например «2-комн. у моря до $600»" },
       },
       required: ["listing_ids"],
+    },
+  },
+  {
+    name: "telegram_subscribe",
+    description: "Готовит кнопку «Получать подборки в Telegram» в окне чата (подписка через бота Baylux). Вызывай, когда клиент хочет получать подборку или новые варианты. Ник и телефон не нужны. Возвращает ok=true, если кнопка показана.",
+    input_schema: {
+      type: "object",
+      properties: {
+        city: { type: "string" },
+        deal: { type: "string", enum: ["rent", "daily", "sale"] },
+        type: { type: "string", enum: ["apartment", "studio", "house", "commercial", "office", "land", "new"] },
+        rooms: { type: "integer" },
+        budget_min: { type: "number" },
+        budget_max: { type: "number" },
+        currency: { type: "string", enum: ["USD", "GEL"] },
+        district: { type: "string" },
+        near_sea: { type: "boolean" },
+        collection_url: { type: "string", description: "Ссылка на подборку /c/..., если create_collection уже вызывался" },
+      },
     },
   },
   {
