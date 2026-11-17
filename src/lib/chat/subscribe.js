@@ -98,7 +98,7 @@ const esc = (s) => String(s == null ? "" : s).replace(/&/g, "&amp;").replace(/</
 /** Текст первой подборки (HTML для Telegram). units — публичная выдача (getAllUnits + stripPrivate). */
 export function firstSelectionText(sub, units, { siteUrl, rate } = {}) {
   const t = L(sub.lang);
-  const res = searchUnits(units, { ...(sub.query || {}), limit: 5 }, { rate, lang: sub.lang });
+  const res = searchUnits(units, { ...(sub.query || {}), limit: 5 }, { rate, lang: sub.lang, widen: false }); // подписка: только точные совпадения, без «поиска шире»
   const lines = [`✅ ${esc(t.subscribed)}`, ""];
   if (res.items.length) {
     lines.push(`<b>${esc(t.first)}</b>`);

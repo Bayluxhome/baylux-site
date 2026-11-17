@@ -25,14 +25,73 @@ const CITY_ALIASES = {
   "уреки": "Уреки", "ureki": "Уреки", "ურეკი": "Уреки",
   "квариати": "Квариати", "kvariati": "Квариати", "сарпи": "Сарпи", "sarpi": "Сарпи",
   "поти": "Поти", "poti": "Поти", "мцхета": "Мцхета", "mtskheta": "Мцхета",
+  // турецкий, немецкий и др. (тест Мозга 18.11 03:41: «Kiralık daire Batum» → город «Batum»)
+  "batum": "Батуми", "батум": "Батуми", "batoumi": "Батуми", "tiflis": "Тбилиси", "тифлис": "Тбилиси", "tbilissi": "Тбилиси",
+  "kutais": "Кутаиси", "koboleti": "Кобулети", "çakvi": "Чакви", "cakvi": "Чакви", "mahincauri": "Махинджаури", "makhindzhauri": "Махинджаури",
+  "sarp": "Сарпи", "kvariati": "Квариати", "mtsheta": "Мцхета",
 };
+// Пригороды: объект может стоять в базе с городом «Батуми», а пригород указан в адресе
+// (например «Ул. Ахалгазрдоба 16, Махинджаури»). Для них ищем ещё и по тексту адреса.
+const SUBURBS = new Set(["Гонио", "Махинджаури", "Чакви", "Сарпи", "Квариати", "Кобулети", "Уреки", "Мцхета"]);
+// Если в пригороде ничего нет: ближайший большой город (поиск шире, правило «перед "нет" ищи шире»).
+const NEAR_CITY = { "Гонио": "Батуми", "Махинджаури": "Батуми", "Чакви": "Батуми", "Сарпи": "Батуми", "Квариати": "Батуми", "Кобулети": "Батуми", "Уреки": "Батуми", "Поти": "Батуми", "Мцхета": "Тбилиси", "Рустави": "Тбилиси" };
+const foldKey = (x) => String(x || "").trim().toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/ı/g, "i").replace(/ё/g, "е");
 export function normCity(c) {
-  const k = String(c || "").trim().toLowerCase();
+  const raw = String(c || "").trim().replace(/[.,;]+$/, "");
+  const k = raw.toLowerCase();
   if (!k) return "";
-  return CITY_ALIASES[k] || String(c).trim().replace(/^./, (x) => x.toUpperCase());
+  if (CITY_ALIASES[k]) return CITY_ALIASES[k];
+  const f = foldKey(raw);
+  if (CITY_ALIASES[f]) return CITY_ALIASES[f];
+  // «Batum», «Batumi'de», «в Батуми», «Tbilisi city»: ищем известное название как начало слова.
+  const words = f.split(/[^a-zа-яა-ჿ]+/i).filter(Boolean);
+  for (const w of words) {
+    if (CITY_ALIASES[w]) return CITY_ALIASES[w];
+    if (w.length >= 4) {
+      const hit = Object.keys(CITY_ALIASES).find((key) => key.length >= 4 && (w.startsWith(key) || key.startsWith(w)));
+      if (hit) return CITY_ALIASES[hit];
+    }
+  }
+  return raw.replace(/^./, (x) => x.toUpperCase());
+}
+// Несколько городов в одном поле: «Махинджаури/Гонио», «Gonio, Makhinjauri», «Гонио или Чакви».
+export function parseCities(c) {
+  if (Array.isArray(c)) return [...new Set(c.map(normCity).filter(Boolean))];
+  const parts = String(c || "").split(/\s*(?:[\/,;|+&]|\s(?:или|и|or|and|ve|veya|ან|და)\s)\s*/i).filter(Boolean);
+  return [...new Set(parts.map(normCity).filter(Boolean))];
+}
+// Слово — точно название пригорода/города (без нечёткого поиска): «махинджаури», «gonio».
+function knownTown(w) {
+  const k = String(w || "").toLowerCase(), f = foldKey(w);
+  const c = CITY_ALIASES[k] || CITY_ALIASES[f] || "";
+  return SUBURBS.has(c) ? c : "";
+}
+// Все написания города (для поиска по тексту адреса).
+function cityNeedles(city) {
+  return [city.toLowerCase(), ...Object.keys(CITY_ALIASES).filter((k) => CITY_ALIASES[k] === city && k.length >= 4)];
 }
 
-const DEALS = { rent: "rent", sale: "sale", daily: "daily", buy: "sale", purchase: "sale", "long_rent": "rent", "short_rent": "daily" };
+const DEALS = {
+  rent: "rent", sale: "sale", daily: "daily", buy: "sale", purchase: "sale", "long_rent": "rent", "short_rent": "daily",
+  rental: "rent", lease: "rent", monthly: "rent", "аренда": "rent", "снять": "rent", "kiralik": "rent", "kira": "rent", "miete": "rent",
+  "покупка": "sale", "продажа": "sale", "купить": "sale", "satilik": "sale", "satis": "sale", "kauf": "sale",
+  "посуточно": "daily", "посуточная": "daily", "gunluk": "daily", "nightly": "daily", "short": "daily",
+};
+const normDealArg = (d) => DEALS[String(d || "").toLowerCase()] || DEALS[foldKey(d)] || "";
+
+// Тип: модель может прислать синоним или слово клиента. Офис и коммерция — одна группа
+// (в базе офис часто заведён как «Коммерция»): office → сначала офисы, затем коммерция.
+const TYPE_SYN = {
+  apartment: "apartment", flat: "apartment", "квартира": "apartment", daire: "apartment", wohnung: "apartment",
+  studio: "studio", "студия": "studio", stüdyo: "studio", studyo: "studio",
+  house: "house", villa: "house", cottage: "house", "дом": "house", ev: "house", haus: "house",
+  commercial: "commercial", "коммерция": "commercial", retail: "commercial", shop: "commercial", "магазин": "commercial", dukkan: "commercial", isyeri: "commercial",
+  office: "office", "офис": "office", ofis: "office", buro: "office", "büro": "office",
+  land: "land", plot: "land", "участок": "land", arsa: "land",
+  new: "new", "новостройка": "new", newbuild: "new",
+  warehouse: "warehouse", garage: "garage",
+};
+const normType = (t) => { const k = String(t || "").toLowerCase().trim(); return TYPE_SYN[k] || TYPE_SYN[foldKey(k)] || k; };
 
 // Категория по типу — как unitCat в data/data.js (копия, чтобы модуль был чистым).
 export function unitCat(type) {
@@ -168,28 +227,26 @@ function catalogLink({ deal, city, type, rooms, a, bmin, bmax, ppm, sort }) {
 // Сортировка: price_asc (запросы «недорого», «дешевле», «cheap»), price_desc, newest, ppm_asc.
 const SORTS = new Set(["price_asc", "price_desc", "newest", "ppm_asc"]);
 
-export function searchUnits(units, args = {}, { rate = 2.7, lang = "ru" } = {}) {
-  const a = args || {};
-  const sortArg = String(a.sort || "").toLowerCase();
-  const limit = Math.min(5, Math.max(1, parseInt(a.limit, 10) || 5));
-  const city = normCity(a.city);
-  const deal = DEALS[String(a.deal || "").toLowerCase()] || "";
-  const type = String(a.type || "").toLowerCase();
-  const rooms = a.rooms != null && a.rooms !== "" ? parseInt(a.rooms, 10) : null;
-  const toUsd = (x) => { const n = Number(x) || 0; return String(a.currency || "").toUpperCase() === "GEL" ? n / rate : n; };
-  const bmax = toUsd(a.budget_max), bmin = toUsd(a.budget_min);
-  const district = String(a.district || "").trim().toLowerCase();
-  const nearSea = a.near_sea === true || a.near_sea === "true";
-  const ppmMax = Number(a.price_per_m2_max) || 0, ppmMin = Number(a.price_per_m2_min) || 0;
-  const byPpm = (ppmMax > 0 || ppmMin > 0) && sortArg !== "price_asc" && sortArg !== "price_desc" || sortArg === "ppm_asc";
-  const sort = SORTS.has(sortArg) ? sortArg : (byPpm ? "ppm_asc" : "");
-
+// Строгий отбор по всем условиям. Возвращает { list, relaxed }.
+function filterUnits(units, q, rate) {
+  const { cities, deal, type, rooms, bmin, bmax, district, nearSea, ppmMin, ppmMax, a } = q;
   let list = Array.isArray(units) ? units : [];
   if (deal) list = list.filter((u) => u.deal === deal);
   if (deal === "daily") list = list.filter((u) => ["apartment", "house"].includes(unitCat(u.type)));
-  if (city) list = list.filter((u) => (u.building?.district || "") === city);
+  if (cities.length) {
+    list = list.filter((u) => {
+      const d = u.building?.district || "";
+      if (cities.includes(d)) return true;
+      // пригород в адресе объекта, заведённого под соседним городом
+      const sub = cities.filter((c) => SUBURBS.has(c));
+      if (!sub.length) return false;
+      const hay = [u.building?.name, u.building?.name_en, u.building?.name_ka, u.complex, u.building?.complex].filter(Boolean).join(" ").toLowerCase();
+      return sub.some((c) => cityNeedles(c).some((n) => hay.includes(n)));
+    });
+  }
   if (type === "new") list = list.filter(isNew);
   else if (type === "studio") list = list.filter((u) => u.type === "Студия");
+  else if (type === "office" || type === "commercial") list = list.filter((u) => ["office", "commercial"].includes(unitCat(u.type)));
   else if (type) list = list.filter((u) => unitCat(u.type) === type);
   if (bmin) list = list.filter((u) => priceUsd(u, rate) >= bmin);
   if (bmax) list = list.filter((u) => { const p = priceUsd(u, rate); return p > 0 && p <= bmax; });
@@ -200,10 +257,11 @@ export function searchUnits(units, args = {}, { rate = 2.7, lang = "ru" } = {}) 
   if (a.floor_min) list = list.filter((u) => { const f = floorNum(u); return f != null && f >= Number(a.floor_min); });
   if (a.floor_max) list = list.filter((u) => { const f = floorNum(u); return f != null && f <= Number(a.floor_max); });
   if (district) {
-    const needles = district.split(/\s+/).filter(Boolean);
+    // «Махинджаури/Гонио», «Ваке или Сабуртало» → любой из вариантов; слова внутри варианта — все.
+    const groups = district.split(/\s*(?:[\/,;|]|\s(?:или|or|veya|ან)\s)\s*/i).map((g) => g.split(/\s+/).filter(Boolean)).filter((g) => g.length);
     list = list.filter((u) => {
-      const hay = [u.building?.name, u.building?.name_en, u.building?.name_ka, u.complex, u.building?.complex, u.about, u.desc_ru, u.desc_en].filter(Boolean).join(" ").toLowerCase();
-      return needles.every((n) => hay.includes(n));
+      const hay = [u.building?.name, u.building?.name_en, u.building?.name_ka, u.building?.district, u.complex, u.building?.complex, u.about, u.desc_ru, u.desc_en].filter(Boolean).join(" ").toLowerCase();
+      return groups.some((g) => g.every((n) => hay.includes(n) || (normCity(n) !== n.replace(/^./, (x) => x.toUpperCase()) && cityNeedles(normCity(n)).some((cn) => hay.includes(cn)))));
     });
   }
   if (nearSea) list = list.filter((u) => COAST.has(u.building?.district || ""));
@@ -219,9 +277,82 @@ export function searchUnits(units, args = {}, { rate = 2.7, lang = "ru" } = {}) 
       list = [...exact, ...unknown];
     }
   }
+  return { list, relaxed };
+}
+
+/**
+ * Если строгий поиск дал 0 — ищем шире, по шагам, пока не найдётся (тест Мозга 18.11 03:41,
+ * правило «прежде чем сказать "нет", повторить поиск шире и назвать ближайшее»):
+ *   district → площадь/этаж → комнаты → тип (офис ↔ коммерция уже вместе) → «у моря» → пригород → ближайший город
+ *   → бюджет +30% → бюджет без потолка (ближайшие по цене).
+ * Сделку (аренда/покупка/посуточно) не меняем никогда.
+ */
+function widenSteps(q) {
+  const steps = [];
+  let cur = { ...q, a: { ...q.a } };
+  const push = (code, mut) => { cur = { ...cur, a: { ...cur.a } }; mut(cur); steps.push({ code, q: cur }); };
+  if (cur.district) push("district_dropped", (c) => { c.district = ""; });
+  const near = [...new Set(cur.cities.map((c) => NEAR_CITY[c]).filter(Boolean))];
+  if (near.length) push("nearby_city:" + near.join(","), (c) => { c.cities = [...new Set([...c.cities, ...near])]; });
+  if (cur.a.area_min || cur.a.area_max || cur.a.floor_min || cur.a.floor_max) push("area_floor_dropped", (c) => { c.a.area_min = c.a.area_max = c.a.floor_min = c.a.floor_max = 0; });
+  if (cur.ppmMin || cur.ppmMax) push("price_per_m2_dropped", (c) => { c.ppmMin = c.ppmMax = 0; });
+  if (cur.rooms != null && !Number.isNaN(cur.rooms)) push("rooms_dropped", (c) => { c.rooms = null; });
+  if (cur.bmax) push("budget_plus_30", (c) => { c.bmax = c.bmax * 1.3; });
+  if (cur.type) push("type_dropped", (c) => { c.type = ""; });
+  if (cur.nearSea) push("near_sea_dropped", (c) => { c.nearSea = false; });
+  if (cur.bmax || cur.bmin) push("budget_dropped", (c) => { c.bmax = 0; c.bmin = 0; c.nearestTo = q.bmax || q.bmin; });
+  if (cur.cities.length) push("city_dropped", (c) => { c.cities = []; });
+  return steps;
+}
+
+export function searchUnits(units, args = {}, { rate = 2.7, lang = "ru", widen = true } = {}) {
+  const a = args || {};
+  const sortArg = String(a.sort || "").toLowerCase();
+  const limit = Math.min(5, Math.max(1, parseInt(a.limit, 10) || 5));
+  const cities = parseCities(a.city);
+  const city = cities[0] || "";
+  const deal = normDealArg(a.deal);
+  const type = normType(a.type);
+  const rooms = a.rooms != null && a.rooms !== "" ? parseInt(a.rooms, 10) : null;
+  const toUsd = (x) => { const n = Number(x) || 0; return String(a.currency || "").toUpperCase() === "GEL" ? n / rate : n; };
+  const bmax = toUsd(a.budget_max), bmin = toUsd(a.budget_min);
+  let district = String(a.district || "").trim().toLowerCase();
+  // В районе указан пригород («Махинджаури», «Гонио»): в базе это отдельный город — ищем по городу.
+  const dWords = district.split(/[\s\/,;|]+/).filter(Boolean);
+  const dTowns = dWords.map(knownTown).filter(Boolean);
+  if (dTowns.length) {
+    // город-«родитель» (Батуми для Махинджаури/Гонио) убираем: он вернётся только при поиске шире
+    for (let i = cities.length - 1; i >= 0; i--) if (dTowns.some((t) => NEAR_CITY[t] === cities[i])) cities.splice(i, 1);
+    dTowns.forEach((t) => { if (!cities.includes(t)) cities.push(t); });
+    district = dWords.filter((w) => !knownTown(w) && !/^(или|и|or|and|ve|veya|ან|და)$/i.test(w)).join(" ");
+  }
+  const nearSea = a.near_sea === true || a.near_sea === "true";
+  const ppmMax = Number(a.price_per_m2_max) || 0, ppmMin = Number(a.price_per_m2_min) || 0;
+  const byPpm = (ppmMax > 0 || ppmMin > 0) && sortArg !== "price_asc" && sortArg !== "price_desc" || sortArg === "ppm_asc";
+  const sort = SORTS.has(sortArg) ? sortArg : (byPpm ? "ppm_asc" : "");
+
+  const q0 = { cities, deal, type, rooms, bmin, bmax, district, nearSea, ppmMin, ppmMax, a: { ...a }, nearestTo: 0 };
+  let { list, relaxed } = filterUnits(units, q0, rate);
+  const exactTotal = list.length;
+  let used = q0;
+  const widened = [];
+  if (widen && !list.length && (Array.isArray(units) && units.length)) {
+    for (const st of widenSteps(q0)) {
+      widened.push(st.code);
+      const r = filterUnits(units, st.q, rate);
+      if (r.list.length) { list = r.list; relaxed = r.relaxed; used = st.q; break; }
+    }
+    if (!list.length) widened.length = 0; // по этой сделке на сайте вообще ничего нет
+  }
 
   // Ранжирование: при фильтре по цене за м² — от меньшей цены за м²; иначе у моря (если просили) → продвигаемые → новее.
+  // При поиске шире по бюджету — ближайшие к бюджету клиента; офис при запросе офиса — выше коммерции.
+  const wantOffice = type === "office";
+  const near = used.nearestTo || 0;
   const ranked = [...list].sort((x, y) =>
+    (near ? Math.abs((priceUsd(x, rate) || 1e12) - near) - Math.abs((priceUsd(y, rate) || 1e12) - near) : 0) ||
+    (wantOffice ? (unitCat(y.type) === "office") - (unitCat(x.type) === "office") : 0) ||
+    (used.cities.length > 1 && cities.length ? (cities.includes(y.building?.district) ? 1 : 0) - (cities.includes(x.building?.district) ? 1 : 0) : 0) ||
     (byPpm ? (ppmUsd(x, rate) || Infinity) - (ppmUsd(y, rate) || Infinity) : 0) ||
     (sort === "price_asc" ? (priceUsd(x, rate) || Infinity) - (priceUsd(y, rate) || Infinity) : 0) ||
     (sort === "price_desc" ? (priceUsd(y, rate) || 0) - (priceUsd(x, rate) || 0) : 0) ||
@@ -230,7 +361,15 @@ export function searchUnits(units, args = {}, { rate = 2.7, lang = "ru" } = {}) 
     ((y.boost || 0) - (x.boost || 0)) ||
     String(y.created_at || "").localeCompare(String(x.created_at || "")));
 
-  const link = catalogLink({ deal, city, type, rooms, a, bmin, bmax, ppm: byPpm, sort });
+  const linkCity = used.cities.length === 1 ? used.cities[0] : (used.cities.includes(city) && SUBURBS.has(city) && used.cities.length > 1 ? used.cities.find((c) => !SUBURBS.has(c)) || city : city);
+  const link = catalogLink({ deal, city: linkCity, type: used.type === "office" ? "commercial" : used.type, rooms: used.rooms, a: used.a, bmin: used.bmin, bmax: used.bmax, ppm: byPpm && (used.ppmMin || used.ppmMax), sort });
   const items = ranked.slice(0, limit).map((u) => toCard(u, rate, lang));
-  return { total: list.length, shown: items.length, sort: sort || "recommended", items, relaxed, catalog_url: link.url, catalog_exact: link.exact && !relaxed.length };
+  const res = { total: list.length, shown: items.length, sort: sort || "recommended", items, relaxed, catalog_url: link.url, catalog_exact: link.exact && !relaxed.length && !widened.length && !["office", "commercial"].includes(used.type) && cities.length <= 1 && !dTowns.length };
+  if (widened.length) {
+    // Точно под запрос 0. Показаны ближайшие варианты, total — число вариантов после расширения.
+    res.exact_total = exactTotal;
+    res.widened = widened;
+    res.note = "Точно под все условия вариантов нет (exact_total=0). Показаны ближайшие: ослаблены условия из widened. Скажи клиенту, что именно ослаблено, и покажи эти варианты. Не говори, что вариантов нет.";
+  }
+  return res;
 }
