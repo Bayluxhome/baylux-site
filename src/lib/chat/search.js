@@ -1,0 +1,151 @@
+// Чат-подборщик (T-20261118-02): поиск по опубликованным объектам.
+//
+// Чистая функция без серверных импортов: на вход — публичная выдача каталога
+// (getAllUnits(): только approved, не в архиве, с фото, дедуп, уже после stripPrivate),
+// на выход — 3–5 карточек без каких-либо контактов. Те же правила фильтров, что у /catalog.
+// Модуль самодостаточный, чтобы его можно было прогнать тестом на реальной выдаче.
+
+const COAST = new Set(["Батуми", "Кобулети", "Гонио", "Чакви", "Махинджаури", "Сарпи", "Квариати", "Уреки", "Поти"]);
+
+// Город: модель может прислать его на любом языке — приводим к ключу базы (по-русски).
+const CITY_ALIASES = {
+  "батуми": "Батуми", "batumi": "Батуми", "ბათუმი": "Батуми",
+  "тбилиси": "Тбилиси", "tbilisi": "Тбилиси", "თბილისი": "Тбилиси",
+  "кобулети": "Кобулети", "kobuleti": "Кобулети", "ქობულეთი": "Кобулети",
+  "гонио": "Гонио", "gonio": "Гонио", "გონიო": "Гонио",
+  "чакви": "Чакви", "chakvi": "Чакви", "ჩაქვი": "Чакви",
+  "махинджаури": "Махинджаури", "makhinjauri": "Махинджаури", "მახინჯაური": "Махинджаури",
+  "кутаиси": "Кутаиси", "kutaisi": "Кутаиси", "ქუთაისი": "Кутаиси",
+  "рустави": "Рустави", "rustavi": "Рустави", "რუსთავი": "Рустави",
+  "бакуриани": "Бакуриани", "bakuriani": "Бакуриани", "ბაკურიანი": "Бакуриани",
+  "гудаури": "Гудаури", "gudauri": "Гудаури", "გუდაური": "Гудаури",
+  "уреки": "Уреки", "ureki": "Уреки", "ურეკი": "Уреки",
+  "квариати": "Квариати", "kvariati": "Квариати", "сарпи": "Сарпи", "sarpi": "Сарпи",
+  "поти": "Поти", "poti": "Поти", "мцхета": "Мцхета", "mtskheta": "Мцхета",
+};
+export function normCity(c) {
+  const k = String(c || "").trim().toLowerCase();
+  if (!k) return "";
+  return CITY_ALIASES[k] || String(c).trim().replace(/^./, (x) => x.toUpperCase());
+}
+
+const DEALS = { rent: "rent", sale: "sale", daily: "daily", buy: "sale", purchase: "sale", "long_rent": "rent", "short_rent": "daily" };
+
+// Категория по типу — как unitCat в data/data.js (копия, чтобы модуль был чистым).
+export function unitCat(type) {
+  const t = (type || "").toLowerCase();
+  if (/студи|квартир|апарт|новострой/.test(t)) return "apartment";
+  if (/коттедж|вилл|таун|особняк|дом/.test(t)) return "house";
+  if (/офис/.test(t)) return "office";
+  if (/склад/.test(t)) return "warehouse";
+  if (/участ|земл/.test(t)) return "land";
+  if (/гараж|паркинг|машино/.test(t)) return "garage";
+  if (/коммерц|ритейл|торг/.test(t)) return "commercial";
+  return "other";
+}
+const isNew = (u) => u.isNew === true || /новострой/i.test(u.type || "");
+const priceVal = (u) => u.priceNum || (parseInt(String(u.price || "").replace(/[^\d]/g, ""), 10) || 0);
+
+// Цена объекта в USD (база хранит USD или GEL).
+function priceUsd(u, rate) {
+  const v = priceVal(u);
+  if (!v) return 0;
+  return u.currency === "GEL" ? v / (rate || 2.7) : v;
+}
+
+// «У моря»: отметки в удобствах/тексте; в приморском городе без отметок объект не отбрасываем,
+// а ставим ниже (рейтинг), чтобы не выдумывать близость к морю.
+const SEA_RE = /рядом (с )?мор|у моря|перв(ая|ой) лини|вид на море|море в|\bsea\b|seaview|sea view|beach|ზღვ/i;
+function seaScore(u) {
+  const am = Array.isArray(u.amenities) ? u.amenities.join(" ") : String(u.amenities || "");
+  const txt = [am, u.about, u.desc_ru, u.desc_en, u.building?.about].filter(Boolean).join(" ");
+  if (/перв(ая|ой) лини/i.test(txt)) return 2;
+  return SEA_RE.test(txt) ? 1 : 0;
+}
+
+function floorNum(u) { const m = String(u.floor || "").match(/\d+/); return m ? parseInt(m[0], 10) : null; }
+
+// Подпись цены для ответа.
+function priceLabel(u) {
+  const v = priceVal(u);
+  if (!v) return "цена по запросу";
+  const s = (u.currency === "GEL" ? "₾" : "$") + String(Math.round(v)).replace(/\B(?=(\d{3})+(?!\d))/g, " ");
+  return s + (u.deal === "rent" ? " / мес" : u.deal === "daily" ? " / ночь" : "");
+}
+
+// Карточка для модели: только публичные поля и ссылка. Никаких контактов.
+export function toCard(u) {
+  return {
+    id: String(u.id),
+    title: [u.type, u.rooms ? `${u.rooms} комн.` : (u.type === "Студия" ? "" : "комнаты не указаны"), u.area ? `${u.area} м²` : ""].filter(Boolean).join(", "),
+    deal: u.deal,
+    price: priceLabel(u),
+    city: u.building?.district || "",
+    address: u.building?.name || "",
+    complex: u.complex || u.building?.complex || "",
+    floor: u.floor && u.floor !== "—" ? String(u.floor) : "",
+    new_building: isNew(u),
+    sea: seaScore(u) > 0,
+    url: `/property/${u.slug}`,
+  };
+}
+
+/**
+ * Поиск по публичной выдаче.
+ * args: { city, deal: rent|daily|sale, type: apartment|studio|house|commercial|new, rooms, budget_max, budget_min,
+ *         currency: USD|GEL, district (текст: район/улица/ЖК), area_min, area_max, floor_min, floor_max, near_sea, limit }
+ * Возвращает { total, items: [карточки], relaxed: [какие условия ослаблены] }.
+ */
+export function searchUnits(units, args = {}, { rate = 2.7 } = {}) {
+  const a = args || {};
+  const limit = Math.min(5, Math.max(1, parseInt(a.limit, 10) || 5));
+  const city = normCity(a.city);
+  const deal = DEALS[String(a.deal || "").toLowerCase()] || "";
+  const type = String(a.type || "").toLowerCase();
+  const rooms = a.rooms != null && a.rooms !== "" ? parseInt(a.rooms, 10) : null;
+  const toUsd = (x) => { const n = Number(x) || 0; return String(a.currency || "").toUpperCase() === "GEL" ? n / rate : n; };
+  const bmax = toUsd(a.budget_max), bmin = toUsd(a.budget_min);
+  const district = String(a.district || "").trim().toLowerCase();
+  const nearSea = a.near_sea === true || a.near_sea === "true";
+
+  let list = Array.isArray(units) ? units : [];
+  if (deal) list = list.filter((u) => u.deal === deal);
+  if (deal === "daily") list = list.filter((u) => ["apartment", "house"].includes(unitCat(u.type)));
+  if (city) list = list.filter((u) => (u.building?.district || "") === city);
+  if (type === "new") list = list.filter(isNew);
+  else if (type === "studio") list = list.filter((u) => u.type === "Студия");
+  else if (type) list = list.filter((u) => unitCat(u.type) === type);
+  if (bmin) list = list.filter((u) => priceUsd(u, rate) >= bmin);
+  if (bmax) list = list.filter((u) => { const p = priceUsd(u, rate); return p > 0 && p <= bmax; });
+  if (a.area_min) list = list.filter((u) => (u.area || 0) >= Number(a.area_min));
+  if (a.area_max) list = list.filter((u) => (u.area || 0) > 0 && u.area <= Number(a.area_max));
+  if (a.floor_min) list = list.filter((u) => { const f = floorNum(u); return f != null && f >= Number(a.floor_min); });
+  if (a.floor_max) list = list.filter((u) => { const f = floorNum(u); return f != null && f <= Number(a.floor_max); });
+  if (district) {
+    const needles = district.split(/\s+/).filter(Boolean);
+    list = list.filter((u) => {
+      const hay = [u.building?.name, u.building?.name_en, u.building?.name_ka, u.complex, u.building?.complex, u.about, u.desc_ru, u.desc_en].filter(Boolean).join(" ").toLowerCase();
+      return needles.every((n) => hay.includes(n));
+    });
+  }
+  if (nearSea) list = list.filter((u) => COAST.has(u.building?.district || ""));
+
+  // Комнаты: точное совпадение; если таких мало — добираем объекты, где комнаты не указаны (помечены).
+  const relaxed = [];
+  if (rooms != null && !Number.isNaN(rooms)) {
+    const exact = list.filter((u) => (rooms === 0 ? u.type === "Студия" : rooms >= 4 ? u.rooms >= 4 : u.type !== "Студия" && u.rooms === rooms));
+    if (exact.length >= 3 || rooms === 0) list = exact;
+    else {
+      const unknown = list.filter((u) => !u.rooms && u.type !== "Студия" && (!u.area || (u.area >= 25 + rooms * 15)));
+      if (unknown.length) relaxed.push("rooms_unknown_included");
+      list = [...exact, ...unknown];
+    }
+  }
+
+  // Ранжирование: у моря (если просили) → продвигаемые → новее.
+  const ranked = [...list].sort((x, y) =>
+    (nearSea ? seaScore(y) - seaScore(x) : 0) ||
+    ((y.boost || 0) - (x.boost || 0)) ||
+    String(y.created_at || "").localeCompare(String(x.created_at || "")));
+  return { total: list.length, items: ranked.slice(0, limit).map(toCard), relaxed };
+}

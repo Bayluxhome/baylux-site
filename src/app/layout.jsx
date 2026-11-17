@@ -7,6 +7,7 @@ import AnalyticsConsent from "@/components/AnalyticsConsent";
 import GoogleAnalytics from "@/components/GoogleAnalytics";
 import MetaPixel from "@/components/MetaPixel";
 import VisitTracker from "@/components/VisitTracker";
+import ChatWidget from "@/components/ChatWidget";
 import CurrencyManager from "@/components/CurrencyManager";
 import { FilterProvider } from "@/components/FilterContext";
 import { LangProvider } from "@/components/LangContext";
@@ -92,6 +93,8 @@ export default async function RootLayout({ children }) {
             <GoogleAnalytics />
             <MetaPixel />
             <VisitTracker />
+            {/* Чат-подборщик (T-20261118-02): виден только при CHAT_WIDGET=on или ?chat=1 */}
+            {!bare && <ChatWidget enabled={process.env.CHAT_WIDGET === "on"} />}
           </FilterProvider>
         </LangProvider>
       </body>
