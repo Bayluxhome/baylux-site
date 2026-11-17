@@ -1,6 +1,7 @@
 import { cookies } from "next/headers";
 import { verifySession, can, isResponsible } from "@/lib/session";
 import { supa } from "@/lib/supabase";
+import { isOurPhotoUrl } from "@/lib/photoStore";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -15,7 +16,7 @@ export async function POST(req) {
 
   // Принимаем только ссылки из нашего хранилища (загруженные через /api/upload-photo) — не произвольные URL.
   const photos = Array.isArray(b.photos)
-    ? b.photos.filter((u) => typeof u === "string" && u.includes("/storage/v1/object/public/listing-photos/")).slice(0, 20)
+    ? b.photos.filter((u) => isOurPhotoUrl(u)).slice(0, 20)
     : [];
   const note = (b.note || "").toString().trim().slice(0, 1000);
   if (!b.listingId || (!photos.length && !note)) return Response.json({ ok: false, error: "empty" }, { status: 400 });

@@ -1,6 +1,7 @@
 import { cookies } from "next/headers";
 import { verifySession } from "@/lib/session";
 import { supa } from "@/lib/supabase";
+import { storePhoto, r2Enabled } from "@/lib/photoStore";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -17,7 +18,7 @@ function sniff(b) {
 export async function POST(req) {
   const session = verifySession(cookies().get("bx_session")?.value);
   if (!session) return Response.json({ ok: false, error: "auth" }, { status: 401 });
-  if (!supa) return Response.json({ ok: false }, { status: 500 });
+  if (!supa && !r2Enabled()) return Response.json({ ok: false }, { status: 500 });
   const form = await req.formData();
   const f = form.get("photo");
   if (!f || typeof f.arrayBuffer !== "function") return Response.json({ ok: false });
@@ -29,8 +30,8 @@ export async function POST(req) {
   if (buf.length > 10 * 1024 * 1024) return Response.json({ ok: false, error: "size" }, { status: 413 });
   const kind = sniff(buf);
   if (!kind) return Response.json({ ok: false, error: "type" }, { status: 415 });
-  const name = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${kind.ext}`;
-  const up = await supa.storage.from("listing-photos").upload(name, buf, { contentType: kind.mime });
-  if (up.error) return Response.json({ ok: false });
-  return Response.json({ ok: true, url: supa.storage.from("listing-photos").getPublicUrl(name).data.publicUrl });
+  // R2 + WebP, если заданы R2_*; иначе — как раньше, Supabase Storage (см. lib/photoStore.js).
+  const saved = await storePhoto(buf, kind);
+  if (!saved) return Response.json({ ok: false });
+  return Response.json({ ok: true, url: saved.url, ...(saved.thumb ? { thumb: saved.thumb } : {}) });
 }
