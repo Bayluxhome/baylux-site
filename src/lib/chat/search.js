@@ -4,6 +4,9 @@
 // (getAllUnits(): только approved, не в архиве, с фото, дедуп, уже после stripPrivate),
 // на выход — 3–5 карточек без каких-либо контактов. Те же правила фильтров, что у /catalog.
 // Модуль самодостаточный, чтобы его можно было прогнать тестом на реальной выдаче.
+// Подписи карточек (тип, город, адрес, «/ мес», «цена по запросу») — на языке клиента (opts.lang),
+// адрес через formatAddress (lib/address.js, без импортов): без смеси алфавитов в одном слове.
+import { formatAddress } from "../address.js";
 
 const COAST = new Set(["Батуми", "Кобулети", "Гонио", "Чакви", "Махинджаури", "Сарпи", "Квариати", "Уреки", "Поти"]);
 
@@ -71,25 +74,51 @@ function ppmUsd(u, rate) {
 
 function floorNum(u) { const m = String(u.floor || "").match(/\d+/); return m ? parseInt(m[0], 10) : null; }
 
+// Подписи на языке клиента.
+const L = {
+  ru: { month: " / мес", night: " / ночь", req: "цена по запросу", rooms: "комн.", noRooms: "комнаты не указаны", m2: "м²" },
+  en: { month: " / month", night: " / night", req: "price on request", rooms: "rooms", noRooms: "rooms not specified", m2: "m²" },
+  ka: { month: " / თვე", night: " / ღამე", req: "ფასი მოთხოვნით", rooms: "ოთახი", noRooms: "ოთახები არ არის მითითებული", m2: "მ²" },
+};
+const TYPE_L = {
+  en: { "Квартира": "Apartment", "Студия": "Studio", "Дом": "House", "Коммерция": "Commercial", "Офис": "Office", "Участок": "Land", "Гараж": "Garage", "Новостройка": "New building", "Апартаменты": "Apartment", "Коттедж": "Cottage", "Вилла": "Villa", "Таунхаус": "Townhouse", "Склад": "Warehouse" },
+  ka: { "Квартира": "ბინა", "Студия": "სტუდიო", "Дом": "სახლი", "Коммерция": "კომერციული", "Офис": "ოფისი", "Участок": "მიწის ნაკვეთი", "Гараж": "ავტოფარეხი", "Новостройка": "ახალი აშენებული", "Апартаменты": "აპარტამენტი", "Коттедж": "კოტეჯი", "Вилла": "ვილა", "Таунхаус": "თაუნჰაუსი", "Склад": "საწყობი" },
+};
+const CITY_L = {
+  en: { "Батуми": "Batumi", "Тбилиси": "Tbilisi", "Кобулети": "Kobuleti", "Гонио": "Gonio", "Чакви": "Chakvi", "Махинджаури": "Makhinjauri", "Кутаиси": "Kutaisi", "Рустави": "Rustavi", "Бакуриани": "Bakuriani", "Гудаури": "Gudauri", "Уреки": "Ureki", "Квариати": "Kvariati", "Сарпи": "Sarpi", "Поти": "Poti", "Мцхета": "Mtskheta" },
+  ka: { "Батуми": "ბათუმი", "Тбилиси": "თბილისი", "Кобулети": "ქობულეთი", "Гонио": "გონიო", "Чакви": "ჩაქვი", "Махинджаури": "მახინჯაური", "Кутаиси": "ქუთაისი", "Рустави": "რუსთავი", "Бакуриани": "ბაკურიანი", "Гудаури": "გუდაური", "Уреки": "ურეკი", "Квариати": "კვარიათი", "Сарпи": "სარფი", "Поти": "ფოთი", "Мцхета": "მცხეთა" },
+};
+const langOf = (x) => (L[x] ? x : "ru");
+
+function addrLabel(u, lang) {
+  const b = u.building || {};
+  const raw = b["name_" + lang] || b.name || "";
+  try { return formatAddress(raw, lang, b.kind) || raw; } catch { return raw; }
+}
+
 // Подпись цены для ответа.
-function priceLabel(u) {
+function priceLabel(u, lang = "ru") {
+  const l = L[langOf(lang)];
   const v = priceVal(u);
-  if (!v) return "цена по запросу";
+  if (!v) return l.req;
   const s = (u.currency === "GEL" ? "₾" : "$") + String(Math.round(v)).replace(/\B(?=(\d{3})+(?!\d))/g, " ");
-  return s + (u.deal === "rent" ? " / мес" : u.deal === "daily" ? " / ночь" : "");
+  return s + (u.deal === "rent" ? l.month : u.deal === "daily" ? l.night : "");
 }
 
 // Карточка для модели: только публичные поля и ссылка. Никаких контактов.
-export function toCard(u, rate) {
+export function toCard(u, rate, lang = "ru") {
+  const lg = langOf(lang), l = L[lg];
   const ppm = u.deal === "sale" ? ppmUsd(u, rate) : 0;
+  const type = lg === "ru" ? u.type : (TYPE_L[lg][u.type] || u.type);
+  const city = u.building?.district || "";
   return {
     id: String(u.id),
-    title: [u.type, u.rooms ? `${u.rooms} комн.` : (u.type === "Студия" ? "" : "комнаты не указаны"), u.area ? `${u.area} м²` : ""].filter(Boolean).join(", "),
+    title: [type, u.rooms ? `${u.rooms} ${lg === "en" && u.rooms === 1 ? "room" : l.rooms}` : (u.type === "Студия" ? "" : l.noRooms), u.area ? `${u.area} ${l.m2}` : ""].filter(Boolean).join(", "),
     deal: u.deal,
-    price: priceLabel(u),
-    ...(ppm ? { price_per_m2: "$" + String(Math.round(ppm)).replace(/\B(?=(\d{3})+(?!\d))/g, " ") + " / м²" } : {}),
-    city: u.building?.district || "",
-    address: u.building?.name || "",
+    price: priceLabel(u, lg),
+    ...(ppm ? { price_per_m2: "$" + String(Math.round(ppm)).replace(/\B(?=(\d{3})+(?!\d))/g, " ") + " / " + l.m2 } : {}),
+    city: lg === "ru" ? city : (CITY_L[lg][city] || city),
+    address: addrLabel(u, lg),
     complex: u.complex || u.building?.complex || "",
     floor: u.floor && u.floor !== "—" ? String(u.floor) : "",
     new_building: isNew(u),
@@ -110,7 +139,7 @@ const CAT_TYPES = new Set(["apartment", "house", "commercial", "office", "land",
 
 // Ссылка на каталог с теми фильтрами, которые каталог умеет (deal, city, cat/new, rooms, pmin/pmax, amin/amax).
 // Фильтра «цена за м²», этажа, района и «у моря» в каталоге нет: тогда ссылка шире выдачи (exact=false).
-function catalogLink({ deal, city, type, rooms, a, bmin, bmax, ppm }) {
+function catalogLink({ deal, city, type, rooms, a, bmin, bmax, ppm, sort }) {
   const p = new URLSearchParams();
   let exact = true;
   if (deal) p.set("deal", deal);
@@ -124,6 +153,7 @@ function catalogLink({ deal, city, type, rooms, a, bmin, bmax, ppm }) {
     exact = false; // каталог не фильтрует по цене за м²: даём каталог по сделке/городу, от дешёвых
     p.set("sort", "price_asc");
   } else {
+    if (sort === "price_asc" || sort === "price_desc") p.set("sort", sort);
     // каталог сравнивает цену без пересчёта валют: бюджет передаём только в USD
     if (String(a.currency || "").toUpperCase() === "GEL") { if (bmin || bmax) exact = false; }
     else { if (bmin) p.set("pmin", String(Math.round(bmin))); if (bmax) p.set("pmax", String(Math.round(bmax))); }
@@ -135,8 +165,12 @@ function catalogLink({ deal, city, type, rooms, a, bmin, bmax, ppm }) {
   return { url: "/catalog" + (qs ? "?" + qs : ""), exact };
 }
 
-export function searchUnits(units, args = {}, { rate = 2.7 } = {}) {
+// Сортировка: price_asc (запросы «недорого», «дешевле», «cheap»), price_desc, newest, ppm_asc.
+const SORTS = new Set(["price_asc", "price_desc", "newest", "ppm_asc"]);
+
+export function searchUnits(units, args = {}, { rate = 2.7, lang = "ru" } = {}) {
   const a = args || {};
+  const sortArg = String(a.sort || "").toLowerCase();
   const limit = Math.min(5, Math.max(1, parseInt(a.limit, 10) || 5));
   const city = normCity(a.city);
   const deal = DEALS[String(a.deal || "").toLowerCase()] || "";
@@ -147,7 +181,8 @@ export function searchUnits(units, args = {}, { rate = 2.7 } = {}) {
   const district = String(a.district || "").trim().toLowerCase();
   const nearSea = a.near_sea === true || a.near_sea === "true";
   const ppmMax = Number(a.price_per_m2_max) || 0, ppmMin = Number(a.price_per_m2_min) || 0;
-  const byPpm = ppmMax > 0 || ppmMin > 0;
+  const byPpm = (ppmMax > 0 || ppmMin > 0) && sortArg !== "price_asc" && sortArg !== "price_desc" || sortArg === "ppm_asc";
+  const sort = SORTS.has(sortArg) ? sortArg : (byPpm ? "ppm_asc" : "");
 
   let list = Array.isArray(units) ? units : [];
   if (deal) list = list.filter((u) => u.deal === deal);
@@ -188,11 +223,14 @@ export function searchUnits(units, args = {}, { rate = 2.7 } = {}) {
   // Ранжирование: при фильтре по цене за м² — от меньшей цены за м²; иначе у моря (если просили) → продвигаемые → новее.
   const ranked = [...list].sort((x, y) =>
     (byPpm ? (ppmUsd(x, rate) || Infinity) - (ppmUsd(y, rate) || Infinity) : 0) ||
+    (sort === "price_asc" ? (priceUsd(x, rate) || Infinity) - (priceUsd(y, rate) || Infinity) : 0) ||
+    (sort === "price_desc" ? (priceUsd(y, rate) || 0) - (priceUsd(x, rate) || 0) : 0) ||
+    (sort === "newest" ? String(y.created_at || "").localeCompare(String(x.created_at || "")) : 0) ||
     (nearSea ? seaScore(y) - seaScore(x) : 0) ||
     ((y.boost || 0) - (x.boost || 0)) ||
     String(y.created_at || "").localeCompare(String(x.created_at || "")));
 
-  const link = catalogLink({ deal, city, type, rooms, a, bmin, bmax, ppm: byPpm });
-  const items = ranked.slice(0, limit).map((u) => toCard(u, rate));
-  return { total: list.length, shown: items.length, items, relaxed, catalog_url: link.url, catalog_exact: link.exact && !relaxed.length };
+  const link = catalogLink({ deal, city, type, rooms, a, bmin, bmax, ppm: byPpm, sort });
+  const items = ranked.slice(0, limit).map((u) => toCard(u, rate, lang));
+  return { total: list.length, shown: items.length, sort: sort || "recommended", items, relaxed, catalog_url: link.url, catalog_exact: link.exact && !relaxed.length };
 }

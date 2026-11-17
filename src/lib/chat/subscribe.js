@@ -18,7 +18,7 @@ const TOKEN_RE = /^[A-Za-z0-9_-]{8,40}$/;
 const LINK_TTL_DAYS = 30; // неактивированная ссылка живёт 30 дней
 
 const LANGS = ["ru", "en", "ka"];
-const QUERY_KEYS = ["city", "deal", "type", "rooms", "budget_min", "budget_max", "currency", "district", "near_sea", "area_min", "area_max", "price_per_m2_min", "price_per_m2_max"];
+const QUERY_KEYS = ["city", "deal", "type", "rooms", "budget_min", "budget_max", "currency", "district", "near_sea", "area_min", "area_max", "price_per_m2_min", "price_per_m2_max", "sort"];
 
 export function newSubToken() { return randomBytes(9).toString("base64url"); }
 export function deepLink(token) { return `https://t.me/${BOT_USERNAME}?start=${START_PREFIX}${token}`; }
@@ -98,7 +98,7 @@ const esc = (s) => String(s == null ? "" : s).replace(/&/g, "&amp;").replace(/</
 /** Текст первой подборки (HTML для Telegram). units — публичная выдача (getAllUnits + stripPrivate). */
 export function firstSelectionText(sub, units, { siteUrl, rate } = {}) {
   const t = L(sub.lang);
-  const res = searchUnits(units, { ...(sub.query || {}), limit: 5 }, { rate });
+  const res = searchUnits(units, { ...(sub.query || {}), limit: 5 }, { rate, lang: sub.lang });
   const lines = [`✅ ${esc(t.subscribed)}`, ""];
   if (res.items.length) {
     lines.push(`<b>${esc(t.first)}</b>`);

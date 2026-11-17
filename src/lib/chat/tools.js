@@ -22,7 +22,7 @@ async function publicUnits() {
 
 export async function runSearch(input, ctx) {
   const rate = await getUsdGel();
-  const res = searchUnits(await publicUnits(), input, { rate });
+  const res = searchUnits(await publicUnits(), input, { rate, lang: ctx.lang });
   res.items = res.items.map((c) => ({ ...c, url: SITE_URL + c.url }));
   if (res.catalog_url) res.catalog_url = SITE_URL + res.catalog_url;
   // id найденных объектов запоминаем: подборку можно собрать только из того, что реально показали.
@@ -55,6 +55,14 @@ export async function runCollection(input, ctx) {
 const TYPE_BY_DEAL = { rent: "rent", daily: "daily" };
 
 export async function runLead(input, ctx) {
+  // Тестовый режим (x-hanna-test == HANNA_TEST_TOKEN): заявку не пишем и никому не отправляем.
+  if (ctx.test) {
+    const contact = String(input.contact || "").trim();
+    if (contact.replace(/[^\d@A-Za-z]/g, "").length < 3) return { ok: false, error: "no_contact" };
+    ctx.leadCreated = true;
+    ctx.testLead = { deal: input.deal || "other", summary: String(input.summary || "").slice(0, 300) };
+    return { ok: true, test: true };
+  }
   if (!supa) return { ok: false, error: "not_configured" };
   const rawContact = String(input.contact || "").trim().slice(0, 100);
   const digits = rawContact.replace(/[^\d]/g, "");
@@ -92,6 +100,21 @@ export async function runLead(input, ctx) {
   if (res.errors?.length) console.error("chat lead notify:", res.errors.join("; "));
   ctx.leadCreated = true;
   return { ok: true };
+}
+
+// Есть ли таблица chat_subscriptions (sql/034). Нет → инструмент telegram_subscribe модели не даём,
+// и Hanna подписку не предлагает. Результат кэшируется на 10 минут в памяти инстанса.
+let subCache = { at: 0, ok: false };
+export async function subscriptionsAvailable() {
+  if (!supa) return false;
+  if (Date.now() - subCache.at < 10 * 60e3) return subCache.ok;
+  let ok = false;
+  try {
+    const { error } = await supa.from("chat_subscriptions").select("token", { head: true, count: "exact" }).limit(1);
+    ok = !error;
+  } catch { ok = false; }
+  subCache = { at: Date.now(), ok };
+  return ok;
 }
 
 export async function runTool(name, input, ctx) {

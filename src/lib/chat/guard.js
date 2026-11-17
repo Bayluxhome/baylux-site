@@ -55,18 +55,32 @@ export function maskPII(s) {
     .slice(0, 2000);
 }
 
-export async function logTurn({ conversationId, ip, lang, userText, reply, tools, error }) {
+// Тестовый режим (как у Анны ZOND): заголовок x-hanna-test совпадает с HANNA_TEST_TOKEN.
+// Пустая переменная = режим выключен. Сравнение за постоянное время.
+export function isTestRequest(req) {
+  const want = String(process.env.HANNA_TEST_TOKEN || "");
+  const got = String(req.headers.get("x-hanna-test") || "");
+  if (want.length < 16 || got.length !== want.length) return false;
+  let diff = 0;
+  for (let i = 0; i < want.length; i++) diff |= want.charCodeAt(i) ^ got.charCodeAt(i);
+  return diff === 0;
+}
+
+export async function logTurn({ conversationId, ip, lang, userText, reply, tools, error, test, ms }) {
   try {
     if (!supa) return;
-    await supa.from("chat_logs").insert({
+    const row = {
       conversation_id: String(conversationId).slice(0, 64),
       ip_hash: ipHash(ip),
       lang: lang || null,
       user_text: maskPII(userText),
       reply: maskPII(reply),
-      tools: Array.isArray(tools) ? tools.slice(0, 10) : [],
+      tools: [...(Array.isArray(tools) ? tools.slice(0, 10) : []), ...(test ? ["test"] : [])],
       error: error ? String(error).slice(0, 300) : null,
-    });
+    };
+    // Колонки test и ms добавляет sql/035_chat_logs_test.sql; без них пишем как раньше (пометка test в tools).
+    const { error: e1 } = await supa.from("chat_logs").insert({ ...row, test: !!test, ms: ms || null });
+    if (e1) await supa.from("chat_logs").insert(row);
   } catch (e) {
     console.error("chat log:", e?.message);
   }
