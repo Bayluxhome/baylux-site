@@ -42,7 +42,7 @@ export default function Footer() {
           </div>
           <div>
             <h4>{t("nav_services")}</h4>
-            <A href="/property-management">{t("foot_mgmt")}</A><A href="/cleaning">{t("foot_cleaning")}</A><A href="/realtors">{t("foot_realtors")}</A>
+            <A href="/realtors">{t("foot_realtors")}</A>
           </div>
           <div>
             <h4>{t("foot_company")}</h4>

@@ -17,6 +17,7 @@ export async function generateMetadata() {
     description:
       "Квартиры и апартаменты под управлением Baylux в Батуми: посуточная и долгосрочная аренда. Сдайте свою квартиру в управление — гости, уборка и отчёты на нас.",
     alternates: altFor(lang, "/property-management"),
+    robots: { index: false, follow: false }, // раздел скрыт (решение Дмитрия 18.11 02:36 Тб)
     openGraph: {
       title: "Baylux Holiday Homes — управление недвижимостью в Батуми",
       description: "Жильё под управлением Baylux и сдача вашей квартиры в управление.",

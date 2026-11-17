@@ -32,8 +32,7 @@ export default async function sitemap() {
     ...entry("/kupit-kvartiru-tbilisi", now, 0.9),
     ...entry("/arenda-tbilisi", now, 0.9),
     ...entry("/posutochno-tbilisi", now, 0.8),
-    ...entry("/property-management", now, 0.8),
-    ...entry("/cleaning", now, 0.5),
+    // /property-management и /cleaning скрыты (решение Дмитрия 18.11 02:36 Тб)
     ...entry("/realtors", now, 0.6),
     ...entry("/about", now, 0.5),
     ...entry("/contacts", now, 0.5),

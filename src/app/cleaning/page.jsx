@@ -10,6 +10,7 @@ export async function generateMetadata() {
     title: "Клининг в Батуми — уборка квартир и апартаментов",
     description: "Профессиональная уборка квартир в Батуми: после гостей, генеральная и регулярная. Заявка онлайн — рассчитаем стоимость.",
     alternates: altFor(lang, "/cleaning"),
+    robots: { index: false, follow: false }, // раздел скрыт (решение Дмитрия 18.11 02:36 Тб)
   };
 }
 

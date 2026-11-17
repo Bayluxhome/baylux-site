@@ -535,6 +535,10 @@ footer.site .fbar-contacts a{display:inline;padding:0}
 .who span{display:inline-flex;margin-top:14px;color:var(--gold-dk);font-weight:700;font-size:13px}
 @media(max-width:920px){.who-grid{grid-template-columns:1fr 1fr}}
 @media(max-width:560px){.who-grid{grid-template-columns:1fr}}
+/* 3 карточки, пока «Управление» скрыто (18.11) */
+.who-grid.c3{grid-template-columns:repeat(3,1fr)}
+@media(max-width:920px){.who-grid.c3{grid-template-columns:1fr 1fr}}
+@media(max-width:560px){.who-grid.c3{grid-template-columns:1fr}}
 .why{background:var(--cream);padding:48px 0}
 .why-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:24px}
 .why-i b{font-size:26px;font-weight:800;color:var(--navy)}

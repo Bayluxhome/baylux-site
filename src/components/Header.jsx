@@ -52,9 +52,8 @@ const NAV = [
     { d: "daily", c: "apartment", href: "/catalog?deal=daily&cat=apartment" },
     { d: "daily", c: "house", href: "/catalog?deal=daily&cat=house" },
   ] },
-  { label: "Услуги", href: "/property-management", sub: [
-    { lk: "foot_mgmt", href: "/property-management" },
-    { lk: "foot_cleaning", href: "/cleaning" },
+  // Управление и клининг скрыты (решение Дмитрия 18.11 02:36 Тб), вернуть из .bak_20261118m
+  { label: "Услуги", href: "/realtors", sub: [
     { lk: "foot_realtors", href: "/realtors" },
     { lk: "rp_become", href: "/my/profile#realtor" },
   ] },

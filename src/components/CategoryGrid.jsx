@@ -20,8 +20,7 @@ const CATS = [
   { lk: "cat_jk", href: "/novostroyki", ic: "🏙️" },
   { d: "daily", c: "apartment", href: "/catalog?deal=daily&cat=apartment", ic: "🏖️" },
   { d: "daily", c: "house", href: "/catalog?deal=daily&cat=house", ic: "🏝️" },
-  { lk: "foot_mgmt", href: "/#services", ic: "🔑" },
-  { lk: "foot_cleaning", href: "/#services", ic: "🧹" },
+  // Управление и клининг скрыты (решение Дмитрия 18.11 02:36 Тб), вернуть из .bak_20261118m
   { lk: "foot_realtors", href: "/#services", ic: "🤝" },
 ];
 

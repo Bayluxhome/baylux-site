@@ -75,10 +75,11 @@ export default async function HomePage() {
 
       <section className="services wrap" id="services">
         <div className="sec-head"><div><h2>{t("who_h")}</h2><p>{t("who_p")}</p></div></div>
-        <div className="who-grid">
+        <div className="who-grid c3">
           <Link href={withLang(lang, "/catalog")} className="who"><img src="/icons/audience-buy.png" alt="" width={60} height={60} loading="lazy" /><h3>{t("who_buy_h")}</h3><p>{t("who_buy_p")}</p><span>{t("who_buy_btn")}</span></Link>
           <Link href={withLang(lang, "/add")} className="who"><img src="/icons/audience-sell.png" alt="" width={60} height={60} loading="lazy" /><h3>{t("who_sell_h")}</h3><p>{t("who_sell_p")}</p><span>{t("who_sell_btn")}</span></Link>
-          <Link href={withLang(lang, "/contacts")} className="who"><img src="/icons/audience-manage.png" alt="" width={60} height={60} loading="lazy" /><h3>{t("who_mng_h")}</h3><p>{t("who_mng_p")}</p><span>{t("who_mng_btn")}</span></Link>
+          {/* Карточка «Управление» скрыта (решение Дмитрия 18.11 02:36 Тб), вернуть из .bak_20261118m */}
+          {false && <Link href={withLang(lang, "/contacts")} className="who"><img src="/icons/audience-manage.png" alt="" width={60} height={60} loading="lazy" /><h3>{t("who_mng_h")}</h3><p>{t("who_mng_p")}</p><span>{t("who_mng_btn")}</span></Link>}
           <Link href={withLang(lang, "/realtors")} className="who"><img src="/icons/audience-realtor.png" alt="" width={60} height={60} loading="lazy" /><h3>{t("who_rlt_h")}</h3><p>{t("who_rlt_p")}</p><span>{t("who_rlt_btn")}</span></Link>
         </div>
       </section>
