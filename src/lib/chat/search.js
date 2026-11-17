@@ -63,6 +63,12 @@ function seaScore(u) {
   return SEA_RE.test(txt) ? 1 : 0;
 }
 
+// Цена за м² в USD (только если известны и цена, и площадь).
+function ppmUsd(u, rate) {
+  const p = priceUsd(u, rate), ar = Number(u.area) || 0;
+  return p > 0 && ar > 0 ? p / ar : 0;
+}
+
 function floorNum(u) { const m = String(u.floor || "").match(/\d+/); return m ? parseInt(m[0], 10) : null; }
 
 // Подпись цены для ответа.
@@ -74,12 +80,14 @@ function priceLabel(u) {
 }
 
 // Карточка для модели: только публичные поля и ссылка. Никаких контактов.
-export function toCard(u) {
+export function toCard(u, rate) {
+  const ppm = u.deal === "sale" ? ppmUsd(u, rate) : 0;
   return {
     id: String(u.id),
     title: [u.type, u.rooms ? `${u.rooms} комн.` : (u.type === "Студия" ? "" : "комнаты не указаны"), u.area ? `${u.area} м²` : ""].filter(Boolean).join(", "),
     deal: u.deal,
     price: priceLabel(u),
+    ...(ppm ? { price_per_m2: "$" + String(Math.round(ppm)).replace(/\B(?=(\d{3})+(?!\d))/g, " ") + " / м²" } : {}),
     city: u.building?.district || "",
     address: u.building?.name || "",
     complex: u.complex || u.building?.complex || "",
@@ -94,8 +102,39 @@ export function toCard(u) {
  * Поиск по публичной выдаче.
  * args: { city, deal: rent|daily|sale, type: apartment|studio|house|commercial|new, rooms, budget_max, budget_min,
  *         currency: USD|GEL, district (текст: район/улица/ЖК), area_min, area_max, floor_min, floor_max, near_sea, limit }
- * Возвращает { total, items: [карточки], relaxed: [какие условия ослаблены] }.
+ *         price_per_m2_max, price_per_m2_min (цена за м² в USD: цена / площадь, GEL пересчитывается по курсу)
+ * Возвращает { total (полное число совпадений), shown, items: [карточки], relaxed: [какие условия ослаблены],
+ *              catalog_url (ссылка на каталог), catalog_exact (каталог показывает ровно эти total объектов) }.
  */
+const CAT_TYPES = new Set(["apartment", "house", "commercial", "office", "land", "warehouse", "garage"]);
+
+// Ссылка на каталог с теми фильтрами, которые каталог умеет (deal, city, cat/new, rooms, pmin/pmax, amin/amax).
+// Фильтра «цена за м²», этажа, района и «у моря» в каталоге нет: тогда ссылка шире выдачи (exact=false).
+function catalogLink({ deal, city, type, rooms, a, bmin, bmax, ppm }) {
+  const p = new URLSearchParams();
+  let exact = true;
+  if (deal) p.set("deal", deal);
+  if (city) p.set("city", city);
+  if (type === "new") p.set("new", "1");
+  else if (type === "studio") p.set("rooms", "0");
+  else if (CAT_TYPES.has(type)) p.set("cat", type);
+  else if (type) exact = false;
+  if (rooms != null && !Number.isNaN(rooms) && type !== "studio") p.set("rooms", String(Math.min(4, Math.max(0, rooms))));
+  if (ppm) {
+    exact = false; // каталог не фильтрует по цене за м²: даём каталог по сделке/городу, от дешёвых
+    p.set("sort", "price_asc");
+  } else {
+    // каталог сравнивает цену без пересчёта валют: бюджет передаём только в USD
+    if (String(a.currency || "").toUpperCase() === "GEL") { if (bmin || bmax) exact = false; }
+    else { if (bmin) p.set("pmin", String(Math.round(bmin))); if (bmax) p.set("pmax", String(Math.round(bmax))); }
+  }
+  if (a.area_min) p.set("amin", String(Math.round(Number(a.area_min))));
+  if (a.area_max) p.set("amax", String(Math.round(Number(a.area_max))));
+  if (a.floor_min || a.floor_max || String(a.district || "").trim() || a.near_sea === true || a.near_sea === "true") exact = false;
+  const qs = p.toString();
+  return { url: "/catalog" + (qs ? "?" + qs : ""), exact };
+}
+
 export function searchUnits(units, args = {}, { rate = 2.7 } = {}) {
   const a = args || {};
   const limit = Math.min(5, Math.max(1, parseInt(a.limit, 10) || 5));
@@ -107,6 +146,8 @@ export function searchUnits(units, args = {}, { rate = 2.7 } = {}) {
   const bmax = toUsd(a.budget_max), bmin = toUsd(a.budget_min);
   const district = String(a.district || "").trim().toLowerCase();
   const nearSea = a.near_sea === true || a.near_sea === "true";
+  const ppmMax = Number(a.price_per_m2_max) || 0, ppmMin = Number(a.price_per_m2_min) || 0;
+  const byPpm = ppmMax > 0 || ppmMin > 0;
 
   let list = Array.isArray(units) ? units : [];
   if (deal) list = list.filter((u) => u.deal === deal);
@@ -117,6 +158,8 @@ export function searchUnits(units, args = {}, { rate = 2.7 } = {}) {
   else if (type) list = list.filter((u) => unitCat(u.type) === type);
   if (bmin) list = list.filter((u) => priceUsd(u, rate) >= bmin);
   if (bmax) list = list.filter((u) => { const p = priceUsd(u, rate); return p > 0 && p <= bmax; });
+  if (ppmMin) list = list.filter((u) => ppmUsd(u, rate) >= ppmMin);
+  if (ppmMax) list = list.filter((u) => { const v = ppmUsd(u, rate); return v > 0 && v <= ppmMax; });
   if (a.area_min) list = list.filter((u) => (u.area || 0) >= Number(a.area_min));
   if (a.area_max) list = list.filter((u) => (u.area || 0) > 0 && u.area <= Number(a.area_max));
   if (a.floor_min) list = list.filter((u) => { const f = floorNum(u); return f != null && f >= Number(a.floor_min); });
@@ -142,10 +185,14 @@ export function searchUnits(units, args = {}, { rate = 2.7 } = {}) {
     }
   }
 
-  // Ранжирование: у моря (если просили) → продвигаемые → новее.
+  // Ранжирование: при фильтре по цене за м² — от меньшей цены за м²; иначе у моря (если просили) → продвигаемые → новее.
   const ranked = [...list].sort((x, y) =>
+    (byPpm ? (ppmUsd(x, rate) || Infinity) - (ppmUsd(y, rate) || Infinity) : 0) ||
     (nearSea ? seaScore(y) - seaScore(x) : 0) ||
     ((y.boost || 0) - (x.boost || 0)) ||
     String(y.created_at || "").localeCompare(String(x.created_at || "")));
-  return { total: list.length, items: ranked.slice(0, limit).map(toCard), relaxed };
+
+  const link = catalogLink({ deal, city, type, rooms, a, bmin, bmax, ppm: byPpm });
+  const items = ranked.slice(0, limit).map((u) => toCard(u, rate));
+  return { total: list.length, shown: items.length, items, relaxed, catalog_url: link.url, catalog_exact: link.exact && !relaxed.length };
 }

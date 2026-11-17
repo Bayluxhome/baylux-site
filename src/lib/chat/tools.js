@@ -24,6 +24,7 @@ export async function runSearch(input, ctx) {
   const rate = await getUsdGel();
   const res = searchUnits(await publicUnits(), input, { rate });
   res.items = res.items.map((c) => ({ ...c, url: SITE_URL + c.url }));
+  if (res.catalog_url) res.catalog_url = SITE_URL + res.catalog_url;
   // id найденных объектов запоминаем: подборку можно собрать только из того, что реально показали.
   res.items.forEach((c) => ctx.shownIds.add(c.id));
   return res;

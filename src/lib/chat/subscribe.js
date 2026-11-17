@@ -18,7 +18,7 @@ const TOKEN_RE = /^[A-Za-z0-9_-]{8,40}$/;
 const LINK_TTL_DAYS = 30; // неактивированная ссылка живёт 30 дней
 
 const LANGS = ["ru", "en", "ka"];
-const QUERY_KEYS = ["city", "deal", "type", "rooms", "budget_min", "budget_max", "currency", "district", "near_sea", "area_min", "area_max"];
+const QUERY_KEYS = ["city", "deal", "type", "rooms", "budget_min", "budget_max", "currency", "district", "near_sea", "area_min", "area_max", "price_per_m2_min", "price_per_m2_max"];
 
 export function newSubToken() { return randomBytes(9).toString("base64url"); }
 export function deepLink(token) { return `https://t.me/${BOT_USERNAME}?start=${START_PREFIX}${token}`; }
