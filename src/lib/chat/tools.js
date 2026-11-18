@@ -12,6 +12,8 @@ import { getUsdGel } from "@/lib/rate";
 import { SITE_URL } from "@/config";
 import { searchUnits } from "./search";
 import { createSubscription } from "./subscribe";
+import { searchComplexes } from "./newbuild";
+import { getPublishedComplexes } from "@/lib/complexes";
 
 const DEDUP_MIN = 10;
 
@@ -27,6 +29,23 @@ export async function runSearch(input, ctx) {
   if (res.catalog_url) res.catalog_url = SITE_URL + res.catalog_url;
   // id найденных объектов запоминаем: подборку можно собрать только из того, что реально показали.
   res.items.forEach((c) => ctx.shownIds.add(c.id));
+  return res;
+}
+
+// Новостройки (раздел /novostroyki): опубликованные ЖК, кэш 5 минут на инстанс (fix7).
+let cxCache = { at: 0, list: null, p: null };
+async function publishedComplexes() {
+  if (cxCache.list && Date.now() - cxCache.at < 5 * 60e3) return cxCache.list;
+  if (!cxCache.p) cxCache.p = getPublishedComplexes().then((l) => { cxCache = { at: Date.now(), list: Array.isArray(l) ? l : [], p: null }; return cxCache.list; }).catch((e) => { cxCache.p = null; throw e; });
+  return cxCache.p;
+}
+
+export async function runNewBuildings(input, ctx) {
+  const list = await publishedComplexes();
+  if (!list.length) return { ok: false, error: "catalog_unavailable", note: "Раздел новостроек сейчас не загрузился. Не говори, что новостроек нет: предложи ссылку https://bayluxhome.com/novostroyki или контакт." };
+  const res = searchComplexes(list, input, { lang: ctx.lang });
+  res.items = res.items.map((c) => ({ ...c, url: SITE_URL + c.url }));
+  res.catalog_url = SITE_URL + res.catalog_url;
   return res;
 }
 
@@ -120,6 +139,7 @@ export async function subscriptionsAvailable() {
 export async function runTool(name, input, ctx) {
   try {
     if (name === "search_listings") return await runSearch(input || {}, ctx);
+    if (name === "search_new_buildings") return await runNewBuildings(input || {}, ctx);
     if (name === "create_collection") return await runCollection(input || {}, ctx);
     if (name === "create_lead") return await runLead(input || {}, ctx);
     if (name === "telegram_subscribe") return await createSubscription(supa, input || {}, ctx);

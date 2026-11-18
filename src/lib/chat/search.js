@@ -71,6 +71,102 @@ function cityNeedles(city) {
   return [city.toLowerCase(), ...Object.keys(CITY_ALIASES).filter((k) => CITY_ALIASES[k] === city && k.length >= 4)];
 }
 
+// Сумма от модели может прийти строкой: «150k», «150 000», «1.2m», «60 тыс» (тест Мозга 18.11 04:05, «up to 150k»).
+export function parseMoney(x) {
+  if (typeof x === "number") return Number.isFinite(x) && x > 0 ? x : 0;
+  const s = String(x || "").toLowerCase().replace(/[\s ]/g, "").replace(/,(?=\d{3}(\D|$))/g, "").replace(",", ".");
+  const m = s.match(/(\d+(?:\.\d+)?)(k|к|тыс\S*|bin|m|млн|mln)?/);
+  if (!m) return 0;
+  const n = parseFloat(m[1]) || 0;
+  const mul = !m[2] ? 1 : /^(m|млн|mln)/.test(m[2]) ? 1e6 : 1e3;
+  return n * mul;
+}
+
+// Признаки, которых в базе почти нет (газ, ЦО, животные, мебель…): НЕ фильтр, а только ранжирование
+// (тест Мозга 18.11 04:05: «2+1 с газом и ЦО до 600, Новый бульвар» → ложное «ничего нет»).
+// [ключ, как найти в запросе (для вырезания из district), как найти в объявлении, отрицание в объявлении]
+const FEATURES = [
+  ["gas", /(?:природн\S*\s+)?газ(?:ом|а|у|овое|овый|овая|ифицир\S*)?(?![а-яё])|natural gas|(?<![a-z])gas(?![a-z])|do[gğ]algaz\S*|ბუნებრივი აირ\S*|გაზ\S*/gi, /газ(?!он)|(?<![a-z])gas(?![a-z])|do[gğ]algaz|ბუნებრივი აირ|გაზი/i, /без газа|газа нет|нет газа|no gas/i],
+  ["central_heating", /центральн\S*\s+отоплени\S*|(?<![а-яёa-z])цо(?![а-яёa-z])|отоплени\S*|central heating|heating|kombi\S*|merkezi ısıtma|ცენტრალური გათბობ\S*|გათბობ\S*/gi, /центральн\S* отоплен|(?<![а-яё])ЦО(?![а-яё])|отоплен|heating|kombi|გათბობ/i, /без отоплен|отопления нет|no heating/i],
+  ["furniture", /(?:с\s+)?меб[её]л\S*|меблирован\S*|furnished|furniture|e[sş]yal[iı]|ავეჯ\S*/gi, /мебел|меблир|furnish|furniture|eşyalı|ავეჯ/i, /без мебели|не меблир|unfurnished|мебели нет/i],
+  ["pets", /(?:с\s+|можно\s+с\s+)?(?:домашн\S*\s+)?(?:животн\S*|питом\S*|собак\S*|кошк\S*)|pet[- ]friendly|(?<![a-z])pets?(?![a-z])|(?<![a-z])(?:dogs?|cats?)(?![a-z])|evcil\S*|ცხოველ\S*/gi, /животн|питом|(?<![a-z])pets?(?![a-z])|pet.friendly|evcil|ცხოველ/i, /(без|нельзя|не допуска\S*|запрещ\S*)\s+(с\s+)?(домашн\S*\s+)?(животн|питом)|(животн\S*|питом\S*)\s+(нельзя|не допуска|запрещ)|no pets/i],
+  ["parking", /парковк\S*|паркинг\S*|parking|otopark|პარკინგ\S*/gi, /парков|паркинг|parking|otopark|პარკინგ/i, null],
+  ["balcony", /балкон\S*|лоджи\S*|balcon\S*|balkon\S*|აივან\S*/gi, /балкон|лоджи|balcon|balkon|აივან/i, /без балкона/i],
+  ["ac", /кондиционер\S*|сплит\S*|air ?condition\S*|klima\S*|კონდიციონ\S*/gi, /кондиц|сплит|air.?condition|klima|კონდიციონ/i, null],
+  ["elevator", /лифт\S*|elevator|(?<![a-z])lift(?![a-z])|asans[oö]r\S*|ლიფტ\S*/gi, /лифт|elevator|(?<![a-z])lift(?![a-z])|asansör|ლიფტ/i, /без лифта|лифта нет/i],
+  ["washer", /стиральн\S*(?:\s+машин\S*)?|washing machine|washer|çamaşır\S*|სარეცხ\S*/gi, /стиральн|washing machine|washer|çamaşır|სარეცხ/i, null],
+  ["sea_view", /вид\S*\s+на\s+море|sea ?view|deniz manzara\S*|ზღვის ხედ\S*/gi, /вид на море|sea.?view|deniz manzara|ზღვის ხედ/i, null],
+  ["pool", /бассейн\S*|(?<![a-z])pool(?![a-z])|havuz\S*|აუზ\S*/gi, /бассейн|(?<![a-z])pool(?![a-z])|havuz|აუზ/i, null],
+];
+const FEATURE_KEYS = new Set(FEATURES.map((f) => f[0]));
+const FEATURE_KEY_SYN = { heating: "central_heating", "центральное отопление": "central_heating", furnished: "furniture", pet: "pets", pets_allowed: "pets", air_conditioning: "ac", conditioner: "ac", lift: "elevator", washing_machine: "washer", seaview: "sea_view" };
+// Признак из слова/фразы клиента или ключа; null — неизвестное условие (вернём в features_unknown).
+function featureKey(x) {
+  const k = String(x || "").trim().toLowerCase();
+  if (!k) return null;
+  if (FEATURE_KEYS.has(k)) return k;
+  if (FEATURE_KEY_SYN[k]) return FEATURE_KEY_SYN[k];
+  for (const [key, take] of FEATURES) { take.lastIndex = 0; if (take.test(k)) { take.lastIndex = 0; return key; } }
+  return null;
+}
+function unitText(u) {
+  const am = Array.isArray(u.amenities) ? u.amenities.join(", ") : String(u.amenities || "");
+  return [am, u.about, u.desc_ru, u.desc_en, u.desc_ka, u.building?.about].filter(Boolean).join(" ");
+}
+// Состояние признаков объекта: { yes: [...], no: [...] }; неизвестно = нет ни там, ни там.
+function featureState(u, keys) {
+  const txt = unitText(u);
+  const yes = [], no = [];
+  for (const k of keys) {
+    const f = FEATURES.find((x) => x[0] === k);
+    if (!f) continue;
+    if (f[3] && f[3].test(txt)) no.push(k);
+    else if (f[2].test(txt)) yes.push(k);
+  }
+  return { yes, no };
+}
+// Вырезает из текста района признаки («Новый бульвар, газ, ЦО» → район «Новый бульвар», признаки gas, central_heating).
+function splitFeatures(text) {
+  let rest = String(text || "");
+  const found = [];
+  for (const [key, take] of FEATURES) {
+    take.lastIndex = 0;
+    if (take.test(rest)) { found.push(key); take.lastIndex = 0; rest = rest.replace(take, " "); }
+    take.lastIndex = 0;
+  }
+  return { rest: rest.replace(/\s+(и|с|and|with|ve|და)\s*(?=[,;\/]|$)/gi, " ").replace(/\s{2,}/g, " ").trim(), found };
+}
+
+// Районы, которые в адресах почти не пишут словами: ищем по названию и по улицам района.
+// Список улиц короткий и только из уверенно известных; чего нет — снимется поиском шире (district_dropped).
+const DISTRICT_ALIASES = [
+  [/нов\S*\s+бульвар\S*|new\s+boulevard|yeni\s+bulvar\S*|ახალი\s+ბულვარ\S*/gi,
+    ["новый бульвар", "новом бульваре", "нового бульвара", "new boulevard", "химшиашвили", "khimshiashvili", "качиньск", "качьинск", "качинск", "kaczynski", "kachinsk", "инасаридзе", "inasaridze", "ангиса", "angisa", "ახალი ბულვარ"]],
+  [/стар\S*\s+(?:город\S*|батуми|центр\S*)|old\s+(?:town|city|batumi)|eski\s+batum\S*|ძველი\s+(?:ბათუმ\S*|ქალაქ\S*)/gi,
+    ["старый батуми", "старом батуми", "старого батуми", "старый город", "старом городе", "старого города", "old batumi", "old town", "old city", "горгасали", "gorgasali", "чавчавадзе", "chavchavadze", "мазниашвили", "mazniashvili", "гогебашвили", "gogebashvili", "абашидзе", "abashidze", "гамсахурдиа", "gamsakhurdia", "парнаваз", "parnavaz", "бараташвили", "baratashvili", "ниношвили", "ninoshvili", "асатиани", "asatiani", "зубалашвили", "zubalashvili", "меликишвили", "melikishvili", "такаишвили", "takaishvili", "джинчарадзе", "jincharadze", "ძველი ბათუმ"]],
+];
+// Служебные слова в районе: «район», «улица», «рядом с» и т.п. — не условие поиска.
+const DISTRICT_STOP = new Set(["район", "районе", "района", "р-н", "р-не", "улица", "улице", "ул", "ул.", "пр", "пр.", "проспект", "street", "st", "st.", "str", "district", "area", "near", "рядом", "возле", "около", "в", "во", "на", "у", "с", "и", "the", "of", "in", "mahallesi", "bölgesi", "semti", "ქუჩა", "უბანი", "ში"]);
+// Разбор района в группы «любой из вариантов»: каждая группа = { any: [улицы/названия] | null, words: [основы слов, все обязательны] }.
+export function parseDistrict(text) {
+  const src = String(text || "").toLowerCase();
+  if (!src.trim()) return [];
+  return src.split(/\s*(?:[\/;|]|,(?!\d)|\s(?:или|or|veya|ან)\s)\s*/i).map((part) => {
+    let rest = part, any = null;
+    for (const [re, needles] of DISTRICT_ALIASES) {
+      re.lastIndex = 0;
+      if (re.test(rest)) { any = [...(any || []), ...needles]; re.lastIndex = 0; rest = rest.replace(re, " "); }
+      re.lastIndex = 0;
+    }
+    const words = rest.split(/[\s.,]+/).map((w) => w.trim()).filter((w) => w.length >= 2 && !DISTRICT_STOP.has(w))
+      // город в районе («Old Batumi» → уже в city) не условие
+      .filter((w) => !(CITY_ALIASES[w] || CITY_ALIASES[foldKey(w)]))
+      // основа слова: «бульваре» → «бульва», «сабуртало» → «сабурта» (падежи)
+      .map((w) => (w.length >= 6 && /^[а-яё]+$/i.test(w) ? w.slice(0, w.length - 2) : w));
+    return { any, words };
+  }).filter((g) => g.any || g.words.length);
+}
+
 const DEALS = {
   rent: "rent", sale: "sale", daily: "daily", buy: "sale", purchase: "sale", "long_rent": "rent", "short_rent": "daily",
   rental: "rent", lease: "rent", monthly: "rent", "аренда": "rent", "снять": "rent", "kiralik": "rent", "kira": "rent", "miete": "rent",
@@ -238,10 +334,17 @@ function filterUnits(units, q, rate) {
       const d = u.building?.district || "";
       if (cities.includes(d)) return true;
       // пригород в адресе объекта, заведённого под соседним городом
-      const sub = cities.filter((c) => SUBURBS.has(c));
+      // только у объектов соседнего большого города (Махинджаури под «Батуми»), и не «ул. Кобулети» в Тбилиси
+      // (тест Мозга 18.11 04:05: «Ул. Кобулети, 3» в Тбилиси попал в поиск по Кобулети)
+      const sub = cities.filter((c) => SUBURBS.has(c) && NEAR_CITY[c] === d);
       if (!sub.length) return false;
       const hay = [u.building?.name, u.building?.name_en, u.building?.name_ka, u.complex, u.building?.complex].filter(Boolean).join(" ").toLowerCase();
-      return sub.some((c) => cityNeedles(c).some((n) => hay.includes(n)));
+      return sub.some((c) => cityNeedles(c).some((n) => {
+        const i = hay.indexOf(n);
+        if (i < 0) return false;
+        const before = hay.slice(Math.max(0, i - 12), i);
+        return !/(ул\.?|улица|пер\.?|переулок|пр\.?|проспект|str\.?|street|st\.?|ქ\.?|ქუჩა)\s*$/.test(before);
+      }));
     });
   }
   if (type === "new") list = list.filter(isNew);
@@ -257,11 +360,12 @@ function filterUnits(units, q, rate) {
   if (a.floor_min) list = list.filter((u) => { const f = floorNum(u); return f != null && f >= Number(a.floor_min); });
   if (a.floor_max) list = list.filter((u) => { const f = floorNum(u); return f != null && f <= Number(a.floor_max); });
   if (district) {
-    // «Махинджаури/Гонио», «Ваке или Сабуртало» → любой из вариантов; слова внутри варианта — все.
-    const groups = district.split(/\s*(?:[\/,;|]|\s(?:или|or|veya|ან)\s)\s*/i).map((g) => g.split(/\s+/).filter(Boolean)).filter((g) => g.length);
-    list = list.filter((u) => {
-      const hay = [u.building?.name, u.building?.name_en, u.building?.name_ka, u.building?.district, u.complex, u.building?.complex, u.about, u.desc_ru, u.desc_en].filter(Boolean).join(" ").toLowerCase();
-      return groups.some((g) => g.every((n) => hay.includes(n) || (normCity(n) !== n.replace(/^./, (x) => x.toUpperCase()) && cityNeedles(normCity(n)).some((cn) => hay.includes(cn)))));
+    // «Махинджаури/Гонио», «Ваке или Сабуртало» → любой из вариантов; слова внутри варианта — все (по основе слова).
+    // «Новый бульвар», «Old Batumi» → название района или его улицы (DISTRICT_ALIASES).
+    const groups = parseDistrict(district);
+    if (groups.length) list = list.filter((u) => {
+      const hay = [u.building?.name, u.building?.name_en, u.building?.name_ka, u.complex, u.building?.complex, u.about, u.desc_ru, u.desc_en].filter(Boolean).join(" ").toLowerCase();
+      return groups.some((g) => (!g.any || g.any.some((n) => hay.includes(n))) && g.words.every((n) => hay.includes(n)));
     });
   }
   if (nearSea) list = list.filter((u) => COAST.has(u.building?.district || ""));
@@ -314,9 +418,29 @@ export function searchUnits(units, args = {}, { rate = 2.7, lang = "ru", widen =
   const deal = normDealArg(a.deal);
   const type = normType(a.type);
   const rooms = a.rooms != null && a.rooms !== "" ? parseInt(a.rooms, 10) : null;
-  const toUsd = (x) => { const n = Number(x) || 0; return String(a.currency || "").toUpperCase() === "GEL" ? n / rate : n; };
+  const toUsd = (x) => { const n = parseMoney(x); return String(a.currency || "").toUpperCase() === "GEL" ? n / rate : n; };
   const bmax = toUsd(a.budget_max), bmin = toUsd(a.budget_min);
-  let district = String(a.district || "").trim().toLowerCase();
+  // Признаки (газ, ЦО, мебель, животные…) из параметра features и из текста района: не фильтр, а ранжирование.
+  const featIn = Array.isArray(a.features) ? a.features : String(a.features || "").split(/[,;\/]+/);
+  const featUnknown = [];
+  const feats = new Set();
+  for (const f of featIn) { if (!String(f || "").trim()) continue; const k = featureKey(f); if (k) feats.add(k); else featUnknown.push(String(f).trim().slice(0, 40)); }
+  // Район, присланный в поле города («Old Batumi», «Новый бульвар»): город берём из него, район переносим в district.
+  let distIn = String(a.district || "");
+  const cityRaw = Array.isArray(a.city) ? a.city.join("/") : String(a.city || "");
+  const KNOWN = new Set(Object.values(CITY_ALIASES));
+  for (const [re] of DISTRICT_ALIASES) {
+    re.lastIndex = 0; const m = cityRaw.match(re); re.lastIndex = 0;
+    if (!m) continue;
+    if (!distIn.toLowerCase().includes(m[0].toLowerCase())) distIn = (distIn ? distIn + " " : "") + m[0];
+    // оба района из списка — в Батуми: нераспознанный «город» заменяем на Батуми
+    for (let i = cities.length - 1; i >= 0; i--) if (!KNOWN.has(cities[i])) cities.splice(i, 1);
+    if (!cities.includes("Батуми")) cities.push("Батуми");
+  }
+  const sf = splitFeatures(distIn);
+  sf.found.forEach((k) => feats.add(k));
+  const featKeys = [...feats];
+  let district = sf.rest.trim().toLowerCase();
   // В районе указан пригород («Махинджаури», «Гонио»): в базе это отдельный город — ищем по городу.
   const dWords = district.split(/[\s\/,;|]+/).filter(Boolean);
   const dTowns = dWords.map(knownTown).filter(Boolean);
@@ -349,7 +473,11 @@ export function searchUnits(units, args = {}, { rate = 2.7, lang = "ru", widen =
   // При поиске шире по бюджету — ближайшие к бюджету клиента; офис при запросе офиса — выше коммерции.
   const wantOffice = type === "office";
   const near = used.nearestTo || 0;
+  const fst = new Map();
+  if (featKeys.length) for (const u of list) fst.set(u, featureState(u, featKeys));
+  const fScore = (u) => { const s = fst.get(u); return s ? s.yes.length - 10 * s.no.length : 0; };
   const ranked = [...list].sort((x, y) =>
+    (featKeys.length ? fScore(y) - fScore(x) : 0) ||
     (near ? Math.abs((priceUsd(x, rate) || 1e12) - near) - Math.abs((priceUsd(y, rate) || 1e12) - near) : 0) ||
     (wantOffice ? (unitCat(y.type) === "office") - (unitCat(x.type) === "office") : 0) ||
     (used.cities.length > 1 && cities.length ? (cities.includes(y.building?.district) ? 1 : 0) - (cities.includes(x.building?.district) ? 1 : 0) : 0) ||
@@ -363,8 +491,21 @@ export function searchUnits(units, args = {}, { rate = 2.7, lang = "ru", widen =
 
   const linkCity = used.cities.length === 1 ? used.cities[0] : (used.cities.includes(city) && SUBURBS.has(city) && used.cities.length > 1 ? used.cities.find((c) => !SUBURBS.has(c)) || city : city);
   const link = catalogLink({ deal, city: linkCity, type: used.type === "office" ? "commercial" : used.type, rooms: used.rooms, a: used.a, bmin: used.bmin, bmax: used.bmax, ppm: byPpm && (used.ppmMin || used.ppmMax), sort });
-  const items = ranked.slice(0, limit).map((u) => toCard(u, rate, lang));
+  const items = ranked.slice(0, limit).map((u) => {
+    const c = toCard(u, rate, lang);
+    const s = fst.get(u);
+    if (s && (s.yes.length || s.no.length)) c.features = { ...(s.yes.length ? { yes: s.yes } : {}), ...(s.no.length ? { no: s.no } : {}) };
+    return c;
+  });
   const res = { total: list.length, shown: items.length, sort: sort || "recommended", items, relaxed, catalog_url: link.url, catalog_exact: link.exact && !relaxed.length && !widened.length && !["office", "commercial"].includes(used.type) && cities.length <= 1 && !dTowns.length };
+  if (featKeys.length || featUnknown.length) {
+    // Признаки не фильтруют выдачу: в объявлениях их почти не указывают (газ ~2%, ЦО ~1%).
+    const allYes = featKeys.length ? list.filter((u) => { const s = fst.get(u); return s && s.yes.length === featKeys.length; }).length : 0;
+    res.features_requested = featKeys;
+    if (featUnknown.length) res.features_unknown = featUnknown;
+    res.features_confirmed = allYes;
+    res.features_note = "Эти условия НЕ фильтр: в объявлениях они почти не указаны. total посчитан без них. Варианты, где условие подтверждено (features.yes), стоят первыми. Покажи варианты и скажи, что наличие остальных условий уточним у владельца. Не говори, что вариантов нет.";
+  }
   if (widened.length) {
     // Точно под запрос 0. Показаны ближайшие варианты, total — число вариантов после расширения.
     res.exact_total = exactTotal;

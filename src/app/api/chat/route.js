@@ -19,6 +19,9 @@ export const maxDuration = 60;
 // со списком вариантов обрезался (сбой «ვერ მოხერხდა პასუხი» в тесте 18.11 02:26). Потолок по языку.
 const MAX_TOKENS = { ka: 1600, ru: 900, en: 800 };
 const CALL_TIMEOUT_MS = 25000;
+// Общий бюджет времени ответа (maxDuration 60 с): не начинаем вызов/повтор, если до него не успеть.
+// Тест Мозга 18.11 04:05: при 20 параллельных запросах ответы шли 15–32 с, один упал в «Не получилось ответить».
+const DEADLINE_MS = 52000;
 
 const MODEL = "claude-haiku-5-5";
 const API = "https://api.anthropic.com/v1/messages";
@@ -65,14 +68,21 @@ function cleanHistory(arr) {
   return out;
 }
 
-// Один вызов Claude с таймаутом; при перегрузке/сетевой ошибке/таймауте один повтор через 1,5 с.
-async function callClaude(key, { messages, tools, maxTokens, noTools }) {
-  const body = { model: MODEL, max_tokens: maxTokens, system: SYSTEM_PROMPT, tools, messages };
+// Системный промт с пометкой кэша (prompt caching): инструменты + промт кэшируются на 5 минут —
+// быстрее и меньше входных токенов в минуту, реже упираемся в лимит API при параллельных диалогах.
+const SYSTEM = [{ type: "text", text: SYSTEM_PROMPT, cache_control: { type: "ephemeral" } }];
+
+// Один вызов Claude с таймаутом; при перегрузке/сетевой ошибке/таймауте до двух повторов (1,5 с и 3 с,
+// или сколько просит retry-after, не больше 6 с), пока укладываемся в общий срок deadline.
+async function callClaude(key, { messages, tools, maxTokens, noTools, deadline }) {
+  const body = { model: MODEL, max_tokens: maxTokens, system: SYSTEM, tools, messages };
   if (noTools) body.tool_choice = { type: "none" }; // последний раунд: только текст, без новых вызовов
-  let lastErr;
-  for (let attempt = 0; attempt < 2; attempt++) {
+  let lastErr, wait = 1500;
+  for (let attempt = 0; attempt < 3; attempt++) {
+    const left = deadline - Date.now();
+    if (left < 4000) { lastErr = lastErr || new Error("deadline"); break; }
     const ctrl = new AbortController();
-    const timer = setTimeout(() => ctrl.abort(), CALL_TIMEOUT_MS);
+    const timer = setTimeout(() => ctrl.abort(), Math.min(CALL_TIMEOUT_MS, left - 1000));
     try {
       const r = await fetch(API, {
         method: "POST",
@@ -84,20 +94,51 @@ async function callClaude(key, { messages, tools, maxTokens, noTools }) {
       const t = await r.text().catch(() => "");
       lastErr = new Error(`anthropic ${r.status}: ${t.slice(0, 200)}`);
       if (![408, 409, 429, 500, 502, 503, 504, 529].includes(r.status)) throw lastErr;
+      const ra = parseFloat(r.headers.get("retry-after") || "");
+      if (ra > 0) wait = Math.min(6000, ra * 1000);
     } catch (e) {
       lastErr = e?.name === "AbortError" ? new Error("anthropic timeout") : e;
       if (String(lastErr?.message || "").match(/anthropic (4(0[0-7]|1\d|2[0-8]))/)) throw lastErr;
     } finally {
       clearTimeout(timer);
     }
-    if (attempt === 0) await new Promise((res) => setTimeout(res, 1500));
+    if (attempt < 2 && deadline - Date.now() > wait + 5000) { await new Promise((res) => setTimeout(res, wait)); wait = Math.min(6000, wait * 2); }
+    else break;
   }
   throw lastErr;
 }
 
+// Запасной ответ без модели: если поиск уже выполнен, а Claude не ответил (перегрузка, таймаут, пустой ответ),
+// показываем найденное сами, а не «Не получилось ответить».
+const FB = {
+  ru: { found: (n) => `Нашла вариантов: ${n}. Вот первые:`, near: "Точно под запрос сейчас нет, вот ближайшие варианты:", all: "Смотреть все", ask: "Уточните, пожалуйста, бюджет, район или число комнат, чтобы я сузила подбор." },
+  en: { found: (n) => `I found ${n} options. Here are the first ones:`, near: "Nothing matches exactly right now, here are the closest options:", all: "See all", ask: "Could you tell me your budget, area or number of rooms so I can narrow it down?" },
+  ka: { found: (n) => `ვიპოვე ${n} ვარიანტი. აი პირველები:`, near: "ზუსტად ასეთი ახლა არ არის, აი უახლოესი ვარიანტები:", all: "ყველას ნახვა", ask: "მითხარით ბიუჯეტი, უბანი ან ოთახების რაოდენობა, რომ შევარჩიო ზუსტად." },
+};
+function fallbackReply(found, lang) {
+  const out = found && found.out;
+  if (!out || !Array.isArray(out.items) || !out.items.length) return "";
+  const f = FB[lang] || FB.ru;
+  const lines = [out.widened ? f.near : f.found(out.total)];
+  out.items.slice(0, 5).forEach((c, i) => {
+    const txt = found.name === "search_new_buildings"
+      ? [c.name, c.district, c.facts].filter(Boolean).join(", ")
+      : [c.title, c.price, c.address].filter(Boolean).join(", ");
+    lines.push(`${i + 1}. ${txt}: ${c.url}`);
+  });
+  if (out.catalog_url && out.total > out.items.length) lines.push(`${f.all}: ${out.catalog_url}`);
+  lines.push(f.ask);
+  return lines.join("\n");
+}
+// Аргументы вызовов для журнала (без create_lead: там контакт клиента).
+const callLog = (name, input) => name === "create_lead" ? name : `${name} ${JSON.stringify(input || {}).slice(0, 220)}`;
+
 export async function POST(req) {
   let lang = "ru", conversationId = "", userText = "", ip = "unknown", test = false;
   const t0 = Date.now();
+  const deadline = t0 + DEADLINE_MS;
+  const usedTools = [], calls = [];
+  let lastFound = null;
   try {
     test = isTestRequest(req);
     if (!/application\/json/i.test(req.headers.get("content-type") || "")) return Response.json({ ok: false, error: "bad_type" }, { status: 415 });
@@ -121,36 +162,43 @@ export async function POST(req) {
     // Нет таблицы chat_subscriptions → инструмента подписки у модели нет, подписку не предлагает.
     const tools = (await subscriptionsAvailable()) ? TOOLS : TOOLS.filter((t) => t.name !== "telegram_subscribe");
     const maxTokens = MAX_TOKENS[lang] || 900;
-    const usedTools = [];
     let messages = history;
     let reply = "", stop = "";
     for (let round = 0; round <= LIMITS.TOOL_ROUNDS; round++) {
-      const res = await callClaude(key, { messages, tools, maxTokens, noTools: round === LIMITS.TOOL_ROUNDS });
+      // мало времени до потолка — последний раунд сразу без инструментов
+      const noTools = round === LIMITS.TOOL_ROUNDS || (round > 0 && deadline - Date.now() < 15000);
+      const res = await callClaude(key, { messages, tools, maxTokens, noTools, deadline });
       stop = res.stop_reason || "";
       const blocks = Array.isArray(res.content) ? res.content : [];
       const text = blocks.filter((b) => b.type === "text").map((b) => b.text).join("\n").trim();
-      const calls = blocks.filter((b) => b.type === "tool_use");
-      if (res.stop_reason !== "tool_use" || !calls.length || round === LIMITS.TOOL_ROUNDS) { reply = text; break; }
+      const uses = blocks.filter((b) => b.type === "tool_use");
+      if (res.stop_reason !== "tool_use" || !uses.length || noTools) { reply = text; break; }
       const results = [];
-      for (const c of calls) {
+      for (const c of uses) {
         usedTools.push(c.name);
+        calls.push(callLog(c.name, c.input));
         const out = await runTool(c.name, c.input, ctx);
+        if ((c.name === "search_listings" || c.name === "search_new_buildings") && out && Array.isArray(out.items) && out.items.length) lastFound = { name: c.name, out };
         results.push({ type: "tool_result", tool_use_id: c.id, content: JSON.stringify(out).slice(0, 8000) });
       }
       messages = [...messages, { role: "assistant", content: blocks }, { role: "user", content: results }];
     }
     const empty = !reply;
-    reply = fixMixedScript(noDash(reply)) || ERR[lang];
+    const fb = empty ? fallbackReply(lastFound, lang) : "";
+    reply = fixMixedScript(noDash(reply || fb)) || ERR[lang];
     const ms = Date.now() - t0;
-    logTurn({ conversationId, ip, lang, userText, reply, tools: usedTools, test, ms, error: empty ? `empty reply (stop=${stop})` : null });
+    // await: на Vercel незавершённая запись после ответа теряется (в тесте 04:05 в журнале 12 из 20 диалогов)
+    await logTurn({ conversationId, ip, lang, userText, reply, tools: calls.length ? calls : usedTools, test, ms, error: empty ? `empty reply (stop=${stop})${fb ? " fallback" : ""}` : null });
     return Response.json({
       ok: true, reply, conversationId, lead: ctx.leadCreated || undefined, subscribe: ctx.subscribeUrl || undefined,
-      ...(test ? { test: true, debug: { ms, tools: usedTools, stop, lang, testLead: ctx.testLead || null } } : {}),
+      ...(test ? { test: true, debug: { ms, tools: usedTools, calls, stop, lang, testLead: ctx.testLead || null, fallback: !!fb } } : {}),
     });
   } catch (e) {
     console.error("chat:", e?.message);
     const ms = Date.now() - t0;
-    logTurn({ conversationId, ip, lang, userText, reply: "", tools: [], error: e?.message, test, ms });
-    return Response.json({ ok: true, reply: ERR[lang], conversationId, error: "failed", ...(test ? { test: true, debug: { ms, error: String(e?.message || "").slice(0, 300) } } : {}) });
+    // Поиск уже был — отдаём найденное без модели, а не «Не получилось ответить».
+    const fb = fixMixedScript(noDash(fallbackReply(lastFound, lang)));
+    await logTurn({ conversationId, ip, lang, userText, reply: fb, tools: calls.length ? calls : usedTools, error: (fb ? "fallback: " : "") + (e?.message || "error"), test, ms });
+    return Response.json({ ok: true, reply: fb || ERR[lang], conversationId, ...(fb ? { fallback: true } : { error: "failed" }), ...(test ? { test: true, debug: { ms, calls, error: String(e?.message || "").slice(0, 300) } } : {}) });
   }
 }
