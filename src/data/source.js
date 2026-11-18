@@ -153,27 +153,46 @@ async function fetchSupabase() {
   // Объявление живёт ARCHIVE_DAYS дней с момента публикации/поднятия, затем уходит в архив (скрывается).
   // Исключение — объекты под управлением Baylux: висят постоянно.
   const cutoff = new Date(Date.now() - ARCHIVE_DAYS * 864e5).toISOString();
+  // 18.11.2026 (fix8 чата): ошибка страницы больше не обрывает загрузку молча. Под параллельной нагрузкой
+  // Supabase отвечал ошибкой, сборка получалась пустой/неполной и кэшировалась на 5 минут: каталог и чат
+  // видели «0 объектов» (ложные «вариантов нет»). Теперь до 3 попыток на страницу, а результат помечен
+  // ok=false, если загрузить всё не удалось (см. getSnapshotShared: такой снимок не держим 5 минут).
+  let ok = true;
+  const loadPage = async (from) => {
+    let lastErr = null;
+    for (let attempt = 0; attempt < 3; attempt++) {
+      if (attempt) await new Promise((r) => setTimeout(r, attempt === 1 ? 400 : 1200));
+      try {
+        const { data, error } = await supa
+          .from("listings")
+          .select("*")
+          .eq("status", "approved")
+          .or(`managed_by_baylux.eq.true,bumped_at.is.null,bumped_at.gte.${cutoff}`)
+          .order("created_at", { ascending: false })
+          .order("id", { ascending: false }) // уникальный тай-брейк, чтобы страницы не дублировались
+          .range(from, from + PAGE - 1);
+        if (!error) return data || [];
+        lastErr = error.message;
+      } catch (e) { lastErr = e?.message || String(e); }
+    }
+    throw new Error(lastErr || "load failed");
+  };
   try {
     for (let page = 0; page < 50; page++) { // потолок 50 000 объектов, с большим запасом
-      const from = page * PAGE;
-      const { data, error } = await supa
-        .from("listings")
-        .select("*")
-        .eq("status", "approved")
-        .or(`managed_by_baylux.eq.true,bumped_at.is.null,bumped_at.gte.${cutoff}`)
-        .order("created_at", { ascending: false })
-        .order("id", { ascending: false }) // уникальный тай-брейк, чтобы страницы не дублировались
-        .range(from, from + PAGE - 1);
-      if (error) { console.error("Supabase load failed:", error.message); break; }
-      if (!data || data.length === 0) break;
+      const data = await loadPage(page * PAGE);
+      if (!data.length) break;
       all.push(...data);
       if (data.length < PAGE) break; // последняя страница
     }
-    return groupRows(all);
   } catch (e) {
-    console.error("Supabase load failed:", e.message);
-    return groupRows(all); // вернём то, что успели собрать
+    ok = false;
+    console.error("Supabase load failed:", e.message, "rows loaded:", all.length);
   }
+  if (ok && !all.length) ok = false; // одобренных объявлений не может быть 0 — это сбой, а не пустая база
+  const out = groupRows(all); // при сбое — то, что успели собрать (страницы сайта не падают)
+  out.ok = ok;
+  out.rows = all.length;
+  return out;
 }
 
 // Объединяем дома из разных источников по slug (units складываются).
@@ -299,6 +318,8 @@ async function buildAll() {
   }
   const merged = mergeBuildings(fromSupa, fromSheet);
   const list = merged.length ? merged : LOCAL;
+  // Полнота загрузки (fix8): без Supabase (локальная разработка) считаем данные полными.
+  const meta = { ok: !supa || fromSupa.ok !== false, rows: fromSupa.rows || 0, local: list === LOCAL, at: Date.now() };
   // Обогащаем цену/валюту/цену за м² для ВСЕХ источников (Sheet/локальные без price_num)
   const enriched = list.map((b) => ({ ...b, units: b.units.map(enrichUnit) }));
   // Скрываем с сайта объявления без собственных фото.
@@ -309,7 +330,9 @@ async function buildAll() {
   const deduped = dedupeUnits(withPhotos).filter((b) => b.units.length > 0);
   // Продвигаемые — выше, остальные чередуются по городам (round-robin), чтобы Батуми
   // не тонул под свежей пачкой Тбилиси. Внутри города — «новые вперёд».
-  return interleaveByCity(deduped);
+  const res = interleaveByCity(deduped);
+  res.meta = meta;
+  return res;
 }
 
 // Кэш МЕЖДУ запросами — в памяти серверного процесса. Раньше каждая страница, даже
@@ -347,17 +370,38 @@ function buildSnapshot(raw) {
     if (old !== b.slug && !buildingBySlug.has(old) && !legacyBuilding.has(old)) legacyBuilding.set(old, b.slug);
     if (!addrToBuilding.has(old)) addrToBuilding.set(old, b.slug);
   }
-  return { raw, pub, unitsPub, unitsRaw, bySlugPub, bySlugRaw, buildingBySlug, legacyBuilding, addrToBuilding };
+  return { raw, pub, unitsPub, unitsRaw, bySlugPub, bySlugRaw, buildingBySlug, legacyBuilding, addrToBuilding, meta: raw.meta || { ok: true } };
 }
+
+// Неполный снимок (Supabase ответил ошибкой) держим только BAD_RETRY_MS и вместо него отдаём последний
+// полный снимок этого инстанса (не старше STALE_MAX_MS): лучше данные 10-минутной давности, чем пустой каталог.
+const BAD_RETRY_MS = 15_000;
+const STALE_MAX_MS = 60 * 60_000;
+let lastGood = null; // { at, snap }
 
 function getSnapshotShared() {
   const now = Date.now();
-  if (memo.promise && now - memo.at < TTL_MS) return memo.promise;
-  const p = buildAll().then(buildSnapshot).catch((e) => { memo = { at: 0, promise: null }; throw e; });
-  memo = { at: now, promise: p };
+  if (memo.promise && now - memo.at < (memo.ttl || TTL_MS)) return memo.promise;
+  const p = buildAll().then(buildSnapshot).then((snap) => {
+    if (snap.meta.ok !== false) { lastGood = { at: Date.now(), snap }; return snap; }
+    console.error("catalog snapshot incomplete:", JSON.stringify(snap.meta));
+    if (memo.promise === p) memo.ttl = BAD_RETRY_MS; // повторим загрузку через 15 с, а не через 5 мин
+    if (lastGood && Date.now() - lastGood.at < STALE_MAX_MS) return { ...lastGood.snap, meta: { ...lastGood.snap.meta, stale: true } };
+    return snap;
+  }).catch((e) => { memo = { at: 0, promise: null }; throw e; });
+  memo = { at: now, promise: p, ttl: TTL_MS };
   return p;
 }
 export function invalidateBuildings() { memo = { at: 0, promise: null }; }
+// Сбросить кэш, только если последний снимок был неполным (для повтора поиска в чате).
+export function invalidateBuildingsIfBad() { if (memo.ttl === BAD_RETRY_MS) memo = { at: 0, promise: null }; }
+
+// Для поиска в чате (fix8): публичные объявления + признак полноты загрузки
+// (meta.ok=false — загрузка не удалась; meta.stale=true — отдан последний полный снимок).
+export async function getUnitsForSearch() {
+  const snap = await getSnapshotShared();
+  return { units: snap.unitsPub, meta: snap.meta || { ok: true } };
+}
 const getSnapshot = cache(() => getSnapshotShared());
 const getBuildings = cache(async () => (await getSnapshot()).raw);
 

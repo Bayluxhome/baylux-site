@@ -138,7 +138,8 @@ export async function POST(req) {
   const t0 = Date.now();
   const deadline = t0 + DEADLINE_MS;
   const usedTools = [], calls = [];
-  let lastFound = null;
+  let lastFound = null, ctxRef = null;
+  const withFlags = (list) => [...list, ...(ctxRef?.flags || [])];
   try {
     test = isTestRequest(req);
     if (!/application\/json/i.test(req.headers.get("content-type") || "")) return Response.json({ ok: false, error: "bad_type" }, { status: 415 });
@@ -158,7 +159,9 @@ export async function POST(req) {
     const key = process.env.ANTHROPIC_API_KEY;
     if (!key) return Response.json({ ok: true, reply: STUB[lang], conversationId, stub: true });
 
-    const ctx = { shownIds: new Set(), allowAnyPublished: true, leadCreated: false, lang, subscribeUrl: null, test };
+    // userText — для правила «N+1» в поиске; flags — сбои каталога/инструментов для журнала (fix8).
+    const ctx = { shownIds: new Set(), allowAnyPublished: true, leadCreated: false, lang, subscribeUrl: null, test, userText, flags: [] };
+    ctxRef = ctx;
     // Нет таблицы chat_subscriptions → инструмента подписки у модели нет, подписку не предлагает.
     const tools = (await subscriptionsAvailable()) ? TOOLS : TOOLS.filter((t) => t.name !== "telegram_subscribe");
     const maxTokens = MAX_TOKENS[lang] || 900;
@@ -188,17 +191,17 @@ export async function POST(req) {
     reply = fixMixedScript(noDash(reply || fb)) || ERR[lang];
     const ms = Date.now() - t0;
     // await: на Vercel незавершённая запись после ответа теряется (в тесте 04:05 в журнале 12 из 20 диалогов)
-    await logTurn({ conversationId, ip, lang, userText, reply, tools: calls.length ? calls : usedTools, test, ms, error: empty ? `empty reply (stop=${stop})${fb ? " fallback" : ""}` : null });
+    await logTurn({ conversationId, ip, lang, userText, reply, tools: withFlags(calls.length ? calls : usedTools), test, ms, error: empty ? `empty reply (stop=${stop})${fb ? " fallback" : ""}` : null });
     return Response.json({
       ok: true, reply, conversationId, lead: ctx.leadCreated || undefined, subscribe: ctx.subscribeUrl || undefined,
-      ...(test ? { test: true, debug: { ms, tools: usedTools, calls, stop, lang, testLead: ctx.testLead || null, fallback: !!fb } } : {}),
+      ...(test ? { test: true, debug: { ms, tools: usedTools, calls, flags: ctx.flags, stop, lang, testLead: ctx.testLead || null, fallback: !!fb } } : {}),
     });
   } catch (e) {
     console.error("chat:", e?.message);
     const ms = Date.now() - t0;
     // Поиск уже был — отдаём найденное без модели, а не «Не получилось ответить».
     const fb = fixMixedScript(noDash(fallbackReply(lastFound, lang)));
-    await logTurn({ conversationId, ip, lang, userText, reply: fb, tools: calls.length ? calls : usedTools, error: (fb ? "fallback: " : "") + (e?.message || "error"), test, ms });
+    await logTurn({ conversationId, ip, lang, userText, reply: fb, tools: withFlags(calls.length ? calls : usedTools), error: (fb ? "fallback: " : "") + (e?.message || "error"), test, ms });
     return Response.json({ ok: true, reply: fb || ERR[lang], conversationId, ...(fb ? { fallback: true } : { error: "failed" }), ...(test ? { test: true, debug: { ms, calls, error: String(e?.message || "").slice(0, 300) } } : {}) });
   }
 }
