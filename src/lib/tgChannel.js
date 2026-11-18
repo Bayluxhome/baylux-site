@@ -2,6 +2,7 @@
 // чтобы тем же кодом публиковали и модерация в боте, и автопубликация (lib/autoModeration).
 import { slugify } from "@/data/sheet";
 import { SITE_URL, channelForCity } from "@/config";
+import { tgPhotoUrl } from "@/lib/tgPhoto";
 
 const TOKEN = process.env.TELEGRAM_BOT_TOKEN;
 export const CH_BATUMI = process.env.TELEGRAM_CHANNEL || "";
@@ -25,7 +26,12 @@ function unitLink(row) {
   return `${SITE_URL}/property/${uslug}`;
 }
 
+// T-20261118-08: автопостинг в каналы выключен по умолчанию (решение Дмитрия 18.11).
+// Включить: TG_CHANNEL_POST=on. При off объявление публикуется только на сайте; удаление старых постов при снятии работает.
+export const CHANNEL_POST_ON = String(process.env.TG_CHANNEL_POST || "off").toLowerCase() === "on";
+
 export async function postToChannel(row, channel) {
+  if (!CHANNEL_POST_ON) return [];
   if (!channel || !TOKEN) return [];
   const per = row.per ? " " + row.per : "";
   const bits = [`📐 ${row.area || 0} м²`];
@@ -48,7 +54,7 @@ export async function postToChannel(row, channel) {
   const photos = Array.isArray(row.photos) ? row.photos.slice(0, 10) : [];
   try {
     if (photos.length) {
-      const media = photos.map((u, i) => (i === 0 ? { type: "photo", media: u, caption: cap, parse_mode: "HTML" } : { type: "photo", media: u }));
+      const media = photos.map((u, i) => (i === 0 ? { type: "photo", media: tgPhotoUrl(u), caption: cap, parse_mode: "HTML" } : { type: "photo", media: tgPhotoUrl(u) }));
       const res = await tg("sendMediaGroup", { chat_id: channel, media });
       return (res?.result || []).map((m) => m.message_id);
     }
