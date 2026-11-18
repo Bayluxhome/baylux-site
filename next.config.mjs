@@ -14,6 +14,9 @@ const nextConfig = {
       { protocol: "https", hostname: "drive.google.com" },
       { protocol: "https", hostname: "**.googleusercontent.com" },
       { protocol: "https", hostname: "**.supabase.co" },
+      // Cloudflare R2 (T-20261118-05): фото в WebP со своего домена
+      { protocol: "https", hostname: "photos.bayluxhome.com" },
+      { protocol: "https", hostname: "**.r2.dev" },
     ],
   },
   // Базовые защитные заголовки. CSP намеренно не задаём: карты, аналитика и Telegram-виджет
