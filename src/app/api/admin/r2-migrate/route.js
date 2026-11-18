@@ -21,7 +21,8 @@ export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 export const maxDuration = 60;
 
-const MAX_PHOTOS = 50;
+const MAX_PHOTOS = 120; // T-08: фото одного объявления качаются/жмутся параллельно (до 5), поэтому за ~45 с успевает больше
+const PAR = 5;
 const isSupaPhoto = (u) => typeof u === "string" && u.includes("/storage/v1/object/public/listing-photos/") && !/\.(ogg|mp3|wav|bin)(\?|$)/i.test(u);
 
 async function auth() {
@@ -37,12 +38,15 @@ async function tableReady() {
 }
 
 // Кандидаты: одобренные объявления, свежие первыми, у которых есть фото в Supabase Storage.
-async function pickListings(limit) {
+// T-08: all=1 — все статусы (не только approved), чтобы перед удалением оригиналов ссылок на Supabase не осталось.
+// Просматриваются все страницы (до 100×200), а не первые 10: иначе перенос «застревал» после 2000 объявлений.
+async function pickListings(limit, all = false) {
   const out = [];
   let photos = 0;
-  for (let page = 0; page < 10 && photos < limit; page++) {
-    const { data, error } = await supa.from("listings").select("id, photos, facade_photo, building_name")
-      .eq("status", "approved").order("created_at", { ascending: false }).order("id", { ascending: false })
+  for (let page = 0; page < 100 && photos < limit; page++) {
+    let q = supa.from("listings").select("id, photos, facade_photo, building_name");
+    if (!all) q = q.eq("status", "approved");
+    const { data, error } = await q.order("created_at", { ascending: false }).order("id", { ascending: false })
       .range(page * 200, page * 200 + 199);
     if (error) throw new Error("listings: " + error.message);
     if (!data || !data.length) break;
@@ -75,8 +79,15 @@ async function moveOne(url, listingId, i, cache) {
 
 export async function GET(req) {
   const denied = await auth(); if (denied) return denied;
-  const limit = Math.min(MAX_PHOTOS, Math.max(1, parseInt(new URL(req.url).searchParams.get("limit") || "20", 10) || 20));
-  const { list, photos } = await pickListings(limit);
+  const sp = new URL(req.url).searchParams;
+  const all = sp.get("all") === "1";
+  // ?count=1 — сколько ВСЕГО осталось перенести (объявлений/фото), без записи
+  if (sp.get("count") === "1") {
+    const { list, photos } = await pickListings(1e9, all);
+    return Response.json({ ok: true, dryRun: true, all, remaining: { listings: list.length, photos } });
+  }
+  const limit = Math.min(MAX_PHOTOS, Math.max(1, parseInt(sp.get("limit") || "20", 10) || 20));
+  const { list, photos } = await pickListings(limit, all);
   const { count: migrated } = await supa.from("photo_migration").select("id", { head: true, count: "exact" }).eq("status", "done").then((x) => x, () => ({ count: null }));
   return Response.json({
     ok: true, dryRun: true, r2: r2Enabled(), table: await tableReady(), migratedListings: migrated ?? null,
@@ -117,7 +128,7 @@ export async function POST(req) {
   if (!r2Enabled()) return Response.json({ ok: false, error: "r2_not_configured", hint: "R2_* в Vercel + Redeploy" }, { status: 409 });
   const limit = Math.min(MAX_PHOTOS, Math.max(1, parseInt(sp.get("limit") || "20", 10) || 20));
   const t0 = Date.now();
-  const { list } = await pickListings(limit);
+  const { list } = await pickListings(limit, sp.get("all") === "1");
   const report = [];
   let bytesOld = 0, bytesNew = 0, moved = 0;
   for (const r of list) {
@@ -125,13 +136,20 @@ export async function POST(req) {
     const cache = new Map();
     try {
       const oldPhotos = Array.isArray(r.photos) ? r.photos : [];
-      const newPhotos = [];
+      const newPhotos = oldPhotos.slice();
       let bo = 0, bn = 0;
+      // Дубли одной ссылки внутри объявления переносим один раз (cache), остальные — параллельно по PAR.
+      const idx = [], seen = new Set();
+      oldPhotos.forEach((u, i) => { if (isSupaPhoto(u) && !seen.has(u)) { seen.add(u); idx.push(i); } });
+      for (let k = 0; k < idx.length; k += PAR) {
+        await Promise.all(idx.slice(k, k + PAR).map((i) => moveOne(oldPhotos[i], r.id, i, cache)));
+      }
       for (let i = 0; i < oldPhotos.length; i++) {
         const u = oldPhotos[i];
-        if (!isSupaPhoto(u)) { newPhotos.push(u); continue; }
-        const m = await moveOne(u, r.id, i, cache);
-        newPhotos.push(m.url); bo += m.bytesOld; bn += m.bytesNew;
+        if (!isSupaPhoto(u)) continue;
+        const m = cache.get(u);
+        newPhotos[i] = m.url;
+        if (idx.includes(i)) { bo += m.bytesOld; bn += m.bytesNew; }
       }
       let newFacade = r.facade_photo || null;
       if (isSupaPhoto(r.facade_photo)) {

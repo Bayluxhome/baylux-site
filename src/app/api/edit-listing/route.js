@@ -4,6 +4,7 @@ import { supa } from "@/lib/supabase";
 import { revalidateListings } from "@/lib/cache";
 import { normDeal, normType, perFor } from "@/lib/classify";
 import { assessCoords } from "@/lib/geo";
+import { tgPhotoUrl } from "@/lib/tgPhoto";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -108,7 +109,7 @@ export async function POST(req) {
   if (error) return Response.json({ ok: false });
 
   if (!canMod && ADMIN && TOKEN) {
-    if (row.photos.length) await tg("sendMediaGroup", { chat_id: ADMIN, media: row.photos.map((u) => ({ type: "photo", media: u })) });
+    if (row.photos.length) await tg("sendMediaGroup", { chat_id: ADMIN, media: row.photos.map((u) => ({ type: "photo", media: tgPhotoUrl(u) })) });
     if (hasGeo) await tg("sendLocation", { chat_id: ADMIN, latitude: row.lat, longitude: row.lng });
     const geoLine = hasGeo ? `\n📍 <a href="${mapsLink(row.lat, row.lng)}">проверить точку</a>` : `\n⚠️ точка на карте НЕ указана`;
     const summary = `✏️ <b>Объявление отредактировано (с сайта) — повторная модерация</b>\n${DEAL_RU[deal]} · ${row.type}\n🏙 ${esc(city)}\n🏠 ${esc(row.building_name)}\n💰 ${row.price}\n📐 ${row.area} м² · 🛏 ${row.rooms} комн. · 🏢 ${esc(row.floor)}\n📷 ${row.photos.length} фото${geoLine}\n📞 ${phone}\n\n${esc(row.about)}`;

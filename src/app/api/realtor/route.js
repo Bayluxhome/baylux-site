@@ -2,6 +2,7 @@ import { cookies } from "next/headers";
 import { verifySession } from "@/lib/session";
 import { supa } from "@/lib/supabase";
 import { revalidateRealtors } from "@/lib/cache";
+import { tgPhotoUrl } from "@/lib/tgPhoto";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -63,7 +64,7 @@ export async function POST(req) {
     const kb = { inline_keyboard: [autoOk
       ? [{ text: "❌ Отклонить", callback_data: `rrj:${realtorId}` }]
       : [{ text: "✅ Одобрить", callback_data: `rap:${realtorId}` }, { text: "❌ Отклонить", callback_data: `rrj:${realtorId}` }]] };
-    if (row.photo) await tg("sendPhoto", { chat_id: ADMIN, photo: row.photo, caption: summary, parse_mode: "HTML", reply_markup: kb });
+    if (row.photo) await tg("sendPhoto", { chat_id: ADMIN, photo: tgPhotoUrl(row.photo), caption: summary, parse_mode: "HTML", reply_markup: kb });
     else await tg("sendMessage", { chat_id: ADMIN, text: summary, parse_mode: "HTML", reply_markup: kb });
   }
   return Response.json({ ok: true, status: row.status });

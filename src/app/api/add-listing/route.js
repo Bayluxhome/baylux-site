@@ -4,6 +4,7 @@ import { supa } from "@/lib/supabase";
 import { normDeal, normType, perFor } from "@/lib/classify";
 import { assessCoords } from "@/lib/geo";
 import { moderationVerdict, publishApproved, reasonsText } from "@/lib/autoModeration";
+import { tgPhotoUrl } from "@/lib/tgPhoto";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -128,7 +129,7 @@ export async function POST(req) {
   if (row.status === "approved") await publishApproved(ins.id);
 
   if (!canMod && ADMIN && TOKEN) {
-    if (row.photos.length) await tg("sendMediaGroup", { chat_id: ADMIN, media: row.photos.map((u) => ({ type: "photo", media: u })) });
+    if (row.photos.length) await tg("sendMediaGroup", { chat_id: ADMIN, media: row.photos.map((u) => ({ type: "photo", media: tgPhotoUrl(u) })) });
     if (hasGeo) await tg("sendLocation", { chat_id: ADMIN, latitude: row.lat, longitude: row.lng });
     const geoLine = hasGeo
       ? `\n📍 <a href="${mapsLink(row.lat, row.lng)}">проверить точку на карте</a> (откройте спутник)`

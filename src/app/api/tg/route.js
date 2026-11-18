@@ -14,6 +14,7 @@ import { getAllUnits } from "@/data/source";
 import { stripPrivate } from "@/lib/privacy";
 import { getUsdGel } from "@/lib/rate";
 import { parseStart, isStop, handleSubscribeStart, handleStop } from "@/lib/chat/subscribe";
+import { tgPhotoUrl } from "@/lib/tgPhoto";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -380,7 +381,7 @@ async function finalizeListing(chat, uid, data, author) {
     await send(chat, B(lang, "done_seller"));
   }
   // Модерация — всегда на русском (для CEO)
-  if (row.photos.length) await tg("sendMediaGroup", { chat_id: ADMIN, media: row.photos.slice(0, 10).map((u) => ({ type: "photo", media: u })) });
+  if (row.photos.length) await tg("sendMediaGroup", { chat_id: ADMIN, media: row.photos.slice(0, 10).map((u) => ({ type: "photo", media: tgPhotoUrl(u) })) });
   if (data.lat) await tg("sendLocation", { chat_id: ADMIN, latitude: data.lat, longitude: data.lng });
   const geoLine = data.lat ? `\n📍 <a href="${mapsLink(data.lat, data.lng)}">проверить точку на карте</a> (откройте спутник)` : `\n⚠️ точка на карте НЕ указана`;
   const tgLine = row.tg_username ? `\n✈️ @${esc(row.tg_username)}` : "";

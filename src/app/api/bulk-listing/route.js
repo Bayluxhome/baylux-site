@@ -9,6 +9,7 @@ import { translitAddress } from "@/lib/dict";
 import { normDeal, normType, perFor } from "@/lib/classify";
 import { moderationVerdict, publishApproved, reasonsText } from "@/lib/autoModeration";
 import { refineListing, aiFlagsText } from "@/lib/haikuListing";
+import { tgPhotoUrl } from "@/lib/tgPhoto";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -272,7 +273,7 @@ export async function POST(req) {
         const row = x.row;
         // У медиагруппы кнопок не бывает — фото отдельно, кнопки на тексте после неё.
         if (row.photos.length) {
-          await tg("sendMediaGroup", { chat_id: ADMIN, media: row.photos.map((u) => ({ type: "photo", media: u })) });
+          await tg("sendMediaGroup", { chat_id: ADMIN, media: row.photos.map((u) => ({ type: "photo", media: tgPhotoUrl(u) })) });
         }
         // Дубль по фото: совпадение хотя бы одного хэша с другим объектом этой пачки ИЛИ с любым в БД.
         const hashes = Array.isArray(row.photo_hashes) ? row.photo_hashes.filter(Boolean) : [];
