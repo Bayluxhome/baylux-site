@@ -11,16 +11,23 @@
 // (старые и новые ссылки), и только после неё обновляется listings.photos (и facade_photo).
 // photo_hashes не трогаем: они по оригиналу, дедуп и сверка с парсером работают как раньше.
 // Оригиналы в Supabase не удаляются.
+//
+// T-20261118-09:
+// GET  ?status=1                 → журнал: счёт по status, стоп/ошибки/бэкап (последние)
+// GET  ?scan=1[&tables=a,b]      → счёт ссылок на supabase.co/storage по таблицам и колонкам (проверка «= 0»)
+// POST ?clearHalt=1              → снять стоп cron (halt → halt_cleared)
+// POST ?retryErrors=1[&id=<listing_id>] → ошибочные снова в работу (error → error_retried)
+// POST ?rollback=extra:<id|all>  → откат прочих таблиц (риелторы/ЖК…) по журналу status='done_extra'
 import { cookies } from "next/headers";
 import { verifySession, isSuperAdmin } from "@/lib/session";
 import { supa } from "@/lib/supabase";
 import { r2Enabled } from "@/lib/photoStore";
 import { revalidateListings } from "@/lib/cache";
-import { pickListings, tableReady, migrateBatch } from "@/lib/r2Migrate";
+import { pickListings, tableReady, migrateBatch, scanSupaLinks } from "@/lib/r2Migrate";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
-export const maxDuration = 60;
+export const maxDuration = 120;
 
 const MAX_PHOTOS = 120;
 
@@ -35,6 +42,21 @@ export async function GET(req) {
   const denied = await auth(); if (denied) return denied;
   const sp = new URL(req.url).searchParams;
   const all = sp.get("all") === "1";
+  if (sp.get("status") === "1") {
+    const by = {};
+    for (let from = 0; ; from += 1000) {
+      const { data } = await supa.from("photo_migration").select("status").range(from, from + 999);
+      if (!data || !data.length) break;
+      data.forEach((r) => { by[r.status] = (by[r.status] || 0) + 1; });
+      if (data.length < 1000) break;
+    }
+    const pick = async (st, n = 50) => (await supa.from("photo_migration").select("id, listing_id, old_photos, created_at, status").eq("status", st).order("id", { ascending: false }).limit(n)).data || [];
+    return Response.json({ ok: true, byStatus: by, halt: await pick("halt", 5), errors: await pick("error", 100), backup: (await supa.from("photo_migration").select("id, status, photos_count, bytes_old, old_photos").eq("listing_id", "__backup__").order("id", { ascending: false }).limit(1)).data });
+  }
+  if (sp.get("scan") === "1") {
+    const t = sp.get("tables"); 
+    return Response.json({ ok: true, scan: await scanSupaLinks(t ? t.split(",") : undefined) });
+  }
   // ?count=1 — сколько ВСЕГО осталось перенести (объявлений/фото), без записи
   if (sp.get("count") === "1") {
     const { list, photos } = await pickListings(1e9, all);
@@ -53,6 +75,39 @@ export async function POST(req) {
   const denied = await auth(); if (denied) return denied;
   const sp = new URL(req.url).searchParams;
   if (!(await tableReady())) return Response.json({ ok: false, error: "no_table", hint: "Выполнить sql/036_photo_migration.sql" }, { status: 409 });
+
+  if (sp.get("clearHalt") === "1") {
+    const { data, error } = await supa.from("photo_migration").update({ status: "halt_cleared" }).eq("status", "halt").select("id");
+    return Response.json({ ok: !error, cleared: (data || []).length, error: error?.message });
+  }
+  if (sp.get("retryErrors") === "1") {
+    let q = supa.from("photo_migration").update({ status: "error_retried" }).eq("status", "error");
+    if (sp.get("id")) q = q.eq("listing_id", sp.get("id"));
+    const { data, error } = await q.select("listing_id");
+    return Response.json({ ok: !error, retried: (data || []).map((r) => r.listing_id), error: error?.message });
+  }
+
+  // ── откат прочих таблиц ──
+  const rbx = sp.get("rollback") || "";
+  if (rbx.startsWith("extra:")) {
+    const which = rbx.slice(6);
+    let q = supa.from("photo_migration").select("*").eq("status", "done_extra");
+    if (which !== "all") q = q.eq("id", which);
+    const { data: rows, error } = await q.order("id", { ascending: false }).limit(1000);
+    if (error) return Response.json({ ok: false, error: error.message }, { status: 500 });
+    const done = [], skipped = [];
+    for (const m of rows || []) {
+      const [t, ...rest] = m.listing_id.split(":"); const id = rest.join(":");
+      const cols = Object.keys(m.new_photos || {});
+      const { data: cur } = await supa.from(t).select(cols.join(",")).eq("id", id).maybeSingle();
+      if (!cur || cols.some((k) => JSON.stringify(cur[k]) !== JSON.stringify(m.new_photos[k]))) { skipped.push(m.listing_id); continue; }
+      const { error: e2 } = await supa.from(t).update(m.old_photos).eq("id", id);
+      if (e2) { skipped.push(m.listing_id); continue; }
+      await supa.from("photo_migration").update({ status: "rolled_back", rolled_back_at: new Date().toISOString() }).eq("id", m.id);
+      done.push(m.listing_id);
+    }
+    return Response.json({ ok: true, rolledBack: done, skipped });
+  }
 
   // ── откат ──
   const rb = sp.get("rollback");

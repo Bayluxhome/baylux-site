@@ -6,13 +6,16 @@
 // дальше cron ничего не делает, в чат модерации одно сообщение.
 // Снять стоп: update photo_migration set status='halt_cleared' where status='halt'.
 // По завершении (переносить нечего) — строка status='complete' и одно сообщение с итогом.
+// T-20261118-09: временные сбои R2/сети (5xx/429/обрыв) повторяются внутри r2Put/download; если всё равно
+// не прошло — объявление НЕ помечается error (возьмётся в следующий запуск), запуск просто заканчивается.
+// Стоп (halt) — только при 3+ НЕвременных ошибках за запуск. После listings — фаза extra (риелторы, ЖК и т.д.).
 // Выключатель: R2_MIGRATE_CRON=off. Оригиналы в Supabase не удаляются. Журнал и откат — /api/admin/r2-migrate.
 import { cookies } from "next/headers";
 import { supa } from "@/lib/supabase";
 import { verifySession, isSuperAdmin } from "@/lib/session";
 import { r2Enabled } from "@/lib/photoStore";
 import { revalidateListings } from "@/lib/cache";
-import { tableReady, migrateBatch } from "@/lib/r2Migrate";
+import { tableReady, migrateBatch, migrateExtraBatch } from "@/lib/r2Migrate";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -75,19 +78,26 @@ export async function GET(req) {
     phase = "all";
     j = await migrateBatch({ limit: PER_RUN_PHOTOS, all: true, budgetMs: BUDGET_MS - (Date.now() - t0), par: 6, stopOnError: HALT_ERRORS, exclude });
   }
+  if (!j.picked) { // объявления закончились — прочие таблицы (риелторы, ЖК, планировки, новости…)
+    phase = "extra";
+    const x = await migrateExtraBatch({ budgetMs: BUDGET_MS - (Date.now() - t0), exclude });
+    j = { moved: x.moved, listings: x.rows, errors: x.errors, picked: x.rows + x.errors + x.left, ms: x.ms, report: x.report };
+  }
   if (j.moved) revalidateListings();
 
-  const errs = j.report.filter((x) => x.error).slice(0, 10);
-  for (const e of errs) await supa.from("photo_migration").insert({ listing_id: String(e.id), old_photos: [e.error], new_photos: [], status: "error", photos_count: 0 });
-  if (j.errors >= HALT_ERRORS) {
+  const all = j.report.filter((x) => x.error);
+  const hard = all.filter((x) => !x.transient);
+  for (const e of hard.slice(0, 10)) await supa.from("photo_migration").insert({ listing_id: String(e.id), old_photos: [e.error], new_photos: [], status: "error", photos_count: 0 });
+  if (hard.length >= HALT_ERRORS) {
+    const errs = hard.slice(0, 10);
     await supa.from("photo_migration").insert({ listing_id: "__halt__", old_photos: errs, new_photos: [], status: "halt", photos_count: 0 });
     const t = await totals();
-    await notify(`⚠️ Перенос фото в R2 ОСТАНОВЛЕН: 3+ ошибки за запуск (объявления с ошибкой не тронуты).\n${errs.map((e) => `${e.id}: ${e.error}`).join("\n")}\n\nПеренесено всего: ${t.listings} объявл., ${t.photos} фото, ${t.mbOld} → ${t.mbNew} МБ.\nПродолжить: в photo_migration строку status='halt' → 'halt_cleared'.`);
-  } else if (!j.picked && phase === "all") {
+    await notify(`⚠️ Перенос фото в R2 ОСТАНОВЛЕН: ${hard.length} ошибок за запуск (объявления с ошибкой не тронуты).\n${errs.map((e) => `${e.id}: ${e.error}`).join("\n")}\n\nПеренесено всего: ${t.listings} объявл., ${t.photos} фото, ${t.mbOld} → ${t.mbNew} МБ.\nПродолжить: суперадмин POST /api/admin/r2-migrate?clearHalt=1`);
+  } else if (!j.picked && phase === "extra") {
     await supa.from("photo_migration").insert({ listing_id: "__complete__", old_photos: [], new_photos: [], status: "complete", photos_count: 0 });
     const t = await totals();
     const ex = await errorIds();
-    await notify(`✅ Перенос фото в R2 завершён: ${t.listings} объявл., ${t.photos} фото, ${t.mbOld} → ${t.mbNew} МБ. Не перенесены из-за ошибок: ${ex.size} объявл. (photo_migration status='error'). Оригиналы в Supabase не удалены.`);
+    await notify(`✅ Перенос фото в R2 завершён: ${t.listings} объявл., ${t.photos} фото, ${t.mbOld} → ${t.mbNew} МБ (+ риелторы/ЖК/прочее). Не перенесены из-за ошибок: ${ex.size} (photo_migration status='error'). Оригиналы в Supabase не удалены.`);
   }
   const { report, ...rest } = j;
   return Response.json({ ok: true, phase, ...rest, errorsList: report.filter((x) => x.error) });

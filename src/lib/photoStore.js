@@ -36,8 +36,21 @@ const sha256hex = (d) => crypto.createHash("sha256").update(d).digest("hex");
 const hmac = (k, d) => crypto.createHmac("sha256", k).update(d).digest();
 const encKey = (key) => key.split("/").map((s) => encodeURIComponent(s)).join("/");
 
+// Временные сбои R2/сети (5xx, 429, обрыв) — повторяем; 4xx (ключи/подпись) — сразу ошибка.
+export const isTransientErr = (e) => /^(r2|download) (5\d\d|429|408)\b|fetch failed|ECONNRESET|ETIMEDOUT|EAI_AGAIN|socket|network|aborted|timeout/i.test(String(e?.message || e));
+
+// PUT в R2 с повторами (T-20261118-09: перенос встал на трёх «r2 500 InternalError» подряд).
+export async function r2Put(key, body, contentType) {
+  let last;
+  for (let a = 0; a < 4; a++) {
+    if (a) await new Promise((r) => setTimeout(r, 600 * 3 ** (a - 1))); // 0,6 / 1,8 / 5,4 с
+    try { return await r2PutOnce(key, body, contentType, new Date()); } catch (e) { last = e; if (!isTransientErr(e)) throw e; }
+  }
+  throw last;
+}
+
 // PUT объекта в R2 через S3 API с подписью AWS SigV4 (без внешних зависимостей).
-export async function r2Put(key, body, contentType, now = new Date()) {
+async function r2PutOnce(key, body, contentType, now = new Date()) {
   const host = `${env("R2_ACCOUNT_ID")}.r2.cloudflarestorage.com`;
   const path = `/${encodeURIComponent(env("R2_BUCKET"))}/${encKey(key)}`;
   const amzDate = now.toISOString().replace(/[:-]|\.\d{3}/g, ""); // YYYYMMDDTHHMMSSZ

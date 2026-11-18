@@ -15,6 +15,7 @@ import { stripPrivate } from "@/lib/privacy";
 import { getUsdGel } from "@/lib/rate";
 import { parseStart, isStop, handleSubscribeStart, handleStop } from "@/lib/chat/subscribe";
 import { tgPhotoUrl } from "@/lib/tgPhoto";
+import { storePhoto } from "@/lib/photoStore";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -281,10 +282,9 @@ async function uploadPhoto(fileId) {
   const res = await fetch(`https://api.telegram.org/file/bot${TOKEN}/${path}`);
   const raw = Buffer.from(await res.arrayBuffer());
   const buf = await watermarkBuffer(raw, { maxDim: 1600, targetKB: 200 }); // знак + сжатие, как в форме
-  const name = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}.jpg`;
-  const up = await supa.storage.from("listing-photos").upload(name, buf, { contentType: "image/jpeg", upsert: false });
-  if (up.error) return null;
-  return supa.storage.from("listing-photos").getPublicUrl(name).data.publicUrl;
+  // T-20261118-09: как форма — через photoStore (R2 WebP; без R2 — Supabase как раньше)
+  const st = await storePhoto(buf, { mime: "image/jpeg", ext: "jpg" });
+  return st ? st.url : null;
 }
 
 const STEP_ORDER = ["lang", "country", "city", "deal", "type", "complex", "address", "geo", "price", "currency", "area", "rooms", "bathrooms", "floor", "year", "about", "amenities", "no_commission", "photos", "facade", "contact", "tg"];
