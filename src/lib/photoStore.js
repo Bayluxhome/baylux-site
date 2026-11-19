@@ -110,3 +110,62 @@ export async function storePhoto(buf, kind) {
   if (up.error) return null;
   return { url: supa.storage.from("listing-photos").getPublicUrl(name).data.publicUrl };
 }
+
+// ───── T-20261119-11: чтение из R2 (HEAD объекта, список по префиксу) — для безопасного удаления оригиналов ─────
+const rfc3986 = (s) => encodeURIComponent(s).replace(/[!'()*]/g, (c) => "%" + c.charCodeAt(0).toString(16).toUpperCase());
+async function r2Signed(method, key, query = {}) {
+  const host = `${env("R2_ACCOUNT_ID")}.r2.cloudflarestorage.com`;
+  const path = `/${encodeURIComponent(env("R2_BUCKET"))}${key ? "/" + encKey(key) : ""}`;
+  const qs = Object.keys(query).sort().map((k) => `${rfc3986(k)}=${rfc3986(String(query[k]))}`).join("&");
+  const now = new Date();
+  const amzDate = now.toISOString().replace(/[:-]|\.\d{3}/g, "");
+  const day = amzDate.slice(0, 8);
+  const payloadHash = sha256hex("");
+  const headers = { host, "x-amz-content-sha256": payloadHash, "x-amz-date": amzDate };
+  const names = Object.keys(headers).sort();
+  const canonical = [method, path, qs, names.map((n) => `${n}:${headers[n]}\n`).join(""), names.join(";"), payloadHash].join("\n");
+  const scope = `${day}/auto/s3/aws4_request`;
+  const toSign = ["AWS4-HMAC-SHA256", amzDate, scope, sha256hex(canonical)].join("\n");
+  const kSign = hmac(hmac(hmac(hmac("AWS4" + env("R2_SECRET_ACCESS_KEY"), day), "auto"), "s3"), "aws4_request");
+  const sig = crypto.createHmac("sha256", kSign).update(toSign).digest("hex");
+  const auth = `AWS4-HMAC-SHA256 Credential=${env("R2_ACCESS_KEY_ID")}/${scope}, SignedHeaders=${names.join(";")}, Signature=${sig}`;
+  const { host: _h, ...send } = headers;
+  return fetch(`https://${host}${path}${qs ? "?" + qs : ""}`, { method, headers: { ...send, authorization: auth } });
+}
+
+// Размер объекта в R2 (байт) или null, если объекта нет. Временные сбои — повтор, иначе ошибка.
+export async function r2Head(key) {
+  let last;
+  for (let a = 0; a < 3; a++) {
+    if (a) await new Promise((r) => setTimeout(r, 600 * a));
+    try {
+      const res = await r2Signed("HEAD", key);
+      if (res.status === 404) return null;
+      if (!res.ok) throw new Error(`r2 ${res.status} head`);
+      return Number(res.headers.get("content-length"));
+    } catch (e) { last = e; if (!isTransientErr(e)) throw e; }
+  }
+  throw last;
+}
+
+// Все объекты R2 под префиксом → Map(ключ → размер). ListObjectsV2 по 1000.
+const xmlUnesc = (s) => s.replace(/&lt;/g, "<").replace(/&gt;/g, ">").replace(/&quot;/g, '"').replace(/&apos;/g, "'").replace(/&#(\d+);/g, (_, n) => String.fromCharCode(+n)).replace(/&amp;/g, "&");
+export async function r2List(prefix) {
+  const out = new Map();
+  let token = null;
+  for (let p = 0; p < 1000; p++) {
+    const q = { "list-type": "2", "max-keys": "1000", prefix };
+    if (token) q["continuation-token"] = token;
+    const res = await r2Signed("GET", "", q);
+    const xml = await res.text();
+    if (!res.ok) throw new Error(`r2 ${res.status} list ${xml.slice(0, 150)}`);
+    for (const m of xml.matchAll(/<Contents>([\s\S]*?)<\/Contents>/g)) {
+      const k = /<Key>([\s\S]*?)<\/Key>/.exec(m[1]); const s = /<Size>(\d+)<\/Size>/.exec(m[1]);
+      if (k) out.set(xmlUnesc(k[1]), s ? Number(s[1]) : -1);
+    }
+    const t = /<NextContinuationToken>([\s\S]*?)<\/NextContinuationToken>/.exec(xml);
+    if (!/<IsTruncated>true<\/IsTruncated>/.test(xml) || !t) break;
+    token = xmlUnesc(t[1]);
+  }
+  return out;
+}

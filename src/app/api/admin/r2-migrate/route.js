@@ -18,16 +18,22 @@
 // POST ?clearHalt=1              → снять стоп cron (halt → halt_cleared)
 // POST ?retryErrors=1[&id=<listing_id>] → ошибочные снова в работу (error → error_retried)
 // POST ?rollback=extra:<id|all>  → откат прочих таблиц (риелторы/ЖК…) по журналу status='done_extra'
+//
+// T-20261119-11 (удаление оригиналов из Supabase Storage, bucket listing-photos; условия — lib/r2Purge.js):
+// GET  ?purge=1&dry=1            → только посчитать, что будет удалено (ничего не пишет)
+// POST ?purge=1[&max=N]          → удаление пачками по бюджету времени (~180 с), курсор в photo_migration '__purge__';
+//                                   повторять, пока done:true. max — не больше N файлов за вызов (первая пачка).
 import { cookies } from "next/headers";
 import { verifySession, isSuperAdmin } from "@/lib/session";
 import { supa } from "@/lib/supabase";
 import { r2Enabled } from "@/lib/photoStore";
 import { revalidateListings } from "@/lib/cache";
 import { pickListings, tableReady, migrateBatch, scanSupaLinks } from "@/lib/r2Migrate";
+import { purgePlan, purgeBatch } from "@/lib/r2Purge";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
-export const maxDuration = 120;
+export const maxDuration = 300;
 
 const MAX_PHOTOS = 120;
 
@@ -53,6 +59,12 @@ export async function GET(req) {
     const pick = async (st, n = 50) => (await supa.from("photo_migration").select("id, listing_id, old_photos, created_at, status").eq("status", st).order("id", { ascending: false }).limit(n)).data || [];
     return Response.json({ ok: true, byStatus: by, halt: await pick("halt", 5), errors: await pick("error", 100), backup: (await supa.from("photo_migration").select("id, status, photos_count, bytes_old, old_photos").eq("listing_id", "__backup__").order("id", { ascending: false }).limit(1)).data });
   }
+  if (sp.get("purge") === "1") {
+    if (sp.get("dry") !== "1") return Response.json({ ok: false, error: "need_dry_or_post", hint: "GET ?purge=1&dry=1 — подсчёт; POST ?purge=1 — удаление" }, { status: 400 });
+    const p = await purgePlan();
+    if (p.ok) { delete p.del; delete p.pre; }
+    return Response.json({ dryRun: true, ...p }, { status: p.ok ? 200 : 409 });
+  }
   if (sp.get("scan") === "1") {
     const t = sp.get("tables"); 
     return Response.json({ ok: true, scan: await scanSupaLinks(t ? t.split(",") : undefined) });
@@ -76,6 +88,11 @@ export async function POST(req) {
   const sp = new URL(req.url).searchParams;
   if (!(await tableReady())) return Response.json({ ok: false, error: "no_table", hint: "Выполнить sql/036_photo_migration.sql" }, { status: 409 });
 
+  if (sp.get("purge") === "1") {
+    const max = Math.max(1, parseInt(sp.get("max") || "100000", 10) || 100000);
+    const r = await purgeBatch({ budgetMs: 180000, max });
+    return Response.json(r, { status: r.ok ? 200 : 409 });
+  }
   if (sp.get("clearHalt") === "1") {
     const { data, error } = await supa.from("photo_migration").update({ status: "halt_cleared" }).eq("status", "halt").select("id");
     return Response.json({ ok: !error, cleared: (data || []).length, error: error?.message });

@@ -232,7 +232,7 @@ export async function migrateExtraBatch({ budgetMs = 150000, exclude = new Set()
 // old_photos = {done: ["bucket/путь", ...последний по алфавиту в каждом bucket], files, bytes}.
 export const BACKUP_PREFIX = "backup/2026-11-18";
 
-async function listAll(bucket, prefix = "", out = []) {
+export async function listAll(bucket, prefix = "", out = []) {
   for (let off = 0; ; off += 1000) {
     const { data, error } = await supa.storage.from(bucket).list(prefix, { limit: 1000, offset: off, sortBy: { column: "name", order: "asc" } });
     if (error) throw new Error(`list ${bucket}/${prefix}: ${error.message}`);
