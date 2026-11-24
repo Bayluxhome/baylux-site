@@ -37,8 +37,9 @@ async function toB64(url) {
 
 const LZ_PROMPT = `You moderate photos for a real estate listings website. For EACH image (in order, numbered from 1) decide:
 - "nsfw": true if it shows nudity, sexual content, violence, gore, weapons aimed at people, drugs or hate symbols;
-- "property": true if it is a photo/render/floor plan of real estate (apartment or house interior, building, facade, yard, view from a window, construction site, plot of land).
-Answer ONLY with JSON: {"images":[{"i":1,"nsfw":false,"property":true}]}`;
+- "property": true if it is a photo/render/floor plan of real estate (apartment or house interior, building, facade, yard, view from a window, construction site, plot of land);
+- "wm": true if the image has a visible watermark, logo or overlaid text of ANOTHER real estate agency, developer or listings site (e.g. "Batumi Realty", "myhome.ge", "ss.ge", "korter", agency names, phone numbers or URLs printed over the photo), even semi-transparent or in a corner. The "Baylux"/"Bayluxhome" logo is OUR OWN watermark: it does NOT count (wm=false). Text that is physically part of the scene (street signs, building names on facades, TV screens) does not count.
+Answer ONLY with JSON: {"images":[{"i":1,"nsfw":false,"property":true,"wm":false}]}`;
 
 async function laozhangVerdict(list, model = LZ_MODEL) {
   const imgs = (await Promise.all(list.map((u) => toB64(u).catch(() => null)))).filter(Boolean);
@@ -63,6 +64,7 @@ async function laozhangVerdict(list, model = LZ_MODEL) {
     lastError = "";
     const reasons = new Set();
     if (arr.some((x) => x && x.nsfw === true)) reasons.add("nsfw");
+    if (arr.some((x) => x && x.wm === true)) reasons.add("foreign_wm"); // 24.11: чужой водяной знак/логотип (решение Дмитрия: на сайте быть не должно)
     const prop = arr.filter((x) => x && x.property === true).length;
     if (prop < Math.ceil(arr.length / 2)) reasons.add("not_property");
     return [...reasons];
@@ -72,7 +74,7 @@ async function laozhangVerdict(list, model = LZ_MODEL) {
   } finally { clearTimeout(tm); }
 }
 
-// Возвращает массив причин: [] — всё чисто; "nsfw" | "not_property" | "ai_error".
+// Возвращает массив причин: [] — всё чисто; "nsfw" | "not_property" | "foreign_wm" | "ai_error".
 export async function photoVerdict(photos, opts = {}) {
   const list = (Array.isArray(photos) ? photos : []).filter(Boolean).slice(0, 10);
   if (!list.length) return [];

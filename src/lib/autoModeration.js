@@ -20,6 +20,7 @@ export const REASON_RU = {
   price: "подозрительно низкая цена",
   nsfw: "⛔ на фото возможна обнажёнка/насилие",
   not_property: "фото не похожи на недвижимость",
+  foreign_wm: "на фото чужой водяной знак/логотип агентства",
   bad_text: "в тексте мат/ссылки/интим",
   ai_error: "автопроверка фото не сработала — проверьте вручную",
   repeat: "у автора уже 2+ отклонённых объявления",
@@ -57,7 +58,9 @@ export async function moderationVerdict(row, excludeId = null) {
   // 06.11: проверка содержимого (фото — Google Vision, текст — стоп-слова) и «рецидивисты».
   reasons.push(...textVerdict(row.about, row.building_name, row.complex));
   if (photos.length) reasons.push(...(await photoVerdict(photos)));
-  if (supa && (row.tg_user_id != null || row.owner_email)) {
+  // 24.11: «рецидивист» не применяется к массовой загрузке сотрудником (парсинг идёт от bayluxhome@yahoo.com,
+  // у этого адреса сотни снятых объявлений → раньше ВСЁ с парсинга уходило в pending).
+  if (supa && !row.batch_id && (row.tg_user_id != null || row.owner_email)) {
     try {
       let q = supa.from("listings").select("id", { count: "exact", head: true }).eq("status", "rejected");
       q = row.tg_user_id != null ? q.eq("tg_user_id", row.tg_user_id) : q.eq("owner_email", row.owner_email);
