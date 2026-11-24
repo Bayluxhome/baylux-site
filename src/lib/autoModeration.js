@@ -13,6 +13,8 @@ import { pickChannel, postToChannel, CH_BATUMI, CH_TBILISI } from "@/lib/tgChann
 import { revalidateListings } from "@/lib/cache";
 import { photoVerdict, textVerdict } from "@/lib/contentCheck";
 
+const BLOCKING = new Set(["nsfw", "bad_text", "repeat", "foreign_wm", "dup_photo", "dup_fields"]);
+
 export const REASON_RU = {
   dup_photo: "совпадают фото с другим объявлением",
   dup_fields: "тот же адрес, площадь, комнаты и цена",
@@ -68,7 +70,9 @@ export async function moderationVerdict(row, excludeId = null) {
       if ((count || 0) >= 2) reasons.push("repeat");
     } catch (e) { console.error("repeat check:", e?.message); }
   }
-  return { approve: reasons.length === 0, reasons };
+  // 24.11 (решение Дмитрия, вариант 1): публикацию останавливает только опасное, чужой знак и дубли.
+  // Цена, «не похоже на недвижимость», нет фото, сбой проверки — только пометка, объявление публикуется.
+  return { approve: !reasons.some((r) => BLOCKING.has(r)), reasons };
 }
 
 export const reasonsText = (reasons) => reasons.map((r) => REASON_RU[r] || r).join("; ");
