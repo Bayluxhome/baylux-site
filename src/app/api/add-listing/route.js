@@ -8,7 +8,7 @@ import { tgPhotoUrl } from "@/lib/tgPhoto";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
-export const maxDuration = 30; // 06.11: автопроверка фото (Google Vision) занимает несколько секунд
+export const maxDuration = 60; // 06.11 автопроверка фото; 24.11: LaoZhang до ~22 с
 
 const TOKEN = process.env.TELEGRAM_BOT_TOKEN;
 const ADMIN = process.env.TELEGRAM_CHAT_ID;

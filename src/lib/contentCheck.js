@@ -45,7 +45,7 @@ async function laozhangVerdict(list, model = LZ_MODEL) {
   const imgs = (await Promise.all(list.map((u) => toB64(u).catch(() => null)))).filter(Boolean);
   if (!imgs.length) { lastError = "photos not downloaded"; return ["ai_error"]; }
   const ctrl = new AbortController();
-  const tm = setTimeout(() => ctrl.abort(), 8000);
+  const tm = setTimeout(() => ctrl.abort(), 22000); // 24.11: LaoZhang отвечает ~9–12 с, 8 с обрывало каждый запрос
   try {
     const r = await fetch("https://api.laozhang.ai/v1/chat/completions", {
       method: "POST", signal: ctrl.signal,
@@ -80,10 +80,9 @@ export async function photoVerdict(photos, opts = {}) {
   if (!list.length) return [];
   if (LZ_KEY) {
     // LaoZhang иногда отвечает 500 «upstream error» — один повтор, затем резервная модель.
-    let res = await laozhangVerdict(list, opts.model || LZ_MODEL);
-    if (res.includes("ai_error") && !opts.model) res = await laozhangVerdict(list, LZ_MODEL);
-    if (res.includes("ai_error") && !opts.model) res = await laozhangVerdict(list, "gpt-4o-mini");
-    return res;
+    // 24.11: одна попытка (~10 с). Повторы и gpt-4o-mini убраны: каждая ~25 с и в 10 раз дороже,
+    // а вызовы из add-listing/bulk-listing выходили за лимит времени функции. Сбой → ai_error → объявление ждёт.
+    return await laozhangVerdict(list, opts.model || LZ_MODEL);
   }
   if (!KEY) { lastError = "no key"; return ["ai_error"]; }
   try {

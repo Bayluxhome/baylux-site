@@ -19,6 +19,7 @@ import { storePhoto } from "@/lib/photoStore";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
+export const maxDuration = 60; // 24.11: проверка фото LaoZhang до ~22 с
 
 const TOKEN = process.env.TELEGRAM_BOT_TOKEN;
 const ADMIN = process.env.TELEGRAM_CHAT_ID; // чат CEO для модерации
