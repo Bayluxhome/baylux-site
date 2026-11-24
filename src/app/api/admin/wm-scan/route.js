@@ -1,6 +1,6 @@
 // 24.11.2026: разовая чистка чужих водяных знаков (решение Дмитрия 24.11 17:42).
 // Только модераторы (право «moderate»). Ничего не удаляет.
-// GET  ?offset=0&limit=12 — проверить одобренные объявления (по 2 первых фото, сортировка по дате создания),
+// GET  ?offset=0&limit=12 — проверить одобренные объявления (до 10 фото; ?last=N — N самых свежих),
 //      ответ: { checked, next, total, found:[{id, building_name, price, source, reasons}] }. Статусы НЕ меняются.
 // GET  ?mode=dups — группы дублей среди одобренных: одинаковые фото (strong) или адрес+комнаты+площадь ±1 (probable).
 //      В группе оставляем по старшинству: собственник/агент сам/команда > партнёр > парсинг; при равенстве — свежее.
@@ -33,13 +33,13 @@ export async function GET(req) {
   const limit = Math.min(30, Math.max(1, parseInt(u.searchParams.get("limit") || "12", 10) || 12));
   const { data: rows, error, count } = await supa.from("listings")
     .select("id, building_name, price, source_url, photos", { count: "exact" })
-    .eq("status", "approved").order("created_at", { ascending: true }).range(offset, offset + limit - 1);
+    .eq("status", "approved").order("created_at", { ascending: u.searchParams.get("last") ? false : true }).range(offset, offset + limit - 1);
   if (error) return Response.json({ ok: false, error: error.message });
   const found = [], errors = [];
   const list = rows || [];
   for (let i = 0; i < list.length; i += 4) {
     await Promise.all(list.slice(i, i + 4).map(async (r) => {
-      const photos = (Array.isArray(r.photos) ? r.photos : []).filter(Boolean).slice(0, 2);
+      const photos = (Array.isArray(r.photos) ? r.photos : []).filter(Boolean).slice(0, 10); // все фото: знак бывает на 3-м
       if (!photos.length) return;
       const reasons = await photoVerdict(photos);
       if (reasons.includes("foreign_wm")) found.push({ id: r.id, building_name: r.building_name, price: r.price, source_url: r.source_url, reasons });

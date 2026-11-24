@@ -5,7 +5,7 @@
 // иначе Google Vision (GOOGLE_VISION_API_KEY / GOOGLE_TRANSLATE_API_KEY).
 const KEY = process.env.GOOGLE_VISION_API_KEY || process.env.GOOGLE_TRANSLATE_API_KEY;
 const LZ_KEY = process.env.LAOZHANG_API_KEY;
-const LZ_MODEL = process.env.LAOZHANG_MODERATION_MODEL || "gemini-2.5-flash-lite"; // 06.11: ~3 с на проверку
+const LZ_MODEL = (process.env.LAOZHANG_MODERATION_MODEL && process.env.LAOZHANG_MODERATION_MODEL !== "gemini-2.5-flash-lite") ? process.env.LAOZHANG_MODERATION_MODEL : "gemini-3.1-flash-lite"; // 24.11: 2.5-flash-lite снята в LaoZhang (404)
 let lastError = "";
 export const contentCheckInfo = () => ({ provider: LZ_KEY ? "laozhang:" + LZ_MODEL : KEY ? "google-vision" : "none", lastError });
 const BAD = ["LIKELY", "VERY_LIKELY"];
