@@ -13,7 +13,8 @@ import { pickChannel, postToChannel, CH_BATUMI, CH_TBILISI } from "@/lib/tgChann
 import { revalidateListings } from "@/lib/cache";
 import { photoVerdict, textVerdict } from "@/lib/contentCheck";
 
-const BLOCKING = new Set(["nsfw", "bad_text", "repeat", "foreign_wm", "dup_photo", "dup_fields"]);
+// ai_error блокирует: без работающей проверки фото не публикуем (24.11: ключ LaoZhang 401).
+const BLOCKING = new Set(["nsfw", "bad_text", "repeat", "foreign_wm", "dup_photo", "dup_fields", "ai_error"]);
 
 export const REASON_RU = {
   dup_photo: "совпадают фото с другим объявлением",
