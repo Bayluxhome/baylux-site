@@ -44,9 +44,13 @@ export async function moderationVerdict(row, excludeId = null) {
         if (data && data.length) reasons.push("dup_photo");
       }
       if (!reasons.includes("dup_photo") && row.building_name && Number(row.area) > 0) {
+        // 24.11: мягче — тот же адрес (без регистра) + комнаты + площадь ±1 м², цена может отличаться
+        // (переподача с новой ценой — тоже дубль); сравниваем только с живыми (approved/pending), не со снятыми.
+        const a = Number(row.area);
         let q = supa.from("listings").select("id")
-          .eq("building_name", row.building_name).eq("area", Number(row.area))
-          .eq("rooms", Number(row.rooms) || 0).eq("price", String(row.price || "")).limit(1);
+          .ilike("building_name", String(row.building_name).trim().replace(/[%_]/g, ""))
+          .gte("area", a - 1).lte("area", a + 1)
+          .eq("rooms", Number(row.rooms) || 0).in("status", ["approved", "pending"]).limit(1);
         if (excludeId) q = q.neq("id", excludeId);
         const { data } = await q;
         if (data && data.length) reasons.push("dup_fields");
