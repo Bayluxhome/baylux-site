@@ -38,7 +38,7 @@ async function toB64(url) {
 const LZ_PROMPT = `You moderate photos for a real estate listings website. For EACH image (in order, numbered from 1) decide:
 - "nsfw": true if it shows nudity, sexual content, violence, gore, weapons aimed at people, drugs or hate symbols;
 - "property": true if it is a photo/render/floor plan of real estate (apartment or house interior, building, facade, yard, view from a window, construction site, plot of land);
-- "wm": true if the image has a visible watermark, logo or overlaid text of ANOTHER real estate agency, developer or listings site (e.g. "Batumi Realty", "myhome.ge", "ss.ge", "korter", agency names, phone numbers or URLs printed over the photo), even semi-transparent or in a corner. The "Baylux"/"Bayluxhome" logo is OUR OWN watermark: it does NOT count (wm=false). Text that is physically part of the scene (street signs, building names on facades, TV screens) does not count.
+- "wm": true if the image has a visible watermark, logo or overlaid text of ANOTHER real estate agency, developer or listings site (e.g. "Batumi Realty", "myhome.ge", "ss.ge", "korter", agency names, phone numbers or URLs printed over the photo), even semi-transparent, small, or in a corner (CHECK ALL FOUR CORNERS AND EDGES CAREFULLY: agency logos like "Kaufman estate", "TONIRENT" are often small in the bottom corner). The "Baylux"/"Bayluxhome" logo is OUR OWN watermark: it does NOT count (wm=false). Text that is physically part of the scene (street signs, building names on facades, TV screens) does not count.
 Answer ONLY with JSON: {"images":[{"i":1,"nsfw":false,"property":true,"wm":false}]}`;
 
 async function laozhangVerdict(list, model = LZ_MODEL) {
