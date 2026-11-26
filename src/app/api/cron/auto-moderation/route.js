@@ -33,7 +33,10 @@ function authorized(req) {
 async function run(req) {
   if (!authorized(req)) return Response.json({ ok: false, error: "unauthorized" }, { status: 401 });
   if (!supa) return Response.json({ ok: false, error: "not_configured" });
-  const mode = process.env.AUTO_MOD_MODE === "on" ? "on" : "shadow";
+  // 26.11 (решение Дмитрия 24.11 «всё публикуется сразу»): по умолчанию ВКЛ — повторно проверяет свежие pending
+  // (напр. после сбоя проверки фото) и публикует чистые. AUTO_MOD_MODE=shadow — только журнал, =off — не работает.
+  if (process.env.AUTO_MOD_MODE === "off") return Response.json({ ok: true, mode: "off" });
+  const mode = process.env.AUTO_MOD_MODE === "shadow" ? "shadow" : "on";
 
   // Есть ли журнал (sql/036_auto_mod_log.sql)?
   let hasLog = true;
@@ -55,11 +58,11 @@ async function run(req) {
 
   const results = [];
   for (const row of todo) {
-    let reasons = [];
-    try { reasons = (await moderationVerdict(row, row.id)).reasons; } catch (e) { reasons = ["ai_error"]; }
+    let reasons = [], approve = false;
+    try { const v = await moderationVerdict(row, row.id); reasons = v.reasons; approve = v.approve; } catch (e) { reasons = ["ai_error"]; }
     const ai = await reviewListingText(row);
     const allReasons = [...reasons, ...ai.flags.map((f) => "ИИ: " + aiFlagsText([f]))];
-    const clean = allReasons.length === 0;
+    const clean = approve && ai.flags.length === 0; // 24.11 вариант 1: держат только блокирующие причины
     let decision = clean ? (mode === "on" ? "publish" : "would_publish") : "disputed";
     if (decision === "publish") {
       // Публикуем только если объявление всё ещё pending (его мог успеть разобрать человек).

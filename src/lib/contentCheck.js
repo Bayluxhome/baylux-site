@@ -82,7 +82,12 @@ export async function photoVerdict(photos, opts = {}) {
     // LaoZhang иногда отвечает 500 «upstream error» — один повтор, затем резервная модель.
     // 24.11: одна попытка (~10 с). Повторы и gpt-4o-mini убраны: каждая ~25 с и в 10 раз дороже,
     // а вызовы из add-listing/bulk-listing выходили за лимит времени функции. Сбой → ai_error → объявление ждёт.
-    return await laozhangVerdict(list, opts.model || LZ_MODEL);
+    // 26.11: 10 фото одним запросом не укладывались в 22 с → ai_error → объявление висело в pending.
+    // Проверяем до 5 фото; при сбое — повтор на первых 2 (быстро).
+    const first = list.slice(0, 5);
+    let res = await laozhangVerdict(first, opts.model || LZ_MODEL);
+    if (res.includes("ai_error") && !opts.model) res = await laozhangVerdict(list.slice(0, 2), LZ_MODEL);
+    return res;
   }
   if (!KEY) { lastError = "no key"; return ["ai_error"]; }
   try {
