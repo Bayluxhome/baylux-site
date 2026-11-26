@@ -88,6 +88,12 @@ function groupRows(rows) {
     else if ((!b.image || b.image === "/placeholder-baylux.jpg") && r.photos && r.photos[0]) b.image = r.photos[0];
     const boost = parseInt(r.boost, 10) || 0;
     if (boost > (b.boost || 0)) b.boost = boost;
+    // 26.11 (Дмитрий): порядок в выдаче — наши объекты (вручную/в управлении) > собственники сами > партнёры > парсинг.
+    const bxMail = /^bayluxhome@/i.test(String(r.owner_email || ""));
+    const tier = r.managed_by_baylux ? 4
+      : (!r.batch_id && !r.source_url) ? (bxMail ? 4 : (r.seller_type === "agent" ? 2 : 3))
+      : (r.owner_email && !bxMail ? 2 : 1);
+    if (tier > (b.tier || 0)) b.tier = tier;
     if (r.complex && !b.complex) b.complex = r.complex;
     // slug объявления должен быть уникальным на всём сайте. Раньше «адрес-тип-цена» совпадал у
     // разных объявлений (63 совпадения на 02.10.2026: «vake-kvartira-900» ×3 и т.п.) — карточка
@@ -289,6 +295,8 @@ function interleaveByCity(list) {
   const boosted = list.filter((b) => (b.boost || 0) > 0).sort((a, b) => (b.boost || 0) - (a.boost || 0));
   const rest = list.filter((b) => !(b.boost > 0));
   const buckets = new Map();
+  // 26.11: внутри города — сначала по старшинству источника (tier), внутри — прежний порядок «новые вперёд» (sort стабильный).
+  rest.sort((a, b) => (b.tier || 1) - (a.tier || 1));
   for (const b of rest) {
     const k = cityBucket(b);
     if (!buckets.has(k)) buckets.set(k, []);
