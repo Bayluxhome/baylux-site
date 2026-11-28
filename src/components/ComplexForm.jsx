@@ -186,8 +186,9 @@ export default function ComplexForm({ initial, realtors = [], cities = [] }) {
       </div>
 
       {id ? (
-        <div style={box}>
-          {h(`Планировки и квартиры · ${units.length}`)}
+        // 28.11: пустой блок планировок свёрнут (ни у одного ЖК планировок нет); раскрывается кликом.
+        <details style={box} open={units.length > 0}>
+          <summary style={{ cursor: "pointer", fontWeight: 700, color: "var(--navy)" }}>Планировки и квартиры · {units.length}</summary>
           <div style={{ fontSize: 12, color: "var(--ink-soft)" }}>Цена — полная, в $. Комнат: 0 = студия. Изменения в строках сохраняются кнопкой «💾».</div>
           <div style={{ display: "grid", gap: 6 }}>
             <div style={{ display: "grid", gridTemplateColumns: "1.4fr .6fr .8fr 1fr .8fr auto auto", gap: 6, fontSize: 12, color: "var(--ink-soft)", fontWeight: 600 }}>
@@ -217,7 +218,7 @@ export default function ComplexForm({ initial, realtors = [], cities = [] }) {
               <button type="button" className="btn btn-gold" style={{ padding: "6px 10px", fontSize: 12 }} onClick={addUnit}>＋ Добавить</button>
             </div>
           </div>
-        </div>
+        </details>
       ) : (
         <div style={{ fontSize: 13, color: "var(--ink-soft)" }}>Планировки и квартиры можно добавить после создания ЖК.</div>
       )}

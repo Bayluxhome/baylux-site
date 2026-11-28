@@ -2,7 +2,9 @@ import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import { verifySession, can } from "@/lib/session";
-import { supa, fetchAll } from "@/lib/supabase";
+import { ADMIN_EMAILS } from "@/config";
+import { supa } from "@/lib/supabase";
+import { listingOwnerCounts } from "@/lib/adminListings";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Пользователи — Админ", robots: { index: false, follow: false } };
@@ -13,7 +15,10 @@ function fmt(s) {
   catch { return "—"; }
 }
 
-export default async function AdminUsersPage() {
+// «Люди» (28.11, T-20261128-02): один список — пользователи, риелторы, сотрудники; фильтр ?f=.
+const FILTERS = [["all", "Все"], ["realtors", "Риелторы"], ["staff", "Сотрудники"], ["listings", "С объявлениями"]];
+
+export default async function AdminUsersPage({ searchParams }) {
   const session = verifySession(cookies().get("bx_session")?.value);
   if (!can(session, "users")) redirect("/admin");
 
@@ -25,27 +30,39 @@ export default async function AdminUsersPage() {
     const { data: tgUsers } = await supa.from("users").select("tg_user_id, phone");
     const phoneByTg = {};
     (tgUsers || []).forEach((u) => { if (u.tg_user_id != null && u.phone) phoneByTg[String(u.tg_user_id)] = u.phone; });
-    const lst = await fetchAll("listings", "owner_email, tg_user_id"); // все строки, не первые 1000
-    const byEmail = {}, byTg = {};
-    lst.forEach((l) => {
-      if (l.owner_email) { const k = String(l.owner_email).toLowerCase(); byEmail[k] = (byEmail[k] || 0) + 1; }
-      if (l.tg_user_id != null) { const k = String(l.tg_user_id); byTg[k] = (byTg[k] || 0) + 1; }
-    });
+    const { byEmail, byTg } = await listingOwnerCounts(); // из общего кэша админки (28.11), а не отдельным чтением всех объявлений
+    // Профили риелторов — отметка «риелтор» у пользователя (связь по Telegram-id или e-mail).
+    const { data: rl } = await supa.from("realtors").select("email, tg_user_id, status");
+    const rEmail = new Set(), rTg = new Set();
+    (rl || []).forEach((r) => { if (r.status !== "approved") return; if (r.email) rEmail.add(String(r.email).toLowerCase()); if (r.tg_user_id != null) rTg.add(String(r.tg_user_id)); });
     users = users.map((u) => ({
       ...u,
+      isRealtor: (u.tg_user_id != null && rTg.has(String(u.tg_user_id))) || (!!u.email && rEmail.has(String(u.email).toLowerCase())),
+      isStaff: !!u.is_admin || (Array.isArray(u.permissions) && u.permissions.length > 0) || (!!u.email && ADMIN_EMAILS.map((e) => e.toLowerCase()).includes(String(u.email).toLowerCase())),
       phone: u.phone || (u.tg_user_id != null ? phoneByTg[String(u.tg_user_id)] : "") || "",
       listings: u.tg_user_id != null ? (byTg[String(u.tg_user_id)] || 0) : (byEmail[String(u.email || "").toLowerCase()] || 0),
     }));
   }
+
+  const f = FILTERS.some(([k]) => k === searchParams?.f) ? searchParams.f : "all";
+  const totalAll = users.length;
+  const cnt = { all: users.length, realtors: users.filter((u) => u.isRealtor).length, staff: users.filter((u) => u.isStaff).length, listings: users.filter((u) => u.listings > 0).length };
+  if (f === "realtors") users = users.filter((u) => u.isRealtor);
+  else if (f === "staff") users = users.filter((u) => u.isStaff);
+  else if (f === "listings") users = users.filter((u) => u.listings > 0);
 
   const th = { padding: "10px 12px", whiteSpace: "nowrap" };
   const td = { padding: "10px 12px", borderTop: "1px solid var(--line)" };
 
   return (
     <div className="wrap" style={{ paddingBlock: "30px 50px" }}>
-      <div className="crumbs"><Link href="/admin">← Админ-панель</Link></div>
-      <h1 style={{ color: "var(--navy)", marginTop: 8 }}>Пользователи</h1>
-      <p style={{ color: "var(--ink-soft)", margin: "6px 0 20px" }}>Всего {users.length}</p>
+      <h1 style={{ color: "var(--navy)", marginTop: 8 }}>Люди</h1>
+      <p style={{ color: "var(--ink-soft)", margin: "6px 0 12px" }}>Всего {totalAll}{f !== "all" ? ` · показано ${users.length}` : ""}</p>
+      <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginBottom: 18 }}>
+        {FILTERS.map(([k, label]) => (
+          <Link key={k} href={k === "all" ? "/admin/users" : `/admin/users?f=${k}`} className={k === f ? "btn btn-navy" : "btn btn-ghost"} style={{ padding: "7px 14px" }}>{label} · {cnt[k]}</Link>
+        ))}
+      </div>
       {users.length === 0 ? (
         <p style={{ color: "var(--ink-soft)" }}>Пока нет записей. Новые входы (по email и Telegram) будут появляться здесь автоматически.</p>
       ) : (
@@ -65,7 +82,7 @@ export default async function AdminUsersPage() {
               {users.map((u) => (
                 <tr key={u.id}>
                   <td style={td}>{u.email ? `✉️ ${u.email}` : u.username ? `✈️ @${u.username}` : (u.tg_user_id ? `✈️ tg:${u.tg_user_id}` : "—")}</td>
-                  <td style={td}>{u.name || "—"}</td>
+                  <td style={td}>{u.name || "—"}{u.isStaff ? <span className="cab-tag" style={{ marginLeft: 6 }}>сотрудник</span> : null}{u.isRealtor ? <span className="cab-tag cab-tag-soft" style={{ marginLeft: 6 }}>риелтор</span> : null}</td>
                   <td style={td}>{u.phone || "—"}</td>
                   <td style={td}>{u.listings}</td>
                   <td style={{ ...td, whiteSpace: "nowrap" }}>{fmt(u.created_at)}</td>

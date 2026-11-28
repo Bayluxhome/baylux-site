@@ -3,6 +3,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useLang } from "@/components/LangContext";
 import MyListings from "@/components/MyListings";
 import ManagedPanel from "@/components/ManagedPanel";
+import { SHOW_MANAGED } from "@/config";
 import PropertyListFilters from "@/components/PropertyListFilters";
 import { EMPTY_FILTERS, matchListing, sanitizeFilters, filtersFromSearch, writeFiltersToUrl } from "@/lib/listingFilter";
 
@@ -25,10 +26,11 @@ export default function CabinetTabs({ listings, managed, adminView }) {
   const managedShown = useMemo(() => managed.filter((x) => matchListing(x, flt)), [managed, flt]);
   const [mineCount, setMineCount] = useState(null);
 
+  // Вкладка «в управлении» скрыта из меню (config SHOW_MANAGED); видна только при переходе по ?tab=managed.
   const TABS = [
     ["mine", t("cab_tab_mine"), listings.length],
     ["managed", t("cab_tab_managed"), managed.length],
-  ];
+  ].filter(([k]) => k !== "managed" || SHOW_MANAGED || tab === "managed");
 
   return (
     <div>

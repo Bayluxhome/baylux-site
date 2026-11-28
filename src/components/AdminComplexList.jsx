@@ -50,7 +50,7 @@ export default function AdminComplexList({ items }) {
                   {KIND[c.kind] || c.kind} · {c.city}{c.district ? `, ${c.district}` : ""}
                   {c.price_from ? ` · от $${c.price_from}/м²` : " · цена не указана"}
                   {c.completed ? " · сдан" : c.completion_year ? ` · сдача ${c.completion_year}` : ""}
-                  {` · планировок: ${c.unitsCount}`}
+                  {c.unitsCount > 0 ? ` · планировок: ${c.unitsCount}` : ""}
                 </div>
               </div>
               <div style={{ display: "flex", gap: 6, flexWrap: "wrap", justifyContent: "flex-end" }}>

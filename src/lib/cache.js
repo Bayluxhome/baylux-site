@@ -7,6 +7,7 @@
 import { revalidatePath, revalidateTag } from "next/cache";
 import { invalidateBuildings } from "@/data/source";
 import { invalidateRealtors } from "@/data/realtors";
+import { invalidateAdminListings } from "@/lib/adminListings";
 
 // После изменения профиля/статуса риелтора — сброс его кэша (data/realtors.js, TTL 5 мин).
 export function revalidateRealtors() {
@@ -15,6 +16,7 @@ export function revalidateRealtors() {
 
 export function revalidateListings() {
   try { invalidateBuildings(); } catch (e) { console.error("invalidate buildings:", e?.message); }
+  try { invalidateAdminListings(); } catch (e) { console.error("invalidate admin listings:", e?.message); }
   try { revalidatePath("/"); } catch (e) { console.error("revalidate home:", e?.message); }
   try { revalidateTag("city-counts"); } catch (e) { console.error("revalidate counts:", e?.message); }
 }

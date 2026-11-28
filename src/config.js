@@ -94,3 +94,7 @@ export function channelForCity(city) {
 // В коде не храним: GitHub push protection блокирует токены Mapbox даже публичные.
 export const MAPBOX_TOKEN = process.env.NEXT_PUBLIC_MAPBOX_TOKEN || "";
 
+// «Объекты в управлении» и «Импорт сводки» скрыты из меню кабинета (решение Дмитрия 28.11.2026:
+// управлением пока не занимаемся, до ~марта 2027). Код не удалён: разделы открываются из
+// «Админка → Сервис» и по прямой ссылке /my/objects?tab=managed. Вернуть в меню — поставить true.
+export const SHOW_MANAGED = false;

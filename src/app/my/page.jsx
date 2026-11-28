@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { cookies } from "next/headers";
 import { verifySession } from "@/lib/session";
+import { SHOW_MANAGED } from "@/config";
 import LoginBlock from "@/components/LoginBlock";
 import CabinetDashboard from "@/components/CabinetDashboard";
 import { loadCabinet } from "@/data/cabinetLoad";
@@ -52,7 +53,7 @@ export default async function MyPage({ searchParams }) {
         <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
           <Link className="btn btn-gold" href="/add-holiday">🏠 {t("cab_hh_btn")}</Link>
           <Link className="btn btn-ghost" href="/my/bulk">{t("cab_bulk")}</Link>
-          {(d.canMng || d.managedItems.length > 0) && <Link className="btn btn-ghost" href="/admin/reports">📊 {t("adm_reports_btn")}</Link>}
+          {SHOW_MANAGED && (d.canMng || d.managedItems.length > 0) && <Link className="btn btn-ghost" href="/admin/reports">📊 {t("adm_reports_btn")}</Link>}
         </div>
       </div>
 

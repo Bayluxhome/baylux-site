@@ -1,9 +1,11 @@
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
-import Link from "next/link";
 import { verifySession, can } from "@/lib/session";
 import { fetchAll } from "@/lib/supabase";
 import { PHONE } from "@/config";
+import { getLang } from "@/lib/serverLang";
+import { t as tr } from "@/lib/dict";
+import { leadKind, isTestLead, LEAD_KINDS } from "@/lib/leadKind";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Аналитика — Админ", robots: { index: false, follow: false } };
@@ -37,19 +39,23 @@ export default async function AdminAnalyticsPage({ searchParams }) {
 
   // Каждый запрос — отдельно: если какой-то таблицы нет, остальные цифры всё равно покажем.
   const safe = (p) => p.catch(() => []);
-  const [users, realtors, listings, leads, visits, views] = await Promise.all([
+  const [users, realtors, listings, leadsAll, visits, views] = await Promise.all([
     safe(fetchAll("site_users", "id, email, tg_user_id, username, name, created_at, last_login", (q) => q.gte("created_at", sinceIso).order("created_at", { ascending: false }))),
     safe(fetchAll("realtors", "*", gte("created_at"))),
     safe(fetchAll("listings", "id, created_at, status, deal, district, contact, phone, owner_email, tg_user_id", gte("created_at"))),
-    safe(fetchAll("leads", "id, created_at, type, source, status", gte("created_at"))),
+    safe(fetchAll("leads", "id, created_at, type, type_key, source, status, name, comment", gte("created_at"))),
     safe(fetchAll("site_visits", "visited_at, session_id, referrer, utm_source, device_type", gte("visited_at"))),
     safe(fetchAll("listing_views", "day, views", (q) => q.gte("day", sinceIso.slice(0, 10)))),
   ]);
   const activeUsers = await safe(fetchAll("site_users", "id", (q) => q.gte("last_login", sinceIso)));
 
+  // Заявки: тестовые (проверки, «ТЕСТ …») в цифры не входят, показываем их числом отдельно.
+  const leads = leadsAll.filter((l) => !isTestLead(l));
+  const leadsTest = leadsAll.length - leads.length;
+  const lang = getLang();
+
   const ownListings = listings.filter((l) => !isAgency(l));
   const parsedListings = listings.filter(isAgency);
-  const sessions = new Set(visits.map((v) => v.session_id).filter(Boolean));
   const viewsTotal = views.reduce((s, r) => s + (Number(r.views) || 0), 0);
 
   // По дням: регистрации, объявления риелторов/собственников, заявки, визиты.
@@ -60,7 +66,10 @@ export default async function AdminAnalyticsPage({ searchParams }) {
 
   const sources = count(visits, (v) => v.utm_source || host(v.referrer) || "прямой заход").slice(0, 10);
   const devices = count(visits, (v) => v.device_type);
-  const leadTypes = count(leads, (l) => l.type);
+  // Типы заявок — единый список (аренда / продажа / посуточно / другое), а не подписи на языке посетителя.
+  const kindCount = {};
+  leads.forEach((l) => { const k = leadKind(l); kindCount[k] = (kindCount[k] || 0) + 1; });
+  const leadTypes = LEAD_KINDS.filter((k) => kindCount[k]).map((k) => [tr(lang, "lk_" + k), kindCount[k]]);
   const listingCities = count(ownListings, (l) => l.district).slice(0, 8);
 
   const card = { background: "#fff", border: "1px solid var(--line)", borderRadius: 12, padding: "16px 18px" };
@@ -86,7 +95,6 @@ export default async function AdminAnalyticsPage({ searchParams }) {
 
   return (
     <div className="wrap" style={{ paddingBlock: "30px 50px" }}>
-      <div className="crumbs"><Link href="/admin">← Админ-панель</Link></div>
       <h1 style={{ color: "var(--navy)", marginTop: 8 }}>Аналитика</h1>
       <div style={{ display: "flex", gap: 8, margin: "10px 0 20px", flexWrap: "wrap", alignItems: "center" }}>
         {PERIODS.map((p) => (
@@ -101,8 +109,8 @@ export default async function AdminAnalyticsPage({ searchParams }) {
         {kpi("Новые риелторы", realtors.length, `${realtors.filter((r) => r.status === "approved").length} одобрено`)}
         {kpi("Объявления от людей", ownListings.length, "риелторы и собственники")}
         {kpi("Объявления парсера", parsedListings.length, "из Telegram-групп")}
-        {kpi("Заявки", leads.length, `${leads.filter((l) => l.status === "new").length} ещё новые`)}
-        {kpi("Визиты", visits.length, `${sessions.size} сессий`)}
+        {kpi("Заявки", leads.length, `${leads.filter((l) => l.status === "new").length} ещё новые${leadsTest ? ` · тестовых ${leadsTest} (не в счёте)` : ""}`)}
+        {kpi("Визиты", visits.length, `в среднем ${(visits.length / days).toFixed(1)} в день`)}
         {kpi("Просмотры объектов", viewsTotal, "карточки объявлений")}
       </div>
 
@@ -141,7 +149,7 @@ export default async function AdminAnalyticsPage({ searchParams }) {
         </div>
       )}
       <p style={{ color: "var(--ink-soft)", fontSize: 12, marginTop: 14 }}>
-        Источник — база сайта. Визиты считаются с момента подключения счётчика визитов; объявления «людей» — все, где контакт не номер агентства.
+        Источник — база сайта. Визит = один заход посетителя (одна сессия браузера, сколько бы страниц он ни открыл); считаются только посетители, согласившиеся на аналитические cookies, поэтому число занижено. Просмотры объектов считаются отдельно, по каждой открытой карточке. Тестовые заявки в цифры не входят; объявления «людей» — все, где контакт не номер агентства.
       </p>
     </div>
   );
